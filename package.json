@@ -1,0 +1,17 @@
+{
+  "name": "hilcoe-rms",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "api:dev": "npm run dev --prefix API",
+    "api:start": "npm start --prefix API",
+    "api:seed": "npm run seed --prefix API",
+    "client:dev": "npm run dev --prefix CLIENT",
+    "client:build": "npm run build --prefix CLIENT",
+    "client:preview": "npm run preview --prefix CLIENT",
+    "dev": "concurrently \"npm:api:dev\" \"npm:client:dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

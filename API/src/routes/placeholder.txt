@@ -1,0 +1,2 @@
+Routes implemented:
+- auth.js, users.js, projects.js, milestones.js, submissions.js, reviews.js, defense.js, extensions.js, templates.js, notifications.js, reports.js
