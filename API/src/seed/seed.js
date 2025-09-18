@@ -5,7 +5,10 @@ import { User } from '../models/User.js';
 import { hashPassword } from '../utils/crypto.js';
 
 dotenv.config();
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/hilcoe_rms';
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  throw new Error('Set MONGO_URI in your environment before running the seed script');
+}
 
 async function main() {
   await mongoose.connect(MONGO_URI);
@@ -48,4 +51,3 @@ main().catch(err => {
   console.error('Seeding error:', err);
   process.exit(1);
 });
-

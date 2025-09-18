@@ -7,6 +7,14 @@ export const authController = {
       res.json(result);
     } catch (e) { res.status(400).json({ error: e.message }); }
   },
+  async register(req, res) {
+    try {
+      const result = await authService.register(req.body.name, req.body.email, req.body.student_id);
+      const isProd = (process.env.NODE_ENV || 'development') === 'production';
+      if (isProd) return res.status(201).json({ id: result.id, status: result.status });
+      return res.status(201).json(result);
+    } catch (e) { res.status(400).json({ error: e.message }); }
+  },
   async me(req, res) {
     const { User } = await import('../models/User.js');
     const user = await User.findById(req.user.id).populate('role');
@@ -23,6 +31,19 @@ export const authController = {
       const result = await authService.activate(req.body.token, req.body.password);
       res.json(result);
     } catch (e) { res.status(400).json({ error: e.message }); }
+  },
+  async resetRequest(req, res) {
+    try {
+      const result = await authService.requestReset(req.body.email);
+      const isProd = (process.env.NODE_ENV || 'development') === 'production';
+      if (isProd) return res.json({ ok: true });
+      return res.json(result);
+    } catch (e) { res.status(400).json({ error: e.message }); }
+  },
+  async resetConfirm(req, res) {
+    try {
+      await authService.resetPassword(req.body.token, req.body.password);
+      res.json({ ok: true });
+    } catch (e) { res.status(400).json({ error: e.message }); }
   }
 };
-

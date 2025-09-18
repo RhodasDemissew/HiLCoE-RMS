@@ -34,6 +34,51 @@ export const authService = {
     user.status = 'active';
     await user.save();
     return { ok: true };
+  },
+  async register(name, email, student_id) {
+    const role = await roleRepo.findByName('Researcher');
+    if (!role) throw new Error('Role not configured');
+    const crypto = await import('crypto');
+    const token = crypto.randomBytes(24).toString('hex');
+    const { User } = await import('../models/User.js');
+    const lower = String(email).toLowerCase();
+    const existing = await userRepo.findByEmail(lower);
+    if (existing) throw new Error('Email already registered');
+    const user = await User.create({
+      name,
+      email: lower,
+      role: role._id,
+      status: 'pending',
+      student_id: student_id || '',
+      activation_token: token,
+      password: null,
+    });
+    return { id: user._id, status: user.status, activation_token: token };
+  },
+  async requestReset(email) {
+    const { User } = await import('../models/User.js');
+    const lower = String(email).toLowerCase();
+    const user = await User.findOne({ email: lower });
+    if (user) {
+      const crypto = await import('crypto');
+      const token = crypto.randomBytes(24).toString('hex');
+      const expires = new Date(Date.now() + 60 * 60 * 1000);
+      user.reset_token = token;
+      user.reset_expires_at = expires;
+      await user.save();
+      return { ok: true, reset_token: token, expires_at: expires.toISOString() };
+    }
+    return { ok: true };
+  },
+  async resetPassword(token, password) {
+    const { User } = await import('../models/User.js');
+    const now = new Date();
+    const user = await User.findOne({ reset_token: token, reset_expires_at: { $gt: now } });
+    if (!user) throw new Error('Invalid or expired token');
+    user.password = hashPassword(password);
+    user.reset_token = null;
+    user.reset_expires_at = null;
+    await user.save();
+    return { ok: true };
   }
 };
-
