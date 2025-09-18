@@ -39,6 +39,38 @@ export const openapi = {
             }
           }
         }
+      },
+      RegisterRequest: {
+        type: 'object',
+        required: ['name','email'],
+        properties: {
+          name: { type: 'string', minLength: 2, maxLength: 80, example: 'Test User' },
+          email: { type: 'string', format: 'email', example: 'test@hilcoe.local' },
+          student_id: { type: 'string', maxLength: 40, example: 'STU-001', nullable: true }
+        }
+      },
+      RegisterResponse: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          status: { type: 'string', enum: ['pending','active','inactive'] },
+          activation_token: { type: 'string', nullable: true }
+        }
+      },
+      ActivateRequest: {
+        type: 'object',
+        required: ['token','password'],
+        properties: { token: { type: 'string' }, password: { type: 'string', minLength: 6 } }
+      },
+      ResetRequest: {
+        type: 'object',
+        required: ['email'],
+        properties: { email: { type: 'string', format: 'email' } }
+      },
+      ResetConfirm: {
+        type: 'object',
+        required: ['token','password'],
+        properties: { token: { type: 'string', minLength: 16 }, password: { type: 'string', minLength: 8 } }
       }
     }
   },
@@ -107,6 +139,20 @@ export const openapi = {
         }
       }
     },
+    '/auth/register': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Self-register (Researcher)',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterRequest' } } }
+        },
+        responses: {
+          '201': { description: 'Registered', content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterResponse' } } } },
+          '400': { description: 'Validation error or duplicate email' }
+        }
+      }
+    },
     '/auth/me': {
       get: {
         tags: ['Auth'],
@@ -171,11 +217,33 @@ export const openapi = {
         summary: 'Activate invited user',
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { type: 'object', required: ['token','password'], properties: { token: { type: 'string' }, password: { type: 'string' } } } } }
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/ActivateRequest' } } }
         },
         responses: {
           '200': { description: 'Activated', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' } } } } } },
           '400': { description: 'Invalid token or missing fields' }
+        }
+      }
+    },
+    '/auth/reset/request': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Request password reset (always returns 200)',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ResetRequest' } } } },
+        responses: {
+          '200': { description: 'Reset requested (token returned only in development)' },
+          '400': { description: 'Validation error' }
+        }
+      }
+    },
+    '/auth/reset/confirm': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Confirm password reset',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ResetConfirm' } } } },
+        responses: {
+          '200': { description: 'Password updated', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' } } } } } },
+          '400': { description: 'Invalid or expired token' }
         }
       }
     },
@@ -418,16 +486,23 @@ export const openapi = {
     '/users': {
       get: {
         tags: ['Users'],
-        summary: 'List users',
+        summary: 'List users (Admin/Coordinator)',
         security: [{ bearerAuth: [] }],
-        responses: { '200': { description: 'Array of users' } }
+        responses: {
+          '200': { description: 'Array of users' },
+          '403': { description: 'Requires Admin or Coordinator role' }
+        }
       },
       post: {
         tags: ['Users'],
-        summary: 'Create user (inactive)',
+        summary: 'Create user (Admin only)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['name','email','roleName'], properties: { name: { type: 'string' }, email: { type: 'string', format: 'email' }, roleName: { type: 'string', enum: ['Admin','Coordinator','Advisor','Examiner','Researcher'] } } } } } },
-        responses: { '201': { description: 'Created' }, '400': { description: 'Validation error' } }
+        responses: {
+          '201': { description: 'Created' },
+          '400': { description: 'Validation error' },
+          '403': { description: 'Requires Admin role' }
+        }
       }
     }
   }

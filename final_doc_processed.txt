@@ -1,0 +1,1136 @@
+﻿
+                                        HiLCoE 
+ School of Computer Science and Technology 
+  
+ Senior Project Final Documentation 
+              HiLCoE Research Management System             	  
+ (HiLCoE-RMS) 
+   
+      Team Members     	  
+ 1.     Kirubel Esayas              	 HM8555 
+ 2.     Michael Demissew        	 CB2419              	  
+ 3.     Rhodas Demissew              RO9327             	  
+ 4.     Thomas Destalem               IG3131   	  
+                                    	  
+ Advisor: Dr. Mesfin Kifle  	  
+                                                                       Batch:DRB2102-B 
+                                                                       Due date:  
+  
+                         
+  
+  2. REQUIREMENT ANALYSIS DOCUMENT 
+ 1. Introduction 
+ The HiLCoE Research Management System (HiLCoE-RMS) is a role-based, web-based platform designed to manage the complete lifecycle of masterâ€™s research at the School of Computer Science and Technology. It replaces the current manual, email-based, and paper-dependent process with an automated workflow system that supports structured submissions, automated notifications, and institutional compliance checks. 
+ The current process relies heavily on physical documents, individual email exchanges, and in-person coordination, creating delays, repetitive administrative work, and difficulties in tracking progress or enforcing formatting and plagiarism guidelines. As a result, communication gaps occur, milestone deadlines are missed, and performance data remains scattered and inaccessible. 
+ HiLCoE-RMS digitizes the established research workflow without altering its sequence, enabling: 
+ Researchers follow a guided, deadline-driven submission process using standardized templates. 
+ Advisors to review, approve, or request modifications to submissions efficiently. 
+ Coordinators to track milestone completion, manage assignments, and perform automated precheck and plagiarism verification. 
+ This Requirements Analysis Document captures the functional and non-functional requirements, system models, and constraints identified through structured interviews with the research coordinator, analysis of institutional guidelines, and benchmarking against similar academic systems. It will serve as a living reference throughout design, development, and testing. 
+ 1.1 Purpose of the System 
+ The purpose of the HiLCoE Research Management System (HiLCoE-RMS) is to provide a role-based, automated platform that manages the complete research lifecycle for masterâ€™s research at the School of Computer Science and Technology. The system aims to reduce manual workload, improve process consistency, and ensure compliance with institutional research guidelines. 
+ The HiLCoE-RMS will: 
+ Automate repetitive coordinator tasks such as scheduling, notifications, template distribution, and document precheck. 
+ Guide Researchers through each milestone in the research process using standardized templates, clear deadlines, and automated reminders. 
+ Enable advisors to review submissions, provide feedback, and approve work efficiently. 
+ Support coordinators with real-time progress tracking, milestone status dashboards, and AI-assisted plagiarism and formatting verification. 
+ Generate automated reports on milestone completion rates, plagiarism statistics, engagement levels, and research trends for administrative decision-making. 
+ Maintain a secure repository for all research-related documents, templates, and evaluation forms. 
+ By automating the established workflow without altering its academic structure, HiLCoE-RMS ensures that all stakeholders; researchers, advisors, and coordinators  can perform their roles more efficiently while improving transparency, accountability, and academic integrity.1.2 Scope of the System 
+ The HiLCoE Research Management System (HiLCoE-RMS) will automate the management of the entire research lifecycle, from registration to final journal article submission, in accordance with HiLCoEâ€™s academic structure. The system will retain the existing process sequence but replace manual, email-based coordination with automated workflows, real-time tracking, and role-based user interfaces. 
+ In-Scope Functionalities 
+ User Role Management â€“ Role-based dashboards and permissions for researchers, advisors, coordinators, and administrators. 
+ Automated Submission &amp; Review Workflow â€“ Step-by-step submission process for synopsis, proposal, progress reports, thesis, defense scheduling, grading, and journal article. 
+ Advisor Assignment â€“ Assign advisors to researchers with a maximum limit of 10 Researchers per advisor. 
+ Automated Notifications â€“ Deadline reminders, feedback alerts, defense schedules, and milestone updates. 
+ Document Management â€“ Storage and retrieval of research documents, templates, and guidelines. 
+ Progress Tracking â€“ Visual dashboards to monitor milestone status for each Researcher. 
+ Automated Precheck &amp; Verification â€“ Formatting compliance checks and plagiarism detection integration. 
+ Extension Requests â€“ Submission and approval workflow for deadline extensions. 
+ Reports &amp; Analytics â€“ Automated generation of performance metrics, plagiarism summaries, engagement analytics, and milestone completion statistics. 
+ Out-of-Scope Functionalities 
+ Research funding and budget management. 
+ Mobile application version (web-only platform). 
+ Fully automated plagiarism enforcement without human review. 
+ Integration with external institutions or multi-department deployment. 
+ 1.3 Limitations 
+ While the HiLCoE-RMS is being designed with careful attention to quality assurance, performance, and usability, certain constraints are unavoidable in the initial release.We have incorporated measures such as stakeholder-driven requirement elicitation, iterative validation with the coordinator, and alignment with institutional research policies to ensure a reliable and effective system. However, due to the realities of available time, budget, and institutional context, the following limitations will apply: 
+ AI Scope: While AI/NLP-assisted verification will help detect plagiarism and formatting issues, it may not identify all forms of academic misconduct; manual review will remain necessary for complex cases. 
+ Institution-Specific Design: The system will be tailored to HiLCoEâ€™s specific research process and will require modifications to be used by other institutions or departments. 
+ Testing Scope: User testing will be limited to a pilot group of Researchers, advisors, and coordinators, which may not expose all edge cases or usability challenges before deployment. 
+ Platform Access: The system will be available only via modern web browsers (e.g., Chrome, Firefox, Edge) and will not include a dedicated mobile application. 
+ Security Level: Security measures will be suitable for academic environments but will not meet enterprise-level security standards. 
+ Manual Data Entry: Initial system setup, including population of user profiles and historical research records, will require manual entry. 
+ Resource Constraints: Budget and time limitations may restrict integration with advanced third-party tools or high-cost automation services. 
+ 2. Current System 
+ The current research management process at HiLCoE is carried out manually and relies heavily on email communication between researchers, advisors, and the coordinator. Each stage of the research lifecycle from registration to final journal article submission is handled as a separate, disconnected task, with no automated workflow to track progress or ensure compliance with deadlines and guidelines. 
+ While this approach follows a well-defined institutional sequence, it introduces significant administrative overhead, creates communication gaps, and makes it difficult to monitor progress effectively. Document templates and guidelines are distributed via email, milestone tracking is maintained manually, and repetitive checks such as formatting compliance are performed individually for each submission. 
+ 2.1 Workflow Overview 
+ The process currently follows these steps: 
+ Registration â€“ Researchers register for research activities. 
+ Orientation â€“ Briefing on research requirements, timelines, and guidelines. 
+ Profiling â€“ Researchers provide contact details (email, phone). Email is the primary communication method. 
+ Synopsis Scheduling &amp; Submission â€“ Coordinator schedules submission date; Researchers submit via email; coordinator provides feedback (Accept / Modify / Reject). 
+ Advisor Assignment â€“ Coordinator assigns advisors (max 10 Researchers per advisor) and sends notifications via email. 
+ Proposal Submission â€“ Researchers submit to advisor; after approval, forwarded to coordinator. 
+ Progress Report 1 Submission â€“ Sent to coordinator (copy to advisor). 
+ Progress Report 2 Submission â€“ Sent three months after Progress Report 1. 
+ Thesis Report Submission â€“ Submitted before final draft; given to coordinator (and optionally advisor) as readiness signal for evaluation. 
+ Formatting Precheck â€“ Coordinator manually checks font, margins, and formatting compliance. 
+ Examiner Assignment â€“ Coordinator assigns examiner and provides evaluation form. 
+ Defense Scheduling â€“ Examiner reviews research for 10 days; defense details are emailed to all parties. 
+ Grade Submission â€“ Examiner â†’ Coordinator â†’ Registrar; final document submitted before and after defense (with corrections if needed). 
+ Journal Article Submission â€“ Final condensed article (8â€“15 pages) submitted post-defense. 
+ Alternate Flow: 
+ Researchers who cannot meet deadlines submit an extension request form via email to the coordinator for approval. 
+ Document Templates: 
+ Templates for synopsis, proposal, progress reports, thesis, final draft, and journal article exist but are distributed manually via email. 
+  
+  
+  
+ 2.2 Challenges in the Current System 
+ From coordinator feedback and observation, the main challenges are: 
+ Communication Delays: Dependence on email makes it difficult to ensure timely responses and updates. 
+ Manual Tracking: Deadlines, submissions, and progress are monitored manually, increasing the risk of oversight. 
+ Repetitive Work: Formatting checks and template distribution are repeated for each Researcher. 
+ Lack of Plagiarism Detection: No integrated originality verification, requiring separate manual checks. 
+ Data Fragmentation: Research-related data and documents are scattered across multiple email threads and personal storage. 
+ 2.3 Business rule 
+ 1. Account Activation  
+ Only verified researchers and advisors can activate accounts. 
+ 2. Advisor Assignment 
+  A researcher must be assigned exactly one advisor before submitting a proposal. 
+ Advisors can supervise a maximum of 10 researchers per semester. 
+ 3. Proposal Submission 
+ The proposal must be approved by the assigned advisor before it is reviewed by the  coordinator.  
+ 4. Thesis Submission 
+ Plagiarism check must return a score below threshold before submission. 
+ 5. Document Templates 
+ All submissions must adhere to the structure defined in their respective template documents. 
+ 6. Document submission 
+  Submissions are only permitted during the designated submission period. 
+  
+ 3. Proposed System 
+ The proposed HiLCoE Research Management System (HiLCoE-RMS) is designed as a role-based, automated workflow platform to address the challenges identified in the current research management process.By leveraging automation, real-time tracking, and built-in verification tools, the system will replace the manual, email-dependent workflow with a streamlined process that preserves the existing academic structure while improving efficiency and transparency. 
+ The systemâ€™s design is based on the findings from stakeholder interviews, institutional research policies, and benchmarking with similar academic systems. It prioritizes: 
+ Reducing repetitive tasks for the coordinator. 
+ Improving communication between Researchers, advisors, and coordinators. 
+ Ensuring timely feedback and milestone completion. 
+ Enforcing compliance with templates, formatting standards, and plagiarism guidelines. 
+ Providing institutional analytics for better decision-making. 
+  
+ 3.1 Overview 
+ The HiLCoE-RMS will guide Researchers, advisors, and coordinators through each stage of the research lifecycle while automating routine tasks and reducing administrative overhead. 
+ Key improvements include: 
+ Automated workflows for all research milestones; from registration to journal article submission. 
+ Role-specific dashboards for Researchers, advisors, coordinators, and administrators. 
+ Integrated submission and review process with built-in feedback statuses (Accept / Modify / Reject). 
+ Automatic notifications for deadlines, approvals, and defense schedules. 
+ Document repository for storing templates, submissions, and evaluation forms. 
+ AI/NLP-assisted verification for plagiarism detection and formatting compliance. 
+ Analytics and reporting on milestone completion, engagement levels, and plagiarism statistics. 
+ Request management for extensions, approvals, and scheduling changes. 
+ By automating repetitive tasks and providing real-time tracking, the HiLCoE-RMS will ensure more efficient research management, reduce delays, and improve transparency between all stakeholders. 
+  
+ 3.2 Actor Identification 
+  
+ Actor Name 
+ Role 
+ Description 
+ Researcher 
+ End User 
+ Graduate Researcher eligible and registered for the course. 
+ Advisor 
+ End User 
+ Faculty members who are assigned to supervise Researchers. 
+ Coordinator 
+ Admin 
+ Faculty member who oversees RMS operation. 
+ Examiner 
+ End User 
+ Expert who evaluates the research. 
+  
+  
+ 3.3 Functional Requirements 
+ The functional requirements define what the HiLCoE-RMS will do to meet the needs identified during the requirement elicitation phase. These requirements are based on: 
+ Structured interviews with the research coordinator. 
+ Analysis of the current manual and email-based workflow. 
+ Institutional research guidelines. 
+ Observed pain points such as repetitive formatting checks, communication delays, and difficulty tracking milestone progress. 
+ The system shall: 
+ ID 
+ Requirement 
+ FR1 
+ Allow Researchers to register for research activities and create a profile with contact details. 
+ FR2 
+ Allow the coordinator to schedule synopsis submission dates for researchers. 
+ FR3 
+ Allow researchers to submit research documents (synopsis, proposal, progress reports, thesis, journal article) through an online interface. 
+ FR4 
+ Enable advisors to review submissions. 
+ FR5 
+ Enable coordinator to review submissions. 
+ FR6 
+ Enable advisors to provide feedback. 
+ FR7 
+ Enable coordinator to provide feedback. 
+ FR8 
+ Allow the coordinator to assign advisors to researchers, with a maximum limit of 10 researchers per advisor. 
+ FR9 
+ Allow coordinator to automatically send notifications to researchers, advisors, and examiners for upcoming deadlines, feedback availability, defense schedules, and other relevant events. 
+ FR10 
+ Allows researchers to download available standardized document templates (synopsis, proposal, progress reports, thesis, journal article). 
+ FR11 
+ Allow coordinator to track the progress of each researcherâ€™s research milestones in a visual dashboard. 
+ FR12 
+ Allow advisors to track  the progress of each researcherâ€™s research milestones in a visual dashboard. 
+ FR13 
+ Allow researchers to submit extension requests. 
+ FR14 
+ Allows coordinator to perform automated formatting checks for compliance with institutional standards (font, margin, spacing, etc.). 
+ FR15 
+ Allow coordinator to detect plagiarism. 
+ FR16 
+ Allow the coordinator to assign examiners for research. 
+ FR17 
+ Allow examiners to submit grades to the coordinator.  
+ FR18 
+ Allow coordinators to submit grades received from examiner to registrar. 
+ FR19 
+ Allow coordinator to download performance analytics. 
+ FR20 
+ Allow advisors to download performance analytics 
+ FR21 
+ Allow administrators to manage user accounts, roles, and permissions. 
+  
+  
+ 3.4 Non-Functional Requirements 
+ The non-functional requirements define how the HiLCoE-RMS should operate to ensure usability, performance, security, and reliability. They are based on: 
+ Constraints identified during requirement elicitation. 
+ System limitations documented in Section 1.3. 
+ Best practices for academic workflow automation platforms. 
+ The system shall: 
+ ID 
+ Requirement 
+ Category 
+ NFR1 
+ Provide role-based access control so that users can only access features and data relevant to their role (Researcher, advisor, coordinator, admin). 
+ Security 
+ NFR2 
+ Store all research documents securely, with access restricted by user roles and protected from unauthorized access. 
+ Security 
+ NFR3 
+ Respond to user actions within 3 seconds under normal load conditions. 
+ Performance 
+ NFR4 
+ Support at most 200 concurrent users without significant performance degradation. 
+ Performance 
+ NFR5 
+ Be accessible through modern web browsers (Chrome, Firefox, Edge) without requiring additional plugins. 
+ Compatibility 
+ NFR6 
+ Have an intuitive user interface that requires minimal training for first-time users. 
+ Usability 
+ NFR7 
+ Provide clear error messages and feedback to guide users in resolving issues (e.g., incorrect document format). 
+ Usability 
+ NFR8 
+ Log all user actions (submissions, feedback, approvals) for audit purposes. 
+ Auditability 
+ NFR9 
+ Automatically back up all system data at least once every 24 hours. 
+ AV 
+ NFR10 
+ Maintain an uptime of at least 99% during working hours (8 AM â€“ 8 PM). 
+ Reliability 
+ NFR11 
+ Generate plagiarism reports within 2 minutes for documents under 10 MB. 
+ Performance 
+ NFR12 
+ Be designed for scalability to allow addition of new modules (e.g., funding management) without major architectural changes. 
+ Scalability 
+ NFR13 
+ Store and process all data in compliance with HiLCoEâ€™s data protection policies. 
+ Security/Compliance 
+  
+ 3.5 System Model 
+ In order to look at the workflows, different types of scenarios have to be analyzed. A system should be able to support all possible scenarios. Below an overview of these possible scenarios is given. 
+ 3.5.1 SCENARIO 
+ Scenario Name: User Login 
+ Participating Actors: Researcher, Advisor, Coordinator, Administrator 
+ Flow of Event: 
+ The system displays the homepage with a â€œLoginâ€ link. 
+ The user clicks the â€œLoginâ€ link. 
+ The system displays the login page. 
+ The user enters their username and password. 
+ The user clicks the â€œLoginâ€ button. 
+ The system validates the username and password. 
+ If correct, the system displays the userâ€™s role-based dashboard. 
+ If incorrect, the system displays an error message and redirects to the login page. 
+ Scenario Name: Researcher Registration  
+ Participating Actors: Researcher, Coordinator 
+ Flow of Event: 
+ The Researcher logs into the system using their provided credentials. 
+ The system displays the Researcher dashboard. 
+ The Researcher clicks on â€œResearch Registration.â€ 
+ The system displays the registration form. 
+ The Researcher fills in personal details, program information, and contact details. 
+ The Researcher submits the form. 
+ The system validates the entered data. 
+ The system stores the data in the database and marks the Researcher as â€œRegistered.â€ 
+ The coordinator receives a notification of the new registration. 
+ Scenario Name: Synopsis Scheduling  
+ Participating Actors: Coordinator, Researcher. 
+ Flow of Event: 
+  	 1.The coordinator logs into the Research Management System (RMS). 
+ 2. The coordinator navigates to the â€œSchedule Synopsis Submissionâ€ section. 
+ 3. The system displays the scheduling form. 
+ 4. The coordinator selects one or more researchers and sets a submission date. 
+ 5. The system stores the schedule and sends notifications to the selected Researchers with the scheduled date and instructions. 
+ Scenario Name : Synopsis Submission  
+ Participating Actors: Researcher and Coordinator 
+ Flow of Events: 
+ 1. The Researcher logs into the system after receiving the schedule notification. 
+ 2. The Researcher clicks â€œSubmit Synopsis.â€ 
+ 3. The system displays the synopsis submission form and relevant guidelines. 
+ 4. The Researcher uploads the synopsis file and clicks â€œSubmit.â€ 
+ 5. The system validates the file type (e.g., PDF/DOCX), size limits, and required fields. 
+ 6. If validation passes, the system stores the file and updates its status to â€œUnder Review.â€ 
+ 7. The coordinator logs in and reviews the submitted synopsis. 
+ 8. The coordinator selects one of the following actions: Accept, Request Modification, or Reject. 
+ 9. The system updates the synopsis status accordingly and notifies the Researcher of the decision. 
+  
+ Scenario Name: Advisor Assignment 
+ Participating Actors: Coordinator 
+ Flow of Event: 
+ The coordinator logs into the system. 
+ The coordinator navigates to â€œAssign Advisors.â€ 
+ The system displays a list of unassigned Researchers and available advisors. 
+ The coordinator selects a Researcher and assigns an advisor (max limit of 10 Researchers per advisor). 
+ The system stores the assignment in the database. 
+ The system notifies both the Researcher and advisor of the assignment. 
+  
+ Scenario Name: Proposal Submission 
+ Participating Actors: Researcher 
+ Flow of Events: 
+ 1. The Researcher logs into the Research Management System (RMS). 
+ 2. The Researcher clicks the â€œSubmit Proposalâ€ button. 
+ 3. The system displays the proposal submission form along with relevant guidelines. 
+ 4. The Researcher uploads the proposal file and clicks â€œSubmit.â€ 
+ 5. The system validates the uploaded file for format (e.g., PDF or DOCX), size limits, and completeness of required fields. 
+ 6. If validation passes, the system stores the proposal and links it to the Researcherâ€™s profile. 
+ 7. The system sends a notification to the assigned advisor, informing them of the new submission. 
+ Scenario Name: Proposal Approval 
+ Participating Actors: Advisor, Coordinator and Researcher 
+ Flow of Events: 
+ 1. The advisor receives a notification about the new proposal and logs into the system. 
+ 2. The advisor opens the proposal and reviews its contents. 
+ 3. The advisor selects either â€œApproveâ€ or â€œRequest Modification.â€ 
+ 4. If â€œRequest Modificationâ€ is selected, the system sends the Researcher a notification with the advisorâ€™s comments and feedback. 
+ 5. If â€œApproveâ€ is selected, the system forwards the proposal to the coordinator for final approval. 
+ 6. The coordinator logs in and reviews the approved proposal. 
+ 7. The coordinator records the final decisionâ€”either â€œApprovedâ€ or â€œRejected.â€ 
+ 8. The system notifies the Researcher of the final decision. 
+ Scenario Name: Progress Report 1 Submission  
+ Participating Actors: Researcher, Coordinator, Advisor 
+ Flow of Events 
+ 1. Researcher selects â€œSubmit Progress Report 1.â€ 
+ 2. The system displays the submission form for Report 1. 
+ 3. Researcher uploads the report and clicks â€œSubmit.â€ 
+ 4. The system validates the file format and stores it. 
+ 5. Coordinator receives a notification to review Report 1. 
+ 6. A copy is made available to the Advisor for reference. 
+ 7. Coordinator reviews and marks status as â€œCompletedâ€ or â€œNeeds Revision.â€ 
+ 8. System updates milestone status accordingly. 
+ Scenario Name: Progress Report 2 Submission  
+ Participating Actors: Researcher, Coordinator, Advisor 
+ Flow of Events 
+         1. Researcher selects â€œSubmit Progress Report 2.â€ 
+         2. System displays the submission form for Report 2. 
+         3. The researcher uploads the report and clicks â€œSubmit.â€ 
+         4. The system validates the file and stores it. 
+        5. Coordinator receives a notification to review Report 2. 
+        6. A copy is made available to the Advisor for reference. 
+        7. Coordinator reviews and marks status as â€œCompletedâ€ or â€œNeeds Revision.â€ 
+        8. System updates milestone status accordingly. 
+  
+  
+ Scenario Name: Thesis Report Submission  
+ Participating Actors: Researcher, Coordinator 
+ Flow of Event: 
+ The Researcher logs into the system and selects â€œSubmit Thesis Report.â€ 
+ The system displays the thesis submission form. 
+ The Researcher uploads the thesis report and clicks â€œSubmit.â€ 
+ The system validates the file and runs automated precheck for formatting compliance (font, margin, spacing, etc.). 
+ If errors are found, the Researcher is notified to correct and resubmit. 
+ If compliant, the system stores the file and marks the milestone as â€œReady for Examination.â€ 
+ Scenario Name: Examiner Assignment  
+ Participating Actors: Coordinator, Examiner, Researcher, Advisor 
+ Flow of Event: 
+ 1. The coordinator logs into the RMS and selects â€œAssign Examiner.â€ 
+ 2. The system displays a list of available examiners. 
+ 3. The coordinator selects an examiner and assigns them to the Researcherâ€™s research. 
+ 4. The system stores the assignment and sends notifications to: the assigned examiner, Researcher and advisor. 
+ Scenario Name: Defense Scheduling 
+ Participating Actors: Coordinator, Examiner, Researcher, Advisor 
+ Flow of Events 
+ 1. The coordinator navigates to â€œSchedule Defense.â€ 
+ 2. The system displays a scheduling form with date, time, and venue fields. 
+ 3. The coordinator sets the defense schedule. 
+ 4. The system stores the schedule and sends notifications to: 
+ the Researcher, advisor and assigned examiner. 
+ Scenario Name: Defense Process 
+ Participating Actors: Examiner 
+ Flow of Event: 
+ 1. Examiner logs into the system and accesses the assigned research. 
+ 2.Examiner downloads the thesis and evaluation form. 
+ 3.Examiner fills in grades and comments on the evaluation form 
+ Scenario Name: Grade Submission 
+ Participating Actors: Examiner, Coordinator, Registrar 
+ Flow of Events 
+ 1. The Examiner uploads the completed evaluation form. 
+ 2. The System validates and stores the grades. 
+ 3. System routes grades to the Coordinator for review. 
+ 4. Coordinator reviews and forwards grades to the Registrar. 
+ 5. Registrar updates the official academic record. 
+ Scenario Name: Journal Article Submission 
+ Participating Actors: Researcher, Coordinator 
+ Flow of Event: 
+ The Researcher logs into the system and clicks â€œSubmit Journal Article.â€ 
+ The system displays the submission form and guidelines. 
+ The Researcher uploads the article (8â€“15 pages) and clicks â€œSubmit.â€ 
+ The system validates the file and stores it in the database. 
+ The coordinator receives a notification and reviews the article for completeness. 
+ The article is archived in the system for future reference. 
+ Scenario Name: Submission â€“ Missed Deadline (Alternate Flow) 
+ Participating Actors: Researcher, Coordinator 
+ Flow of Event: 
+ The Researcher attempts to submit a required document (e.g., synopsis, proposal, progress report) after the deadline. 
+ The system detects the missed deadline and prevents direct submission. 
+ The Researcher is prompted to submit an Extension Request Form. 
+ The Researcher completes the form and submits it to the coordinator. 
+ The coordinator reviews the request and makes a decision: 
+ Approve â†’ The system opens a new submission window for the Researcher. 
+ Reject â†’ The system denies submission and records the missed milestone. 
+ The system notifies the Researcher of the coordinatorâ€™s decision. 
+    3.5.2 Use case Table 
+  
+  
+ Use case Id 
+ Use case Name 
+ Description 
+ UC1 
+ Account Activation &amp; Profile Setup. 
+ Enables a new Researcher to create an account in the RMS with their institutional credentials. 
+ UC2 
+ Login 
+ Researcher activates account and completes profile after receiving activation email. 
+ UC3 
+ Submit Synopsis 
+ Researchers upload research synopsis for review and approval. 
+ UC4 
+ Advisor Assignment 
+ Coordinator assigns advisor to a Researcher, ensuring capacity limit. 
+ UC5 
+ Submit Proposal 
+ Researchers upload research proposals using a system template. 
+ UC6 
+ Review Proposal 
+ Advisor reviews Researcherâ€™s proposal and approves or requests changes 
+ UC7 
+ Submit Progress Report 1 
+ Researcher uploads first progress report. 
+ UC8 
+ Submit Progress Report 2 
+ Researcher uploads second progress report. 
+ UC9 
+ Submit Thesis Report  
+ Researcher uploads thesis; system runs format and plagiarism checks. 
+ UC10 
+ Submit Final Draft (Pre-Defense) 
+ Researcher uploads final draft before defense. 
+ UC11 
+ Request Extension 
+ Researcher requests deadline extension; coordinator approves/rejects. 
+ UC12 
+ Schedule Defense 
+ Coordinator schedules defense and assigns examiners. 
+ UC13 
+ Upload Post-Defense Corrections 
+ Researcher uploads corrected thesis after defense. 
+ UC14 
+ Submit Journal Article 
+ Researcher uploads short article for publication 
+ UC15 
+ View Deadlines &amp; Feedback 
+ Researchers view deadlines, comments, and statuses. 
+ UC16 
+ Review Progress Reports 
+ Advisor/coordinator reviews progress reports. 
+ UC17 
+ Manage Accounts 
+ Coordinator/admin creates, updates, and deactivates user accounts 
+  
+ UC18 
+ Generate Reports 
+ Coordinator generates milestones, plagiarism, or performance reports. 
+ UC19 
+ System Automations 
+ Automated actions like notifications, plagiarism checks, and prechecks. 
+ UC20 
+ Examiner Assignment 
+ Coordinator assigns examiners to researchers after thesis report submission. 
+  
+ 3.5.3 Use Case Diagram 
+  
+  
+ 3.5.3.1 Use Case Documentation 
+ UC1 â€“ Account Activation &amp; Profile Setup 
+ Field 
+ Details 
+ Use Case ID 
+ UC1 
+ Use Case Name 
+ Account Activation &amp; Profile Setup 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Enables a new Researcher to create an account in the RMS with their institutional credentials. 
+ Preconditions 
+ Researchers must have a valid institutional ID and email provided by the coordinator. 
+ Postconditions 
+ The Researcher account is created and ready for login. 
+ Main Flow 
+ 1. Researchers access the RMS homepage. 
+ 2. Select the "Register" option. 
+ 3. Enter full name, Researcher ID, email, password. 
+ 4. The system verifies data against coordinator-provided lists. 
+ 5. If valid, an account is created. 
+ 6. The Researcher receives a confirmation email. 
+ Alternate Flow(s) 
+ A1: Data mismatch â†’ System displays error and prompts re-entry. 
+ A2: Email already registered â†’ System prompts password reset option. 
+ Exceptions 
+ Registration service down â†’ System logs attempt and displays â€œService Unavailable.â€ 
+ Business rule 
+ Duplicate accounts are not allowedâ€”email must be unique across all users. 
+ UC2 â€“  Login 
+ Field 
+ Details 
+ Use Case ID 
+ UC2 
+ Use Case Name 
+  Login 
+ Actors 
+ Researcher, Advisor, Coordinator 
+ Description 
+ Researcher activates account and completes profile after receiving activation email. 
+ Preconditions 
+ The user account exists and is active. 
+ Postconditions 
+ User sees roleâ€‘based dashboard. 
+ Main Flow 
+ 1. Enter credentials. 2. System validates.3. Redirect to dashboard. 
+ Alternate Flow(s) 
+ A1: Wrong creds â†’ error + retry. 
+ A2: Forgot password â†’ reset flow. 
+ Exceptions 
+ Auth store unavailable â†’ â€œLogin temporarily unavailableâ€. 
+ Business rule 
+ A user with a certain role cannot access the dashboard of  a different role. 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+ UC3 â€“ Submit Synopsis 
+ Field 
+ Details 
+ Use Case ID 
+ UC3 
+ Use Case Name 
+ Submit Synopsis 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Researchers upload research synopsis for review and approval. 
+ Preconditions 
+ Researcher logged in; synopsis window open. 
+ Postconditions 
+ Synopsis stored; status Under Review; coordinator notified. 
+ Main Flow 
+ 1. Researcher opens â€œSubmit Synopsisâ€. 
+ 2. Upload file + metadata. 
+ 3. The system validates type/size.  
+ 4. Store + notify coordinator. 
+ Alternate Flow(s) 
+ A1: Validation fails â†’ show errors, allow reâ€‘upload. 
+ A2: Deadline passed â†’ go to UC11 Request Extension. 
+ A3: If returned for modification â†’ submit the modified document within a week 
+ A4: If rejected â†’  submit another idea within a week. 
+ Business rule 
+ Each Researcher can only submit/ send one synopsis at a time.  
+  
+  
+ UC4 â€“ Advisor Assignment 
+ Field 
+ Details 
+ Use Case ID 
+ UC4 
+ Use Case Name 
+ Advisor Assignment 
+ Actors 
+ Coordinator 
+ Description 
+ Coordinator assigns advisor to a Researcher, ensuring capacity limit. 
+ Preconditions 
+ Researcher registered; advisors available. 
+ Postconditions 
+ Advisor assigned (â‰¤10 Researchers/advisor); notifications sent. 
+ Main Flow 
+ 1) Coordinator opens â€œAssign Advisorsâ€. 2) Picks Researcher &amp; advisor. 3) The system checks capacity. 4) Save &amp; notify both. 
+ Alternate Flow(s) 
+ A1: Capacity reached â†’ block with message; choose another advisor. 
+ Exceptions 
+ Directory data missing â†’ show â€œAdvisor info incompleteâ€. 
+ Business rule 
+ An advisor may be assigned to a maximum of 10 active Researchers.  
+  
+  
+  
+  
+  
+ UC5 â€“ Submit Proposal 
+ Field 
+ Details 
+ Use Case ID 
+ UC5 
+ Use Case Name 
+ Submit Proposal 
+ Actors 
+ Researcher, Advisor, Coordinator 
+ Description 
+ Researchers upload research proposals using a system template. 
+ Preconditions 
+ Researchers are authenticated and logged into the system.  
+ Proposal submission date is not over. 
+ Postconditions 
+ Approved and stored as final 
+ Returned for modification 
+ Rejected 
+ Main Flow 
+ 1.Researcher logs in and navigates to the â€œSubmit Proposalâ€ section.  
+ 2.Researcher uploads the proposal document and clicks â€œSubmit.â€  
+ 3.System stores the proposal and marks it as â€œPending Advisor Review.â€  
+  
+ Alternate Flow(s) 
+ A1: If returned for modification â†’ modify and resubmit within 1 week. 
+ A2: If Rejected â†’ Submit proposal for a new idea within 1 week. 
+ Business rule 
+ Each Researcher can only submit one proposal at a time. 
+ UC6 â€“ Review Proposal (Advisor) 
+ Field 
+ Details 
+ Use Case ID 
+ UC6 
+ Use Case Name 
+ Review Proposal  
+ Actors 
+ Advisor, Researcher, Coordinator 
+ Description 
+ Advisor reviews Researcherâ€™s proposal and approves or requests changes 
+ Preconditions 
+ Advisor is authenticated and logged into the system.  
+ A proposal submitted by a Researcher is assigned to the advisor and marked as â€œPending Review.â€ 
+ Postconditions 
+ The Researcher account is created and ready for login. 
+ Main Flow 
+ 1.Advisor logs in and navigates to the â€œReview Proposalsâ€ section.  
+ 2.System displays a list of pending proposals with relevant details.  
+ 3.Advisor selects a proposal to review.  
+ 4.Advisor reviews the content and selects Approve, Modify or Reject. 
+ 5 If Approved,  a proposal will be sent to the coordinator. 
+  
+ Alternate Flow(s) 
+ A1: If Returned for modification â†’ Researchers modify it and submit again. 
+ A2: If Rejected â†’ Researchers submit a new proposal with another idea. 
+ Business rule 
+ Only the assigned advisor can review and act on a Researcherâ€™s proposal. 
+  
+ UC7 â€“ Submit Progress Report 1 
+ Field 
+ Details 
+ Use Case ID 
+ UC7 
+ Use Case Name 
+ Submit Progress Report 1 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Researcher uploads first progress report. 
+ Preconditions 
+ Progress report 1 is open for submission. 
+ Postconditions 
+ Coordinator receives notification and review report. 
+ Marked either as Completed or Needs revision. 
+ Main Flow 
+ 1.Researcher logs in and selects â€œSubmit Progress Report 1.â€  
+ 2.Researcher uploads the report file and clicks â€œSubmit.  
+ 3.Coordinator receives notification and reviews the report  
+ 4.System shares a copy with the Advisor for reference.  
+ 5.Coordinator marks status 
+ 6.Researcher receives notification of the outcome  
+ Business rule 
+ Each Researcher can submit only one progress report 1 at a time.  
+  
+  
+ UC8 â€“ Submit Progress Report 2 
+ Field 
+ Details 
+ Use Case ID 
+ UC8 
+ Use Case Name 
+ Submit Progress Report 2 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Researcher uploads second progress report. 
+ Preconditions 
+ Progress report 2 is open for submission.( 3 month after progress report 1) 
+ Postconditions 
+ Status Marked. 
+ Notification sent to all actors. 
+ Main Flow 
+ 1.Researcher logs in and selects â€œSubmit Progress Report 2.â€  
+  
+ 2.Researcher uploads the report file and clicks â€œSubmit.  
+  
+ 3.Coordinator receives notification and reviews the report.  
+  
+ 4.System shares a copy with the Advisor.  
+  
+ 5.Coordinator marks status. 
+  
+ 6.Researcher receives notification of the outcome. 
+  
+ Business rule 
+ Each Researcher can submit only one progress report 2 at a time.  
+  
+ UC9 â€“ Submit Thesis Report (Precheck &amp; Plagiarism) 
+ Field 
+ Details 
+ Use Case ID 
+ UC9 
+ Use Case Name 
+ Submit Thesis Report (Precheck &amp; Plagiarism) 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Researcher uploads thesis; system runs format and plagiarism checks. 
+ Preconditions 
+ The thesis milestone is unlocked. 
+ Postconditions 
+ Rejected with formatting feedback for correction. 
+ Accepted and stored with status â€œReady for Examination.â€ 
+ Main Flow 
+ 1. The Researcher logs in and selects â€œSubmit Thesis Report.â€  
+ 2.Researcher uploads the thesis document and clicks â€œSubmit.â€  
+ 3. System runs automated precheck: font, margin, line spacing, plagiarism  etc. 
+ 4. If formatting errors are detected: System rejects submission and Researcher receives detailed feedback  
+ 5. If formatting is compliant: Milestone status is updated to â€œReady for Examination.â€ and Coordinator is notified of successful submission  
+ Business rule 
+ The Researcher cannot submit a thesis report if the system detects plagiarism or template error. 
+  
+  
+  
+ UC10 â€“ Submit Final Draft (Pre-Defense) 
+ Field 
+ Details 
+ Use Case ID 
+ UC10 
+ Use Case Name 
+ Submit Final Draft (Pre-Defense) 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Researcher uploads final draft before defense. 
+ Preconditions 
+ Final draft submission phase is reached. 
+ Postconditions 
+ Post-defence document will be submitted.(submission final approved defence) 
+ Main Flow 
+ 1.Researcher logs in and selects â€œfinal draft (pre-defence)â€  
+ 2.Researcher uploads the report file and clicks â€œSubmitâ€. 
+ 3. Advisor and examiners review the document.. 
+ 4. If approved, the Researchers will submit the â€œsubmission final approved defenceâ€ document. 
+  
+ Alternate Flow(s) 
+ A1: If a pre-defence document  needs modification â†’ submit again within 1 month with modification. 
+ Business rule 
+ Each Researcher can submit only one final draft at a time. 
+  
+ UC11 â€“ Request Extension 
+ Field 
+ Details 
+ Use Case ID 
+ UC11 
+ Use Case Name 
+ Request Extension 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Researcher requests deadline extension; coordinator approves/rejects. 
+ Preconditions 
+ The Researcher has missed the deadline for submission. 
+ Postconditions 
+ If approved: Researcher is allowed to submit again after a given time. 
+ If rejected: submission remains blocked. 
+ Main Flow 
+ 1.Researcher attempts to submit a document after the deadline.  
+ 2.System detects the missed deadline and blocks direct submission.  
+ 3.System prompts the Researcher to submit an Extension Request Form.  
+ 4. Researcher completes the form with: Reason for delay, Supporting details (e.g., illness, technical issues), Requested new deadline. 
+ 5.Coordinator reviews the request and selects: Approve or Reject 
+ 6.System notifies the Researcher of the decision and updates milestone status accordingly.  
+ Business rule 
+                  â€”  
+ UC12 â€“ Schedule Defense 
+ Field 
+ Details 
+ Use Case ID 
+ UC12 
+ Use Case Name 
+ Schedule Defense 
+ Actors 
+ Coordinator, Examiner, Researcher, Advisor 
+ Description 
+ Coordinator schedules defense and assigns examiners. 
+ Preconditions 
+ A Researcher's research status is eligible for defense (e.g. approved  final submission). 
+ Venue and time slots are available in the system. 
+ Postconditions 
+ Notifications are sent with calendar details to all actors. 
+ Main Flow 
+ 1.Coordinator logs in and selects â€œSchedule Defense.â€  
+  
+ 2.System displays the scheduling form with: Date picker,  Time slots, Venue options, Assigned Researcher and examiner details. 
+  
+ 3.Coordinator sets: Defense date, Time, Venue. 
+ 4.System checks for that no conflicts of schedule occur. 
+  
+ 5.System stores the defense schedule in the database.  
+  
+ 6.System sends notifications to Researchers, advisor, examiners. 
+  
+  
+ Business rule 
+ A minimum of 10 days must be given to the examiner to study and understand the research. 
+  
+  
+ UC13 â€“ Upload Post-Defense Corrections 
+ Field 
+ Details 
+ Use Case ID 
+ UC13 
+ Use Case Name 
+ Upload Post-Defense Corrections 
+ Actors 
+ Researcher, Advisor, Coordinator 
+ Description 
+ Researcher uploads corrected thesis after defense. 
+ Preconditions 
+ Pre-Defence documents must be submitted. 
+ Postconditions 
+ Submission final Approved defence document. 
+ Main Flow 
+ 1.Researcher logs in and selects â€œfinal draft (post-defence)â€  
+ 2.Researcher uploads the report file and clicks â€œSubmitâ€. 
+ 3. Advisor and examiners review the document.. 
+ 4. If approved, the Researchers will submit the â€œsubmission final approved defenceâ€ document. 
+ Business rule 
+ The post-defence document must be approved by the advisor and examiner before it is submitted to the coordinator. 
+  
+  
+  
+ UC14 â€“ Submit Journal Article 
+ Field 
+ Details 
+ Use Case ID 
+ UC14 
+ Use Case Name 
+ Submit Journal Article 
+ Actors 
+ Researcher, Coordinator 
+ Description 
+ Researcher uploads short article for publication 
+ Preconditions 
+ Journal article milestone is open for submission.( previous tasks are completed)  
+ . 
+ Postconditions 
+ Milestone status updated to â€œJournal article  Submittedâ€. 
+ Main Flow 
+ 1) The Researcher uploads articles. 2) Validate and store. 3) Notify coordinator. 
+ Business rule 
+ It must contain 8-15 pages. 
+ UC15 â€“ View Deadlines &amp; Feedback 
+ Field 
+ Details 
+ Use Case ID 
+ UC15 
+ Use Case Name 
+ View Deadlines &amp; Feedback 
+ Actors 
+ Researcher 
+ Description 
+ Researchers view deadlines, comments, and statuses. 
+ Preconditions 
+ Researchers logged in. 
+ Postconditions 
+ Researchers see upâ€‘toâ€‘date statuses and next actions. 
+ Main Flow 
+ 1. Researchers open the dashboard. 
+ 2. The system shows tasks, due dates, decisions (Accept/Modify/Reject) and comments. 
+ Business rule 
+ Reminders must be sent to Researchers 1 week before deadlines. 
+ UC16 â€“ Review Progress Reports 
+ Field 
+ Details 
+ Use Case ID 
+ UC16 
+ Use Case Name 
+ Review Progress Reports 
+ Actors 
+ Advisor, Coordinator 
+ Description 
+ Advisor/coordinator reviews progress reports. 
+ Preconditions 
+ Report submitted. 
+ Postconditions 
+ Decision recorded; Researcher notified. 
+ Main Flow 
+ 1. Open report.  
+ 2. Add comments.  
+ 3. Mark Completed or Needs Revision. 
+ 4. Notify Researchers. 
+ Business rule 
+            â€” 
+ UC17 â€“ Manage Accounts 
+ Field 
+ Details 
+ Use Case ID 
+ UC17 
+ Use Case Name 
+ Manage Accounts 
+ Actors 
+ Coordinator/Admin 
+ Description 
+ Coordinator/admin creates, updates, and deactivates user accounts 
+ Preconditions 
+ Accounts created/updated/disabled. 
+ Postconditions 
+ The Researcher account is created and ready for login. 
+ Main Flow 
+ 1. Create Researcher/advisor accounts. 
+ 2. Reset passwords.  
+ 3. Activate/deactivate users. 
+ Business rule 
+ One Researcher can only have one account. 
+  
+  
+  
+ UC18 â€“ Generate Reports 
+ Field 
+ Details 
+ Use Case ID 
+ UC18 
+ Use Case Name 
+ Generate Reports 
+ Actors 
+ Coordinator 
+ Description 
+ Coordinator generates milestones, plagiarism, or performance reports. 
+ Preconditions 
+ Data available in the system. 
+ Postconditions 
+ Downloadable/printable report files. 
+ Main Flow 
+ 1. Pick a report type (milestone performance, plagiarism summary, engagement).  
+ 2. Select filters (term, program). 
+ 3. Generate &amp; export. 
+ Business rule 
+ â€” 
+ UC19 â€“ System Automations 
+ Field 
+ Details 
+ Use Case ID 
+ UC19 
+ Use Case Name 
+ System Automations 
+ Actors 
+ System 
+ Description 
+ Automated actions like notifications, plagiarism checks, and prechecks. 
+ Preconditions 
+ Triggering action occurs (submission, schedule, etc.). 
+ Postconditions 
+ Notifications/reports attached to records. 
+ Main Flow 
+ A) Send Notifications â€” deadlines, approvals, defense; triggered by UC3/5/7/8/9/10/12. B) Run Plagiarism Check â€” on UC9.C) Formatting Precheck â€” on UC9/UC10. 
+ Exceptions 
+ External service fails â†’ retry with backoff; alert coordinator 
+ Business rule 
+ â€” 
+  
+ UC20 - Examiner Assignment 
+ Field 
+ Details 
+ Use Case ID 
+ UC20 
+ Use Case Name 
+ Examiner Assignment 
+ Actors 
+ Coordinator 
+ Description 
+ Coordinator assigns examiners to researchers after thesis report submission. 
+ Preconditions 
+ Researchers must submit a thesis report. 
+ Postconditions 
+ Defense will be scheduled. 
+ Main Flow 
+ Coordinator opens â€œassign examinersâ€ 
+ Views available examiners 
+ Assign examiners to researchers 
+ The system notifies the researchers and examiners. 
+ Business rule 
+ The examiner is given 10 days to study the thesis report. 
+  
+  
+ 3.5.4 Object Model 
+ The Object Model describes the main classes, their attributes, methods, and the relationships between them in the HiLCoE-RMS. It is typically represented as a UML Class Diagram.The object model for the HiLCoE-RMS is based on the functional requirements and use case scenarios gathered during requirement elicitation. 
+   It focuses on: 
+ Core system entities (Researcher, Advisor, Coordinator, Examiner, Submission, Notification, etc.) 
+ The interactions between these entities 
+ How data flows and is stored 
+ 3.5.4.1 Class Diagram 
+  
+  
+  
+ 3.5.4.2 Sequence Diagram 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+ 4. Database Schema 
+ 4.1 Introduction 
+ The database schema of the HiLCoE Research Management System (HiLCoE-RMS) was designed by analyzing the systemâ€™s actors, functional requirements (FRs), business rules, use case scenarios, and object models. 
+ From the Actor Identification, we extracted entities for Researchers, Advisors, Coordinators, Examiners, and Administrators. 
+ From the Functional Requirements (FR1â€“FR21), we identified the need for core lifecycle tables (Projects, Submissions, Feedback, Grades, Defenses, Notifications, Extensions, etc.). 
+ From the Business Rules, we incorporated constraints such as advisor capacity (â‰¤10 active researchers), submission deadlines, plagiarism thresholds, and defense scheduling windows. 
+ From the Use Case and Sequence Models, we ensured coverage of workflows like project registration, document submission, advisor and coordinator review, examiner assignment, defense scheduling, grading, and automated notifications. 
+ The schema supports end-to-end management of the research process, enforces academic policies, and enables auditability for accountability. 
+ 4.2 Main Entities and Attributes 
+ A) Access Control 
+ Roles Stores role definitions: Researcher, Advisor, Coordinator, Examiner, and Administrator. Attributes: role_id, role_name. 
+ Users Central repository of login and identity information for all actors. Attributes: user_id, full_name, email, password_hash, role_id, status, created_at. Relationship: each User is assigned one Role; each User may extend into a Researcher, Advisor, Coordinator, or Examiner profile. 
+ B) Actor Profiles 
+ Researchers Profile details for students, linked 1:1 with Users. Attributes: researcher_id, program, phone, registered_at. 
+ Advisors Faculty profiles, with supervision capacity constraint. Attributes: advisor_id, department, max_capacity. 
+ Coordinators Administrative staff responsible for oversight. Attributes: coordinator_id. 
+ Examiners Faculty/experts responsible for grading. Attributes: examiner_id, specialization. 
+ C) Research Projects and Templates 
+ ResearchProjects Represents the research work of a student under an advisor. Attributes: project_id, researcher_id, advisor_id, title, status, created_at. Relationships: one Researcher may have one or more Projects; one Advisor supervises multiple Projects. 
+ DocumentTemplates Stores official templates (synopsis, proposal, progress reports, thesis, final draft, corrections, journal article). Attributes: template_id, type, version, file_path, is_active. Relationships: Submissions must reference a valid template. 
+ D) Submissions, Reviews, and Grades 
+ Submissions Records uploaded documents for each milestone. Attributes: submission_id, project_id, type, template_id, file_path, format_ok, plagiarism_score, status, submitted_at, reviewed_at. Relationship: each Submission belongs to one Project and uses one DocumentTemplate. 
+ Feedback Captures advisor and coordinator review comments. Attributes: feedback_id, submission_id, reviewer_id, decision, comments, created_at. Relationship: one Submission can have multiple Feedback entries. 
+ Grades Records evaluation results from Examiners. Attributes: grade_id, project_id, examiner_id, score, comments, submitted_at. Relationship: one Project can have multiple Grades from different Examiners. 
+ E) Scheduling and Defense 
+ Schedules Defines deadlines and events (global or project-specific). Attributes: schedule_id, project_id, event_type, due_at, venue, created_by, created_at. Relationship: Schedules are set by Coordinators and may apply globally (null project_id) or per project. 
+ ExaminerAssignments Links Examiners to Projects. Attributes: assignment_id, project_id, examiner_id, assigned_at. 
+ Defenses Represents defense events scheduled by Coordinators. Attributes: defense_id, project_id, scheduled_at, venue, created_by, created_at. Relationship: each Project may have one or more Defenses. 
+ F) Automation, Extensions, and Audit 
+ Notifications Automated messages/reminders for deadlines, feedback, or defense events. Attributes: notification_id, user_id, subject, message, status, created_at, sent_at. 
+ ExtensionRequests Manages cases where Researchers request extra time. Attributes: extension_id, researcher_id, submission_type, reason, requested_deadline, status, decision_date. 
+ AuditLogs Records system actions for accountability. Attributes: log_id, user_id, action, entity, entity_id, details, created_at. 
+ 4.3 Relationships (Cardinalities) 
+ One Role can be assigned to many Users (1:N). 
+ One User extends into exactly one Actor Profile (Researcher, Advisor, Coordinator, Examiner) (1:1). 
+ One Researcher can have one or more ResearchProjects (1:N). 
+ One Advisor supervises multiple ResearchProjects, but cannot exceed 10 active researchers (1:N, capacity rule). 
+ One ResearchProject requires one Researcher and one Advisor, and may have multiple Submissions (1:N). 
+ Each Submission must use one DocumentTemplate (N:1). 
+ Each Submission can receive multiple Feedback entries (1:N). 
+ Each ResearchProject may receive multiple Grades from different Examiners (1:N). 
+ Each ResearchProject can have multiple Schedules (1:N) and multiple Defenses (1:N). 
+ Each ResearchProject can be linked to multiple Examiners via ExaminerAssignments (N:M). 
+ Each Notification belongs to one User (N:1). 
+ Each ExtensionRequest belongs to one Researcher (N:1). 
+ Each AuditLog records an action performed by one User (N:1). 
+ 4.4 Business Rules 
+ Advisor Capacity: An advisor supervises no more than 10 active researchers. 
+ Advisor Requirement for Proposal: A researcher must have an assigned advisor before submitting a proposal. 
+ Submission Windows: Submissions are only accepted within scheduled deadlines. 
+ Formatting and Plagiarism: Thesis submissions must pass format and plagiarism checks before approval. 
+ Defense Scheduling: Defense must be scheduled at least 10 days after examiner assignment. 
+ Unique User Accounts: Each researcher may only hold one system account. 
+ 4.5 Performance Considerations 
+ Unique index on users.email for authentication. 
+ Composite index on (project_id, type, status) in Submissions to accelerate dashboards. 
+ Index on (advisor_id) in ResearchProjects to support advisor capacity checks. 
+ Index on (user_id, status) in Notifications for reminder processing. 
+ Append-only design of AuditLogs supports compliance and reporting. 
+ 4.6 ER Diagram 
+ The Entityâ€“Relationship Diagram (ERD) derived from this schema depicts all entities, attributes, and cardinalities. It demonstrates how user roles, actor profiles, projects, submissions, reviews, grades, schedules, defenses, notifications, extension requests, and audit logs interact to support the research lifecycle. 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+ 
+
