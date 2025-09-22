@@ -517,7 +517,11 @@ openapi.components.schemas.Project = {
     area: { type: 'string' },
     semester: { type: 'string' },
     researcher: { type: 'string' },
-    advisor: { type: 'string', nullable: true }
+    advisor: { type: 'string', nullable: true },
+    status: { type: 'string', enum: ['active','archived'] },
+    current_stage: { type: 'string' },
+    created_at: { type: 'string', format: 'date-time' },
+    updated_at: { type: 'string', format: 'date-time' }
   }
 };
 
@@ -526,10 +530,14 @@ openapi.components.schemas.Milestone = {
   properties: {
     _id: { type: 'string' },
     project: { type: 'string' },
-    type: { type: 'string', enum: ['registration','synopsis','proposal','progress','thesis','defense','journal'] },
+    type: { type: 'string', enum: ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','thesis_postdefense','defense','journal'] },
     status: { type: 'string', enum: ['draft','submitted','under_review','changes_requested','approved','scheduled','graded','archived'] },
+    sequence: { type: 'integer' },
+    window_start: { type: 'string', format: 'date-time', nullable: true, example: null },
+    window_end: { type: 'string', format: 'date-time', nullable: true, example: null },
     due_at: { type: 'string', format: 'date-time', nullable: true },
-    submitted_at: { type: 'string', format: 'date-time', nullable: true }
+    submitted_at: { type: 'string', format: 'date-time', nullable: true, example: null },
+    approved_by: { type: 'string', nullable: true, example: null }
   }
 };
 
@@ -568,7 +576,7 @@ openapi.components.schemas.AssignAdvisorRequest = {
 openapi.components.schemas.CreateMilestoneRequest = {
   type: 'object', required: ['projectId','type'], properties: {
     projectId: { type: 'string' },
-    type: { type: 'string', enum: ['registration','synopsis','proposal','progress','thesis','defense','journal'] },
+    type: { type: 'string', enum: ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','thesis_postdefense','defense','journal'] },
     due_at: { type: 'string', format: 'date-time' }
   }
 };
@@ -620,3 +628,11 @@ openapi.components.schemas.TemplateCreate = {
     url: { type: 'string', example: 'https://example.com/template.docx' }
   }
 };
+
+
+
+
+
+
+
+
