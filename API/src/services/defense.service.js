@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { defenseRepo } from '../repositories/defense.repository.js';
 import { projectRepo } from '../repositories/project.repository.js';
+import { milestoneRepo } from '../repositories/milestone.repository.js';
 import { notify } from '../services/notificationService.js';
 
 export const defenseService = {
@@ -12,7 +13,20 @@ export const defenseService = {
   },
   async schedule(projectId, { start_at, end_at, location, virtual_link }) {
     if (!mongoose.isValidObjectId(projectId) || !start_at) throw new Error('invalid');
-    const sched = await defenseRepo.createSchedule({ project: projectId, start_at, end_at, location, virtual_link });
+    const start = new Date(start_at);
+    if (Number.isNaN(start.getTime())) throw new Error('start_at invalid');
+    const end = end_at ? new Date(end_at) : undefined;
+    if (end_at && Number.isNaN(end.getTime())) throw new Error('end_at invalid');
+    const sched = await defenseRepo.createSchedule({ project: projectId, start_at: start, end_at: end, location, virtual_link });
+    try {
+      const defenseMilestone = await milestoneRepo.findByProjectAndType(projectId, 'defense');
+      if (defenseMilestone) {
+        defenseMilestone.window_start = start;
+        defenseMilestone.window_end = end || null;
+        defenseMilestone.status = 'scheduled';
+        await milestoneRepo.save(defenseMilestone);
+      }
+    } catch {}
     try {
       const proj = await projectRepo.findById(projectId);
       if (proj?.researcher) await notify(proj.researcher, 'defense_scheduled', { scheduleId: String(sched._id), projectId });
@@ -30,4 +44,3 @@ export const defenseService = {
     return grade;
   }
 };
-
