@@ -1,0 +1,188 @@
+/* 1) Load Tailwind core (v4) */
+@import "tailwindcss";
+
+/* 2) ====== DESIGN TOKENS (CSS variables) ======
+   Keep all brand decisions here so components stay dumb & reusable.
+   Change once → updates everywhere.
+*/
+:root {
+  /* Brand palette */
+  --brand-50:  #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-600: #0588F0;   /* primary */
+  --brand-700: #1e40af;
+  --brand-900: #1F2D5C;   /* deep navy used in hero/footer bg */
+
+  /* Accent (secondary highlight / gradients) */
+  --accent-500: #a855f7;  /* violet */
+  --accent-600: #9333ea;
+  --accent-emerald: #10b981;
+
+  /* Neutrals (text/lines) */
+  --neutral-900: #0b0f19;
+  --neutral-800: #1f2937;
+  --neutral-700: #374151;
+  --neutral-600: #4b5563;
+  --neutral-200: #e5e7eb;
+  --neutral-100: #f3f4f6;
+  --white: #ffffff;
+
+  /* Typography scale (desktop first numbers; we’ll clamp for RWD)
+     Use these as *semantic* tokens in utilities below. */
+  --fs-h1: 56px;
+  --fs-h2: 36px;
+  --fs-h3: 24px;
+  --fs-body: 16px;
+  --fs-sm: 14px;
+
+  /* Line-height */
+  --lh-tight: 1.1;
+  --lh-snug: 1.25;
+  --lh-normal: 1.5;
+
+  /* Spacing rhythm (vertical section padding) */
+  --space-section: 80px;     /* desktop */
+  --space-section-sm: 48px;  /* mobile */
+
+  /* Radii */
+  --r-card: 16px;
+  --r-button: 12px;
+  --r-search: 20px;
+
+  /* Shadows */
+  --shadow-soft: 0 10px 30px rgba(0,0,0,0.10);
+  --shadow-card: 0 12px 24px rgba(2, 6, 23, 0.20); /* deep navy */
+}
+
+/* Responsive type with clamp() so headings scale nicely */
+@media (max-width: 768px) {
+  :root {
+    --fs-h1: clamp(32px, 7vw, 44px);
+    --fs-h2: clamp(24px, 4.5vw, 30px);
+    --fs-h3: 20px;
+  }
+}
+
+/* 3) ====== SEMANTIC UTILITIES (components+utilities layers) ======
+   These give you readable class names that map to your tokens.
+*/
+@layer utilities {
+  /* Colors via CSS variables (use Tailwind arbitrary values) */
+  .text-body { color: var(--neutral-700); }
+  .text-heading { color: var(--neutral-900); }
+  .bg-brand { background-color: var(--brand-600); }
+  .bg-navy { background-color: var(--brand-900); }
+  .border-muted { border-color: var(--neutral-200); }
+
+  /* Typographic scale */
+  .h1 { font-size: var(--fs-h1); line-height: var(--lh-tight); font-weight: 800; letter-spacing: -0.01em; }
+  .h2 { font-size: var(--fs-h2); line-height: var(--lh-snug); font-weight: 700; letter-spacing: -0.005em; }
+  .h3 { font-size: var(--fs-h3); line-height: var(--lh-snug); font-weight: 600; }
+  .body { font-size: var(--fs-body); line-height: var(--lh-normal); }
+  .small { font-size: var(--fs-sm); line-height: var(--lh-normal); }
+
+  /* Radius & shadow */
+  .rounded-card { border-radius: var(--r-card); }
+  .rounded-btn { border-radius: var(--r-button); }
+  .rounded-search { border-radius: var(--r-search); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+
+  /* Section vertical rhythm */
+  .section-y { padding-block: var(--space-section); }
+  @media (max-width: 640px) { .section-y { padding-block: var(--space-section-sm); } }
+
+  /* Container helper (centered, padded) */
+  .container-px { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1rem; }
+  @media (min-width: 640px) { .container-px { padding-inline: 1.5rem; } }
+  @media (min-width: 1024px) { .container-px { padding-inline: 2rem; } }
+
+  /* Focus ring accessible defaults */
+  .focus-ring { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-600), white 70%); }
+
+  .eyebrow-bar {
+    position: relative;
+    padding-top: 22px; /* space for the bar */
+  }
+  .eyebrow-bar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    width: 64px;
+    border-radius: 9999px;
+    background: var(--brand-600);
+  }
+}
+
+/* 4) ====== DESIGN PATTERNS ======
+   Small semantic patterns for Buttons and Cards that you can re-use.
+*/
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-5 py-3 font-medium text-white;
+    border-radius: var(--r-button);
+    background: var(--brand-600);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+  .btn:active { transform: translateY(0); }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-600), white 70%); }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-5 py-3 font-medium;
+    border-radius: var(--r-button);
+    color: var(--neutral-900);
+    background: color-mix(in oklab, var(--brand-600), white 92%);
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--r-card);
+    box-shadow: var(--shadow-soft);
+  }
+}
+
+
+@layer base {
+  .font-caprasimo {
+    font-family: 'Caprasimo', cursive;
+  }
+}
+
+/* 5) ====== HERO GRADIENT (from your Figma) ======
+   We’ll reuse this class on the hero wrapper.
+*/
+.hero-gradient {
+  background:
+    radial-gradient(1200px 500px at 70% 10%, color-mix(in oklab, var(--accent-500), transparent 70%), transparent 80%),
+    linear-gradient(90deg, #0b1220 0%, #1b1540 50%, #093a3f 100%);
+  color: var(--white);
+}
+/* Verification page background */
+.verification-gradient {
+  background:
+    radial-gradient(900px 600px at 20% 85%, rgba(131, 97, 255, 0.32), transparent 60%),
+    radial-gradient(900px 600px at 80% 10%, rgba(255, 173, 88, 0.35), transparent 55%),
+    #f6f9ff;
+}
+.bg-faq-gradient {
+  background:
+    radial-gradient(800px 600px at 12% 10%, rgba(147, 197, 253, 0.35), transparent 65%),
+    radial-gradient(900px 600px at 88% 80%, rgba(196, 181, 253, 0.32), transparent 60%),
+    #f5f7ff;
+}
+.bg-contact-gradient {
+  background:
+    radial-gradient(900px 700px at 18% 20%, rgba(120, 132, 255, 0.25), transparent 65%),
+    radial-gradient(900px 700px at 80% 75%, rgba(255, 174, 113, 0.28), transparent 60%),
+    #f4f7ff;
+}
+.bg-login-gradient {
+  background:
+    radial-gradient(900px 700px at 15% 15%, rgba(147, 197, 253, 0.32), transparent 65%),
+    radial-gradient(900px 700px at 80% 85%, rgba(253, 186, 116, 0.30), transparent 60%),
+    #f4f7ff;
+}
