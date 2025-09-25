@@ -11,6 +11,9 @@ const milestoneSchema = new mongoose.Schema(
     due_at: { type: Date, default: null },
     submitted_at: { type: Date, default: null },
     approved_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    assignment_required: { type: Boolean, default: true },
+    reviewer_roles: { type: [String], default: undefined },
+    coordinator_notes: { type: String, default: '' },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }, collection: 'milestones' }
 );
@@ -18,4 +21,5 @@ const milestoneSchema = new mongoose.Schema(
 milestoneSchema.index({ project: 1, type: 1 }, { unique: true });
 
 export const Milestone = mongoose.models.Milestone || mongoose.model('Milestone', milestoneSchema, 'milestones');
+
 

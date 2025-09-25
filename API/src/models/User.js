@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 
 const passwordSchema = new mongoose.Schema(
   {
@@ -12,13 +12,14 @@ const passwordSchema = new mongoose.Schema(
 
 const userSchema = new mongoose.Schema(
   {
+    first_name: { type: String, trim: true, default: '' },
+    last_name: { type: String, trim: true, default: '' },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role' },
     status: { type: String, enum: ['pending', 'active', 'inactive'], default: 'active' },
     student_id: { type: String, default: '', trim: true },
     password: { type: passwordSchema, default: null },
-    activation_token: { type: String, default: null },
     reset_token: { type: String, default: null },
     reset_expires_at: { type: Date, default: null },
   },

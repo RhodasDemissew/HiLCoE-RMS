@@ -9,6 +9,8 @@ const projectSchema = new mongoose.Schema(
     semester: { type: String, trim: true },
     status: { type: String, enum: ['active', 'archived'], default: 'active' },
     current_stage: { type: String, default: 'registration' },
+    advisor_assigned_at: { type: Date, default: null },
+    coordinator_notes: { type: String, default: '' },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }, collection: 'projects' }
 );
@@ -16,3 +18,4 @@ const projectSchema = new mongoose.Schema(
 projectSchema.index({ researcher: 1 }, { unique: true });
 
 export const Project = mongoose.models.Project || mongoose.model('Project', projectSchema, 'projects');
+
