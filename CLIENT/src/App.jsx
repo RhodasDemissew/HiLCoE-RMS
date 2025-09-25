@@ -1,31 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import Login from './pages/Login.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import { api, getToken } from './api/client.js';
+import { Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./pages/Landing.jsx";
+import Verify from "./pages/Verify.jsx";
+import SignUp from "./pages/SignUp.jsx";
+import Login from "./pages/Login.jsx";
+import Faq from "./pages/Faq.jsx";
+import Contact from "./pages/Contact.jsx";
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchMe() {
-      setLoading(true);
-      try {
-        if (!getToken()) return;
-        const res = await api('/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchMe();
-  }, []);
-
-  if (loading && !user) return <div style={{ padding: 24 }}>Loading...</div>;
-  if (!user) return <Login onLogin={setUser} />;
-  return <Dashboard user={user} />;
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/verify" element={<Verify />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/faq" element={<Faq />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
-
