@@ -1,4 +1,5 @@
-import { useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import Container from "../components/ui/Container";
@@ -7,25 +8,52 @@ import googleIcon from "../assets/icons/Googleicon.png";
 import githubIcon from "../assets/icons/githubicon.png";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState(location.state?.message ?? "");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("lastEmail");
+    const rememberFlag = localStorage.getItem("rememberMe") === "true";
+    if (saved) {
+      setEmail(saved);
+    }
+    if (rememberFlag) {
+      setRemember(true);
+    }
+  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
+    setInfo("");
+    setLoading(true);
     try {
       const res = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password, remember }),
+        body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) throw new Error("Login failed");
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Login failed");
+      }
       setToken(data.token);
-      // TODO: route to dashboard once authenticated
+      localStorage.setItem("lastEmail", email.toLowerCase());
+      if (remember) {
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        localStorage.removeItem("rememberMe");
+      }
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Login error");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -74,7 +102,7 @@ export default function Login() {
                     />
                     <a
                       href="/forgot-password"
-                      className="absolute right-4  translate-y-14 text-sm font-semibold text-[color:var(--brand-600)] hover:underline"
+                      className="absolute right-4 translate-y-14 text-sm font-semibold text-[color:var(--brand-600)] hover:underline"
                     >
                       Forgot password?
                     </a>
@@ -91,15 +119,15 @@ export default function Login() {
                   Remember me
                 </label>
 
-                {error && (
-                  <p className="text-sm monto font-medium text-red-500">{error}</p>
-                )}
+                {error && <p className="text-sm font-medium text-red-500">{error}</p>}
+                {info && <p className="text-sm font-medium text-[color:var(--brand-600)]">{info}</p>}
 
                 <button
                   type="submit"
-                  className="btn w-full rounded-[14px] py-3 text-base font-semibold"
+                  disabled={loading}
+                  className="btn w-full rounded-[14px] py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Login
+                  {loading ? "Logging in..." : "Login"}
                 </button>
               </form>
 
