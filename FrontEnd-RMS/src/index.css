@@ -1,0 +1,21 @@
+font-face {
+    font-family: 'Poppins';
+    src: url('../src/assets/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+font-face {
+    font-family: 'Caprasimo';
+    src: url('../src/assets/fonts/Caprasimo/Caprasimo-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@import "tailwindcss";
+
+@theme{
+    --font-poppins: Poppins, "sans-serif";
+    --font-caprasimo: Caprasimo;
+}
+
+
