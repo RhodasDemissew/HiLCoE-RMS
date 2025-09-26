@@ -61,7 +61,7 @@ const NavBar = () => {
         >
             <div className='container flex justify-between items-center mx-auto'>
                  
-                    <img  className='w-12 h-12 t-0' src={assets.HilCoE_Logo} alt="" />
+                    <img  className='w-12 h-12 t-0' src={assets.HiLCoE_Logo} alt="" />
                     <h2 className=' absolute top-3.5 left-90 right-0 text-blue-500 font-black font-caprasimo text-2xl'>HiLCoE</h2>
                     <h4 className=' absolute mt-7 left-70 right-0 text-blue-500  font-poppins font-medium'>Research Management System</h4>
                 
@@ -77,8 +77,8 @@ const NavBar = () => {
                     <Cursor position={position}/>
                 </ul>
                 <div className='right-0 z-20 flex gap-4 font-poppins  text-md'>
-                    <Button caption="Login" className="hidden md:block bg-white text-blue-500 font-semibold px-8 py-2 cursor-pointer" />
-                    <Button caption="Sign up" className=" md:block bg-blue-500 text-white font-semibold rounded-xl px-6 py-3 cursor-pointer" />
+                    <Link to='/login'><Button caption="Login" className="hidden md:block bg-white text-blue-500 font-semibold px-8 py-2 cursor-pointer" /></Link>
+                    <Link to='/verify'><Button caption="Sign up" className=" md:block bg-blue-500 text-white font-semibold rounded-xl px-6 py-3 cursor-pointer" /></Link>
                 </div>
                 
             </div>

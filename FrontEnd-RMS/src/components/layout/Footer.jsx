@@ -3,7 +3,7 @@ import { assets } from '../../assets/assets'
 import { Link } from 'react-router-dom'
 
 const Footer = ({
-    logo = assets.HilCoE_Logo,
+    logo = assets.HiLCoE_Logo,
     brand = 'HiLCoE',
     tagline = 'School Research Management System',
     openingHours = [

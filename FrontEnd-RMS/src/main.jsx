@@ -10,6 +10,9 @@ import Roadmap from './pages/home/Roadmap.jsx'
 import Contact from './pages/home/Contact.jsx'
 import FAQs from './pages/home/FAQs.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import LogIn from './pages/Auth/logIn.jsx'
+import Verify from './pages/Auth/verify.jsx'
+import SignUp from './pages/Auth/signUp.jsx'
 
 const router = createBrowserRouter([
   {
@@ -22,13 +25,18 @@ const router = createBrowserRouter([
       { path: 'roadmap', element: <Roadmap /> },
     ],
   },
+  // standalone page routes 
+  { path: '/login', element: <LogIn /> },
+  { path: '/verify', element: <Verify /> },
+  { path: '/signup', element: <SignUp /> },
+
   {
     element: <SimpleLayout />,
     children: [
       { path: 'faqs', element: <FAQs /> },
       { path: 'contact', element: <Contact /> },
     ]
-  }
+  },
 ])
 
 createRoot(document.getElementById('root')).render(

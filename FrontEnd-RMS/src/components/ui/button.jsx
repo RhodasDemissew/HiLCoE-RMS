@@ -1,6 +1,6 @@
 
 
-export default function Button({ onPress, caption, variant, size, className, ...props }) {
+export default function Button({ onPress, caption, variant, size, className, children, ...props }) {
     //Base classes that apply for all button
     const baseClasses = "rounded-full font-normal border-none cursor-pointer flex items-center justify-center transition-all duration-200";
 
@@ -32,10 +32,9 @@ export default function Button({ onPress, caption, variant, size, className, ...
         <button
             onClick={onPress}
             className={buttonClasses}
-            
             {...props}
         >
-            {caption}
+            {children ? children : caption}
         </button>
     );
 }
