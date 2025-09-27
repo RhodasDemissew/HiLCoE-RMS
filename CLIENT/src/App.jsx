@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+﻿import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing.jsx";
 import Verify from "./pages/Verify.jsx";
 import SignUp from "./pages/SignUp.jsx";
@@ -17,6 +17,7 @@ export default function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/faq" element={<Faq />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { config } from './config/env.js';
@@ -16,6 +16,7 @@ import './models/Project.js';
 import './models/Milestone.js';
 import './models/Submission.js';
 import './models/Review.js';
+import './models/StudentVerification.js';
 import './models/ExaminerAssignment.js';
 import './models/Schedule.js';
 import './models/Grade.js';
