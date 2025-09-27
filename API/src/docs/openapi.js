@@ -220,7 +220,7 @@ export const openapi = {
           content: { 'application/json': { schema: { $ref: '#/components/schemas/ActivateRequest' } } }
         },
         responses: {
-          '200': { description: 'Activated', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' } } } } } },
+          '200': { description: 'Activated', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, current_stage: { type: 'string' } } } } } },
           '400': { description: 'Invalid token or missing fields' }
         }
       }
@@ -242,7 +242,7 @@ export const openapi = {
         summary: 'Confirm password reset',
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ResetConfirm' } } } },
         responses: {
-          '200': { description: 'Password updated', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' } } } } } },
+          '200': { description: 'Password updated', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, current_stage: { type: 'string' } } } } } },
           '400': { description: 'Invalid or expired token' }
         }
       }
@@ -280,7 +280,7 @@ export const openapi = {
         parameters: [ { name: 'id', in: 'path', required: true, schema: { type: 'string' } } ],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AssignAdvisorRequest' } } } },
         responses: {
-          '200': { description: 'Assigned', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' } } } } } },
+          '200': { description: 'Assigned', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, current_stage: { type: 'string' } } } } } },
           '400': { description: 'Invalid ids or constraints' },
           '401': { description: 'Unauthorized' },
           '403': { description: 'Forbidden' },
@@ -288,6 +288,47 @@ export const openapi = {
         }
       }
     },
+    '/projects/{id}/milestones': {
+      get: {
+        tags: ['Projects'],
+        summary: 'List milestones for a project',
+        security: [{ bearerAuth: [] }],
+        parameters: [ { name: 'id', in: 'path', required: true, schema: { type: 'string' } } ],
+        responses: {
+          '200': { description: 'Project milestones', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Milestone' } } } } },
+          '400': { description: 'Invalid project id' }
+        }
+      }
+    },
+    '/projects/{id}/milestones/{type}/schedule': {
+      put: {
+        tags: ['Projects'],
+        summary: 'Update milestone schedule',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'type', in: 'path', required: true, schema: { type: 'string', enum: ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','defense','thesis_postdefense','journal'] } }
+        ],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            properties: {
+              window_start: { oneOf: [{ type: 'string', format: 'date-time' }, { type: 'null' }] },
+              window_end: { oneOf: [{ type: 'string', format: 'date-time' }, { type: 'null' }] },
+              due_at: { oneOf: [{ type: 'string', format: 'date-time' }, { type: 'null' }] },
+              notes: { type: 'string' }
+            }
+          } } }
+        },
+        responses: {
+          '200': { description: 'Updated milestone', content: { 'application/json': { schema: { $ref: '#/components/schemas/Milestone' } } } },
+          '400': { description: 'Validation error' },
+          '403': { description: 'Requires Coordinator or Admin role' }
+        }
+      }
+    },
+
     '/milestones': {
       get: {
         tags: ['Milestones'],
@@ -517,7 +558,13 @@ openapi.components.schemas.Project = {
     area: { type: 'string' },
     semester: { type: 'string' },
     researcher: { type: 'string' },
-    advisor: { type: 'string', nullable: true }
+    advisor: { type: 'string', nullable: true },
+    status: { type: 'string', enum: ['active','archived'] },
+    current_stage: { type: 'string' },
+    advisor_assigned_at: { type: 'string', format: 'date-time', nullable: true },
+    coordinator_notes: { type: 'string' },
+    created_at: { type: 'string', format: 'date-time' },
+    updated_at: { type: 'string', format: 'date-time' }
   }
 };
 
@@ -526,10 +573,17 @@ openapi.components.schemas.Milestone = {
   properties: {
     _id: { type: 'string' },
     project: { type: 'string' },
-    type: { type: 'string', enum: ['registration','synopsis','proposal','progress','thesis','defense','journal'] },
+    type: { type: 'string', enum: ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','thesis_postdefense','defense','journal'] },
     status: { type: 'string', enum: ['draft','submitted','under_review','changes_requested','approved','scheduled','graded','archived'] },
-    due_at: { type: 'string', format: 'date-time', nullable: true },
-    submitted_at: { type: 'string', format: 'date-time', nullable: true }
+    sequence: { type: 'integer' },
+    window_start: { type: 'string', format: 'date-time', nullable: true, example: null },
+    window_end: { type: 'string', format: 'date-time', nullable: true, example: null },
+    due_at: { type: 'string', format: 'date-time', nullable: true, example: null },
+    submitted_at: { type: 'string', format: 'date-time', nullable: true, example: null },
+    approved_by: { type: 'string', nullable: true, example: null },
+    assignment_required: { type: 'boolean' },
+    reviewer_roles: { type: 'array', items: { type: 'string' } },
+    coordinator_notes: { type: 'string' }
   }
 };
 
@@ -568,7 +622,7 @@ openapi.components.schemas.AssignAdvisorRequest = {
 openapi.components.schemas.CreateMilestoneRequest = {
   type: 'object', required: ['projectId','type'], properties: {
     projectId: { type: 'string' },
-    type: { type: 'string', enum: ['registration','synopsis','proposal','progress','thesis','defense','journal'] },
+    type: { type: 'string', enum: ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','thesis_postdefense','defense','journal'] },
     due_at: { type: 'string', format: 'date-time' }
   }
 };
@@ -620,3 +674,15 @@ openapi.components.schemas.TemplateCreate = {
     url: { type: 'string', example: 'https://example.com/template.docx' }
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+

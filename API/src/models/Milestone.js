@@ -3,11 +3,17 @@ import mongoose from 'mongoose';
 const milestoneSchema = new mongoose.Schema(
   {
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
-    type: { type: String, enum: ['registration','synopsis','proposal','progress','thesis','defense','journal'], required: true },
+    type: { type: String, enum: ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','thesis_postdefense','defense','journal'], required: true },
     status: { type: String, enum: ['draft','submitted','under_review','changes_requested','approved','scheduled','graded','archived'], default: 'draft' },
-    due_at: { type: Date },
-    submitted_at: { type: Date },
-    approved_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    sequence: { type: Number, default: 0 },
+    window_start: { type: Date, default: null },
+    window_end: { type: Date, default: null },
+    due_at: { type: Date, default: null },
+    submitted_at: { type: Date, default: null },
+    approved_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    assignment_required: { type: Boolean, default: true },
+    reviewer_roles: { type: [String], default: undefined },
+    coordinator_notes: { type: String, default: '' },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }, collection: 'milestones' }
 );
@@ -15,4 +21,5 @@ const milestoneSchema = new mongoose.Schema(
 milestoneSchema.index({ project: 1, type: 1 }, { unique: true });
 
 export const Milestone = mongoose.models.Milestone || mongoose.model('Milestone', milestoneSchema, 'milestones');
+
 
