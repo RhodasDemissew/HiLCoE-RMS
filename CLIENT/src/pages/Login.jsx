@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import Container from "../components/ui/Container";
@@ -6,26 +7,46 @@ import { api, setToken } from "../api/client.js";
 import googleIcon from "../assets/icons/Googleicon.png";
 import githubIcon from "../assets/icons/githubicon.png";
 
+const ROLE_OPTIONS = ["Researcher", "Supervisor", "Coordinator"];
+
 export default function Login() {
+  const [role, setRole] = useState(ROLE_OPTIONS[0]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
+
+    const payload = { email, password, remember, role };
+    console.log("Login submitted", payload);
+
     try {
       const res = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password, remember }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Login failed");
       const data = await res.json();
       setToken(data.token);
-      // TODO: route to dashboard once authenticated
     } catch (err) {
+      console.warn("Login API unavailable or failed; continuing with mocked navigation.", err);
       setError(err.message || "Login error");
+    }
+
+    switch (role) {
+      case "Researcher":
+        navigate("/dashboard", { replace: true });
+        break;
+      case "Supervisor":
+      case "Coordinator":
+        console.log(`Redirecting ${role} to their workspace (coming soon).`);
+        break;
+      default:
+        break;
     }
   }
 
@@ -38,12 +59,30 @@ export default function Login() {
             <h1 className="text-3xl font-semibold text-[color:var(--neutral-900)]">
               Welcome, To <span className="text-[color:var(--brand-600)]">HiLCoE RMS Login</span>
             </h1>
-            <p className="mt-2 text-l font-medium text-[color:var(--brand-600)] underline">
+            <p className="mt-2 text-sm font-medium text-[color:var(--brand-600)] underline">
               Simplifying Academic Research Management System
             </p>
 
             <div className="mt-10 rounded-[24px] bg-white px-10 py-12 text-left shadow-[0_24px_60px_rgba(8,26,66,0.12)]">
               <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="role">
+                    Role / Login as
+                  </label>
+                  <select
+                    id="role"
+                    value={role}
+                    onChange={(event) => setRole(event.target.value)}
+                    className="h-12 w-full rounded-[14px] border border-[color:var(--neutral-200)] bg-white px-4 text-sm text-[color:var(--neutral-800)] outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+                  >
+                    {ROLE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="email">
                     Email Address
@@ -55,6 +94,7 @@ export default function Login() {
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="Enter Email"
                     className="h-12 w-full rounded-[14px] border border-[color:var(--neutral-200)] px-4 text-sm text-[color:var(--neutral-800)] outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+                    required
                   />
                 </div>
 
@@ -62,7 +102,6 @@ export default function Login() {
                   <label className="text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="password">
                     Password
                   </label>
-
                   <div className="relative">
                     <input
                       id="password"
@@ -71,10 +110,11 @@ export default function Login() {
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="Enter password"
                       className="h-12 w-full rounded-[14px] border border-[color:var(--neutral-200)] px-4 pr-28 text-sm text-[color:var(--neutral-800)] outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+                      required
                     />
                     <a
                       href="/forgot-password"
-                      className="absolute right-4  translate-y-14 text-sm font-semibold text-[color:var(--brand-600)] hover:underline"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[color:var(--brand-600)] hover:underline"
                     >
                       Forgot password?
                     </a>
@@ -92,7 +132,7 @@ export default function Login() {
                 </label>
 
                 {error && (
-                  <p className="text-sm monto font-medium text-red-500">{error}</p>
+                  <p className="text-sm font-medium text-red-500">{error}</p>
                 )}
 
                 <button
@@ -113,14 +153,18 @@ export default function Login() {
                 <button
                   type="button"
                   className="flex items-center justify-center gap-2 rounded-[12px] border border-[color:var(--neutral-200)] py-3 text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-50)]"
+                  onClick={() => console.log("Login with Google")}
                 >
-                  <img src={googleIcon} alt="Google" className="h-5 w-5" loading="lazy" decoding="async" /> Google
+                  <img src={googleIcon} alt="Google" className="h-5 w-5" loading="lazy" decoding="async" />
+                  Google
                 </button>
                 <button
                   type="button"
                   className="flex items-center justify-center gap-2 rounded-[12px] border border-[color:var(--neutral-200)] py-3 text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-50)]"
+                  onClick={() => console.log("Login with GitHub")}
                 >
-                  <img src={githubIcon} alt="GitHub" className="h-5 w-5" loading="lazy" decoding="async" /> GitHub
+                  <img src={githubIcon} alt="GitHub" className="h-5 w-5" loading="lazy" decoding="async" />
+                  GitHub
                 </button>
               </div>
 
@@ -135,3 +179,5 @@ export default function Login() {
     </div>
   );
 }
+
+
