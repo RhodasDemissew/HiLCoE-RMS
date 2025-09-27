@@ -16,6 +16,17 @@ export const projectsController = {
       const result = await projectsService.assignAdvisor(req.params.id, req.body.advisorId);
       res.json(result);
     } catch (e) { res.status(400).json({ error: e.message }); }
+  },
+  async milestones(req, res) {
+    try {
+      const items = await projectsService.milestones(req.params.id);
+      res.json(items);
+    } catch (e) { res.status(400).json({ error: e.message }); }
+  },
+  async updateSchedule(req, res) {
+    try {
+      const item = await projectsService.updateMilestoneSchedule(req.params.id, req.params.type, req.body);
+      res.json(item);
+    } catch (e) { res.status(400).json({ error: e.message }); }
   }
 };
-

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { Role } from '../models/Role.js';
 import { User } from '../models/User.js';
@@ -37,9 +37,31 @@ async function main() {
   let admin = await User.findOne({ email: adminEmail });
   if (!admin) {
     const pwd = hashPassword('admin123');
-    admin = await User.create({ name: 'Admin User', email: adminEmail, role: roleMap['Admin'], status: 'active', password: pwd });
+    admin = await User.create({
+      first_name: 'Admin',
+      middle_name: '',
+      last_name: 'User',
+      name: 'Admin User',
+      email: adminEmail,
+      role: roleMap['Admin'],
+      status: 'active',
+      phone: '',
+      student_id: 'ADMIN-000',
+      password: pwd,
+      verified_at: new Date(),
+    });
     console.log('Seeded admin user admin@hilcoe.local / admin123');
   } else {
+    admin.first_name ||= 'Admin';
+    admin.last_name ||= 'User';
+    admin.name = [admin.first_name, admin.middle_name, admin.last_name].filter(Boolean).join(' ') || 'Admin User';
+    admin.role = roleMap['Admin'];
+    admin.status = 'active';
+    if (!admin.password) {
+      admin.password = hashPassword('admin123');
+      console.log('Admin password reset to default (change immediately).');
+    }
+    await admin.save();
     console.log('Admin user already exists');
   }
 

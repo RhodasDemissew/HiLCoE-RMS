@@ -10,6 +10,22 @@ export const DEFAULT_SEQUENCES = {
   journal: 90,
 };
 
+const ASSIGNMENT_REQUIRED_DEFAULTS = {
+  registration: false,
+};
+
+const REVIEWER_ROLE_DEFAULTS = {
+  registration: ['Coordinator','Admin'],
+  synopsis: ['Advisor','Coordinator'],
+  proposal: ['Advisor','Coordinator'],
+  progress1: ['Advisor','Coordinator'],
+  progress2: ['Advisor','Coordinator'],
+  thesis_precheck: ['Advisor','Coordinator'],
+  defense: ['Coordinator','Examiner'],
+  thesis_postdefense: ['Advisor','Coordinator'],
+  journal: ['Advisor','Coordinator'],
+};
+
 const STAGE_ORDER = ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','defense','thesis_postdefense','journal'];
 
 const PREVIOUS_REQUIREMENTS = {
@@ -34,6 +50,14 @@ export function getNextStage(type) {
 }
 
 export function requiresAdvisorForApproval(type) {
-  // Registration can be approved before advisor assignment; others require an advisor.
   return type !== 'registration';
+}
+
+export function defaultAssignmentRequired(type) {
+  if (type in ASSIGNMENT_REQUIRED_DEFAULTS) return ASSIGNMENT_REQUIRED_DEFAULTS[type];
+  return true;
+}
+
+export function defaultReviewerRoles(type) {
+  return REVIEWER_ROLE_DEFAULTS[type] || ['Advisor','Coordinator'];
 }
