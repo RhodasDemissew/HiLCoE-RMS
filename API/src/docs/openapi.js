@@ -1,4 +1,4 @@
-export const openapi = {
+﻿export const openapi = {
   openapi: '3.0.3',
   info: {
     title: 'HiLCoE RMS API',
@@ -40,27 +40,49 @@ export const openapi = {
           }
         }
       },
+      VerifyStudentRequest: {
+        type: 'object',
+        required: ['first_name','last_name','student_id'],
+        properties: {
+          first_name: { type: 'string', example: 'Rhea' },
+          middle_name: { type: 'string', example: 'M.' },
+          last_name: { type: 'string', example: 'Researcher' },
+          student_id: { type: 'string', example: 'RMS2025-001' }
+        }
+      },
+      VerifyStudentResponse: {
+        type: 'object',
+        properties: {
+          verification_token: { type: 'string', nullable: true },
+          expires_at: { type: 'string', format: 'date-time', nullable: true },
+          login_hint: { type: 'string', format: 'email', nullable: true },
+          already_registered: { type: 'boolean' },
+          student: {
+            type: 'object',
+            properties: {
+              first_name: { type: 'string' },
+              middle_name: { type: 'string' },
+              last_name: { type: 'string' },
+              student_id: { type: 'string' },
+              program: { type: 'string' },
+              already_registered: { type: 'boolean' },
+              verified_email: { type: 'string', format: 'email', nullable: true }
+            }
+          }
+        }
+      },
       RegisterRequest: {
         type: 'object',
-        required: ['name','email'],
+        required: ['verification_token','email','password'],
         properties: {
-          name: { type: 'string', minLength: 2, maxLength: 80, example: 'Test User' },
-          email: { type: 'string', format: 'email', example: 'test@hilcoe.local' },
-          student_id: { type: 'string', maxLength: 40, example: 'STU-001', nullable: true }
+          verification_token: { type: 'string', example: 'f5f6b4...' },
+          email: { type: 'string', format: 'email', example: 'student@example.com' },
+          phone: { type: 'string', example: '+251-900000000' },
+          password: { type: 'string', minLength: 8, example: 'SecurePass123' }
         }
       },
       RegisterResponse: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' },
-          status: { type: 'string', enum: ['pending','active','inactive'] },
-          activation_token: { type: 'string', nullable: true }
-        }
-      },
-      ActivateRequest: {
-        type: 'object',
-        required: ['token','password'],
-        properties: { token: { type: 'string' }, password: { type: 'string', minLength: 6 } }
+        $ref: '#/components/schemas/LoginResponse'
       },
       ResetRequest: {
         type: 'object',
@@ -139,17 +161,38 @@ export const openapi = {
         }
       }
     },
+    '/auth/verify': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Verify student eligibility',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/VerifyStudentRequest' } } }
+        },
+        responses: {
+          '200': {
+            description: 'Student verified',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/VerifyStudentResponse' } } }
+          },
+          '400': { description: 'Not found or mismatch' }
+        }
+      }
+    },
     '/auth/register': {
       post: {
         tags: ['Auth'],
-        summary: 'Self-register (Researcher)',
+        summary: 'Complete account signup',
+        description: 'Exchanges a verification token for an active user account.',
         requestBody: {
           required: true,
           content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterRequest' } } }
         },
         responses: {
-          '201': { description: 'Registered', content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterResponse' } } } },
-          '400': { description: 'Validation error or duplicate email' }
+          '201': {
+            description: 'Account created',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterResponse' } } }
+          },
+          '400': { description: 'Validation error or token issue' }
         }
       }
     },
@@ -176,52 +219,6 @@ export const openapi = {
             }
           },
           '401': { description: 'Unauthorized' }
-        }
-      }
-    },
-    '/auth/invite': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Invite a user (Admin only)',
-        description: 'Creates or updates a user as inactive and returns an activation token.',
-        security: [{ bearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['name', 'email', 'roleName'],
-                properties: {
-                  name: { type: 'string' },
-                  email: { type: 'string', format: 'email' },
-                  roleName: { type: 'string', enum: ['Admin','Coordinator','Advisor','Examiner','Researcher'] }
-                }
-              }
-            }
-          }
-        },
-        responses: {
-          '200': {
-            description: 'Invite created',
-            content: { 'application/json': { schema: { type: 'object', properties: { activation_token: { type: 'string' } } } } }
-          },
-          '401': { description: 'Unauthorized' },
-          '403': { description: 'Forbidden (requires Admin)' }
-        }
-      }
-    },
-    '/auth/activate': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Activate invited user',
-        requestBody: {
-          required: true,
-          content: { 'application/json': { schema: { $ref: '#/components/schemas/ActivateRequest' } } }
-        },
-        responses: {
-          '200': { description: 'Activated', content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, current_stage: { type: 'string' } } } } } },
-          '400': { description: 'Invalid token or missing fields' }
         }
       }
     },
@@ -674,6 +671,9 @@ openapi.components.schemas.TemplateCreate = {
     url: { type: 'string', example: 'https://example.com/template.docx' }
   }
 };
+
+
+
 
 
 

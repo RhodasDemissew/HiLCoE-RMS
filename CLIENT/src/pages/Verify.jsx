@@ -1,47 +1,84 @@
-import { useCallback, useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
+import { api } from "../api/client.js";
 
 export default function Verify({ onBack, onVerified }) {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ firstName: "", lastName: "", researcherId: "" });
+  const [form, setForm] = useState({ firstName: "", middleName: "", lastName: "", studentId: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleBack = useCallback(() => {
+  function handleBack() {
     if (onBack) {
       onBack();
     } else {
       navigate("/");
     }
-  }, [navigate, onBack]);
+  }
 
-  const handleVerified = useCallback(
-    (data) => {
-      if (onVerified) {
-        onVerified(data);
-      } else {
-        navigate("/signup", { state: data });
-      }
-    },
-    [navigate, onVerified]
-  );
+  function forwardToSignUp(payload) {
+    if (onVerified) {
+      onVerified(payload);
+    } else {
+      navigate("/signup", { state: payload });
+    }
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setError("");
 
-    if (!form.firstName.trim() || !form.lastName.trim() || !form.researcherId.trim()) {
-      setError("Fill out all fields to continue.");
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.studentId.trim()) {
+      setError("Fill out all required fields to continue.");
       return;
     }
 
-    // TODO: connect to verification API and handle success/failure states
-    handleVerified(form);
+    setLoading(true);
+    try {
+      const res = await api("/auth/verify", {
+        method: "POST",
+        body: JSON.stringify({
+          first_name: form.firstName,
+          middle_name: form.middleName,
+          last_name: form.lastName,
+          student_id: form.studentId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Verification failed");
+      }
+
+      if (data.already_registered) {
+        if (data.login_hint) {
+          localStorage.setItem("lastEmail", data.login_hint);
+        }
+        navigate("/login", { state: { message: 'Account already activated. Please login.' } });
+        return;
+      }
+
+      const student = data.student ?? {};
+      forwardToSignUp({
+        verificationToken: data.verification_token,
+        expiresAt: data.expires_at,
+        firstName: student.first_name,
+        middleName: student.middle_name,
+        lastName: student.last_name,
+        researcherId: student.student_id,
+        program: student.program,
+      });
+    } catch (err) {
+      setError(err.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -77,6 +114,20 @@ export default function Verify({ onBack, onVerified }) {
             </div>
 
             <div className="flex flex-col gap-2">
+              <label htmlFor="middleName" className="text-sm font-medium text-[color:var(--neutral-700)]">
+                Middle Name (optional)
+              </label>
+              <input
+                id="middleName"
+                name="middleName"
+                value={form.middleName}
+                onChange={handleChange}
+                placeholder="Enter Middle Name"
+                className="h-12 rounded-[14px] border border-[color:var(--neutral-200)] px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
               <label htmlFor="lastName" className="text-sm font-medium text-[color:var(--neutral-700)]">
                 Last Name
               </label>
@@ -91,13 +142,13 @@ export default function Verify({ onBack, onVerified }) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="researcherId" className="text-sm font-medium text-[color:var(--neutral-700)]">
+              <label htmlFor="studentId" className="text-sm font-medium text-[color:var(--neutral-700)]">
                 ID
               </label>
               <input
-                id="researcherId"
-                name="researcherId"
-                value={form.researcherId}
+                id="studentId"
+                name="studentId"
+                value={form.studentId}
                 onChange={handleChange}
                 placeholder="Student ID"
                 className="h-12 rounded-[14px] border border-[color:var(--neutral-200)] px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
@@ -105,15 +156,14 @@ export default function Verify({ onBack, onVerified }) {
             </div>
           </div>
 
-          {error && (
-            <p className="mt-4 text-sm font-medium text-red-500">{error}</p>
-          )}
+          {error && <p className="mt-4 text-sm font-medium text-red-500">{error}</p>}
 
           <Button
             type="submit"
-            className="btn mt-8 h-12 w-full rounded-[14px] text-[17px] font-semibold tracking-wide"
+            disabled={loading}
+            className="btn mt-8 h-12 w-full rounded-[14px] text-[17px] font-semibold tracking-wide disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Verify
+            {loading ? "Verifying..." : "Verify"}
           </Button>
 
           <p className="mt-8 text-center text-sm text-[color:var(--neutral-600)]">

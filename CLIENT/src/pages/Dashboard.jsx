@@ -1,4 +1,5 @@
 ﻿import { useEffect, useRef, useState } from "react";
+import { api } from "../api/client.js";
 import {
   AreaChart,
   Area,
@@ -158,7 +159,15 @@ function Sidebar({ active, onSelect }) {
   );
 }
 
-function Topbar({ showSearch = false }) {
+function Topbar({ showSearch = false, user, loading = false }) {
+  const displayName = user?.name || 'Researcher';
+  const displayRole = user?.role || 'Researcher';
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => (part[0] || '').toUpperCase())
+    .join('') || 'R';
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const dropdownRef = useRef(null);
   const hasNotifications = NOTIFICATIONS.length > 0;
@@ -304,11 +313,11 @@ function Topbar({ showSearch = false }) {
             onClick={() => console.log("Open profile menu")}
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-sm font-semibold text-[color:var(--brand-600)]">
-              RA
+              {initials}
             </span>
             <div className="text-xs text-[color:var(--neutral-600)]">
-              <div className="font-semibold text-[color:var(--neutral-900)]">Ruth Abebe</div>
-              Student
+              <div className="font-semibold text-[color:var(--neutral-900)]">{displayName}</div>
+              {loading ? 'Loading�' : displayRole}
             </div>
           </button>
         </div>
@@ -501,14 +510,14 @@ function ProgressChart({ labels, series }) {
   );
 }
 
-function DashboardContent() {
+function DashboardContent({ user, isLoading }) {
   return (
     <div className="grid grid-cols-5 gap-5">
       <div className="col-span-12 lg:col-span-12 ">
         <div className="grid grid-cols-5 gap-5">
           <div className="col-span-12">
             <header className="card rounded-card border border-transparent bg-white px-8 py-6 shadow-soft">
-              <h1 className="h2 text-[color:var(--neutral-900)]">Welcome, Ruth Abebe</h1>
+              <h1 className="h2 text-[color:var(--neutral-900)]">{isLoading ? 'Loading profile�' : `Welcome, ${user?.name || 'Researcher'}`}</h1>
               <p className="body mt-2 text-[color:var(--neutral-600)]">Hereâ€™s whatâ€™s happening with your research today.</p>
             </header>
           </div>
@@ -567,11 +576,31 @@ function PlaceholderContent({ title }) {
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState("Dashboard");
+  const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProfile() {
+      try {
+        const res = await api('/auth/me');
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error || 'Failed to load profile');
+        if (isMounted) setUser(data);
+      } catch (err) {
+        console.error('Profile fetch failed', err);
+      } finally {
+        if (isMounted) setUserLoading(false);
+      }
+    }
+    loadProfile();
+    return () => { isMounted = false; };
+  }, []);
 
   let content;
   switch (activeSection) {
     case "Dashboard":
-      content = <DashboardContent />;
+      content = <DashboardContent user={user} isLoading={userLoading} />;
       break;
     case "Submission":
       content = <SubmissionWorkspace />;
@@ -585,14 +614,14 @@ export default function Dashboard() {
       content = <PlaceholderContent title={activeSection} />;
       break;
     default:
-      content = <DashboardContent />;
+      content = <DashboardContent user={user} isLoading={userLoading} />;
       break;
   }
 
   return (
     <AppShell
       sidebar={<Sidebar active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar showSearch={activeSection === "Submission"} />}
+      topbar={<Topbar showSearch={activeSection === "Submission"} user={user} loading={userLoading} />}
     >
       {content}
     </AppShell>

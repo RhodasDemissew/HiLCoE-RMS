@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+﻿import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import Container from "../components/ui/Container";
@@ -7,46 +7,54 @@ import { api, setToken } from "../api/client.js";
 import googleIcon from "../assets/icons/Googleicon.png";
 import githubIcon from "../assets/icons/githubicon.png";
 
-const ROLE_OPTIONS = ["Researcher", "Supervisor", "Coordinator"];
-
 export default function Login() {
-  const [role, setRole] = useState(ROLE_OPTIONS[0]);
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [info, setInfo] = useState(location.state?.message ?? "");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("lastEmail");
+    const rememberFlag = localStorage.getItem("rememberMe") === "true";
+    if (saved) {
+      setEmail(saved);
+    }
+    if (rememberFlag) {
+      setRemember(true);
+    }
+  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
-
-    const payload = { email, password, remember, role };
-    console.log("Login submitted", payload);
-
+    setInfo("");
+    setLoading(true);
     try {
       const res = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) throw new Error("Login failed");
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Login failed");
+      }
       setToken(data.token);
+      localStorage.setItem("lastEmail", email.toLowerCase());
+      if (remember) {
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        localStorage.removeItem("rememberMe");
+      }
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      console.warn("Login API unavailable or failed; continuing with mocked navigation.", err);
       setError(err.message || "Login error");
-    }
-
-    switch (role) {
-      case "Researcher":
-        navigate("/dashboard", { replace: true });
-        break;
-      case "Supervisor":
-      case "Coordinator":
-        console.log(`Redirecting ${role} to their workspace (coming soon).`);
-        break;
-      default:
-        break;
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -65,24 +73,6 @@ export default function Login() {
 
             <div className="mt-10 rounded-[24px] bg-white px-10 py-12 text-left shadow-[0_24px_60px_rgba(8,26,66,0.12)]">
               <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="role">
-                    Role / Login as
-                  </label>
-                  <select
-                    id="role"
-                    value={role}
-                    onChange={(event) => setRole(event.target.value)}
-                    className="h-12 w-full rounded-[14px] border border-[color:var(--neutral-200)] bg-white px-4 text-sm text-[color:var(--neutral-800)] outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
-                  >
-                    {ROLE_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="email">
                     Email Address
@@ -131,15 +121,15 @@ export default function Login() {
                   Remember me
                 </label>
 
-                {error && (
-                  <p className="text-sm font-medium text-red-500">{error}</p>
-                )}
+                {error && <p className="text-sm font-medium text-red-500">{error}</p>}
+                {info && <p className="text-sm font-medium text-[color:var(--brand-600)]">{info}</p>}
 
                 <button
                   type="submit"
-                  className="btn w-full rounded-[14px] py-3 text-base font-semibold"
+                  disabled={loading}
+                  className="btn w-full rounded-[14px] py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Login
+                  {loading ? "Logging in..." : "Login"}
                 </button>
               </form>
 
@@ -179,5 +169,3 @@ export default function Login() {
     </div>
   );
 }
-
-

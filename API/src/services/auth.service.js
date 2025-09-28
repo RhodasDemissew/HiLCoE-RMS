@@ -1,6 +1,22 @@
-import { userRepo, roleRepo } from '../repositories/user.repository.js';
+﻿import { userRepo, roleRepo } from '../repositories/user.repository.js';
+import { studentVerificationRepo } from '../repositories/studentVerification.repository.js';
 import { hashPassword, verifyPassword, signJWT } from '../utils/crypto.js';
 import { config } from '../config/env.js';
+
+const VERIFY_TOKEN_WINDOW_MINUTES = 30;
+
+function normalize(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function namesMatch(record, payload) {
+  const firstMatch = normalize(record.first_name) === normalize(payload.first_name);
+  const lastMatch = normalize(record.last_name) === normalize(payload.last_name);
+  const middleRecord = normalize(record.middle_name);
+  const middlePayload = normalize(payload.middle_name || '');
+  const middleMatch = !middleRecord || middleRecord === middlePayload;
+  return firstMatch && lastMatch && middleMatch;
+}
 
 export const authService = {
   async login(email, password) {
@@ -12,49 +28,92 @@ export const authService = {
     const token = signJWT({ sub: String(user._id), role: user.role?.name }, config.jwtSecret, 60 * 60 * 8);
     return { token, user: { id: user._id, email: user.email, name: user.name, role: user.role?.name } };
   },
-  async invite(name, email, roleName) {
-    const role = await roleRepo.findByName(roleName);
-    if (!role) throw new Error('Invalid role');
+
+  async verifyStudent({ first_name, middle_name = '', last_name, student_id }) {
+    const record = await studentVerificationRepo.findByStudentId(student_id);
+    if (!record) throw new Error('Student record not found');
+    if (!namesMatch(record, { first_name, middle_name, last_name })) {
+      throw new Error('Provided details do not match our records');
+    }
+
+    const alreadyRegistered = Boolean(record.verified_email);
+    const student = {
+      first_name: record.first_name,
+      middle_name: record.middle_name,
+      last_name: record.last_name,
+      student_id: record.student_id,
+      program: record.program,
+      already_registered: alreadyRegistered,
+      verified_email: record.verified_email,
+    };
+
+    if (alreadyRegistered) {
+      return {
+        verification_token: null,
+        expires_at: null,
+        login_hint: record.verified_email,
+        already_registered: true,
+        student,
+      };
+    }
+
     const crypto = await import('crypto');
     const token = crypto.randomBytes(24).toString('hex');
-    const { User } = await import('../models/User.js');
-    const user = await User.findOneAndUpdate(
-      { email: String(email).toLowerCase() },
-      { $set: { name, role: role._id, status: 'inactive', activation_token: token } },
-      { upsert: true, new: true }
-    );
-    return { activation_token: user.activation_token };
+    const expiresAt = new Date(Date.now() + VERIFY_TOKEN_WINDOW_MINUTES * 60 * 1000);
+    await studentVerificationRepo.markToken(record, token, expiresAt);
+
+    return {
+      verification_token: token,
+      expires_at: expiresAt.toISOString(),
+      login_hint: null,
+      already_registered: false,
+      student,
+    };
   },
-  async activate(token, password) {
+
+  async register({ verification_token, email, phone = '', password }) {
+    const record = await studentVerificationRepo.findByToken(verification_token);
+    if (!record) throw new Error('Invalid or expired verification token');
+    if (!record.signup_token_expires_at || record.signup_token_expires_at < new Date()) {
+      throw new Error('Verification token expired');
+    }
+
+    const normalizedEmail = String(email).toLowerCase();
+    const existingEmailUser = await userRepo.findByEmail(normalizedEmail);
+    if (existingEmailUser) throw new Error('Email already registered');
+
     const { User } = await import('../models/User.js');
-    const user = await User.findOne({ activation_token: token });
-    if (!user) throw new Error('Invalid token');
-    user.password = hashPassword(password);
-    user.activation_token = null;
-    user.status = 'active';
-    await user.save();
-    return { ok: true };
-  },
-  async register(name, email, student_id) {
+    const existingStudent = await User.findOne({ student_id: record.student_id });
+    if (existingStudent) throw new Error('Student already registered');
+
     const role = await roleRepo.findByName('Researcher');
     if (!role) throw new Error('Role not configured');
-    const crypto = await import('crypto');
-    const token = crypto.randomBytes(24).toString('hex');
-    const { User } = await import('../models/User.js');
-    const lower = String(email).toLowerCase();
-    const existing = await userRepo.findByEmail(lower);
-    if (existing) throw new Error('Email already registered');
+
+    const passwordHash = hashPassword(password);
+    const fullName = [record.first_name, record.middle_name, record.last_name].filter(Boolean).join(' ');
+
     const user = await User.create({
-      name,
-      email: lower,
+      first_name: record.first_name,
+      middle_name: record.middle_name,
+      last_name: record.last_name,
+      name: fullName,
+      email: normalizedEmail,
+      phone,
       role: role._id,
-      status: 'pending',
-      student_id: student_id || '',
-      activation_token: token,
-      password: null,
+      status: 'active',
+      student_id: record.student_id,
+      student_verification: record._id,
+      password: passwordHash,
+      verified_at: new Date(),
     });
-    return { id: user._id, status: user.status, activation_token: token };
+
+    await studentVerificationRepo.markVerified(record, normalizedEmail);
+
+    const roleName = role.name;
+    const token = signJWT({ sub: String(user._id), role: roleName }, config.jwtSecret, 60 * 60 * 8);
+    return { token, user: { id: user._id, email: user.email, name: user.name, role: roleName } };
   },
+
   async requestReset(email) {
     const { User } = await import('../models/User.js');
     const lower = String(email).toLowerCase();
@@ -70,6 +129,7 @@ export const authService = {
     }
     return { ok: true };
   },
+
   async resetPassword(token, password) {
     const { User } = await import('../models/User.js');
     const now = new Date();
