@@ -14,19 +14,35 @@ const LogIn = () => {
       <h2 className='absolute top-20 font-poppins font-light text-xl ml-190 text-center w-100'>Simplifying Academic Research Management System</h2>
       
       {/* Login Form - BACKEND DEVELOPER: This form needs to connect to your authentication endpoint */}
-      <form action="" className='absolute bg-white items-center justify-center ml-170 mt-40 rounded-xl shadow-md border z-0 border-gray-100 pl-8 pr-14 pt-8 h-135'>
+      <form action="" className='absolute bg-white items-center justify-center ml-170 mt-40 rounded-xl shadow-md border z-0 border-gray-100 pl-8 pr-14 pt-8 h-150'>
         
         {/* Email Input Field */}
         <h3 className='pl-5 pt-4 font-poppins font-medium text-sm text-gray-700'>Email </h3>
         {/* BACKEND: This field should be validated as email format on both frontend and backend */}
-        <input type="email" placeholder='example@gmail.com' className='border-1  rounded-md focus:ring-1 focus:ring-blue-200 p-2 ml-5 mt-3 w-110' />
-        
+        <input
+          type="email"
+          placeholder="example@gmail.com"
+          className="border-1 rounded-md focus:ring-1 focus:ring-blue-200 p-2 ml-5 mt-3 w-110"
+        />
+
         {/* Password Input Field */}
-        <h3 className='pl-5 pt-4 font-poppins font-medium text-sm text-gray-700'>Password</h3>
+        <h3 className="pl-5 pt-4 font-poppins font-medium text-sm text-gray-700">Password</h3>
         {/* BACKEND: This should be sent securely (HTTPS) and validated for strength requirements */}
-        <input type="password" placeholder='Enter Password' className='border-1 rounded-md focus:ring-1 focus:ring-blue-200 p-2 ml-5 mt-3 w-110' />
-        
-        {/* Main Login Button */}
+        <input
+          type="password"
+          placeholder="Enter Password"
+          className="border-1 rounded-md focus:ring-1 focus:ring-blue-200 p-2 ml-5 mt-3 w-110"
+        />
+
+        <div className="flex items-center justify-between ml-5 mt-3 w-110">
+          <label className="flex items-center gap-2 text-sm font-poppins">
+            <input type="checkbox" className="accent-blue-500" />
+            Remember me
+          </label>
+          <Link to="" className="text-blue-500 text-sm font-poppins font-bold hover:underline">
+            Forgot password?
+          </Link>
+        </div>
         {/* BACKEND: This button should trigger a POST request to /api/auth/login */}
         {/* Expected payload: { email: string, password: string } */}
         {/* Expected response: { success: boolean, token: string, user: object } or error message */}
@@ -56,8 +72,8 @@ const LogIn = () => {
         </div>
         
         {/* Navigation links */}
-        <h5 className='font-medium ml-15 mt-8 text-center'>Don't have an account? <Link to='/signup' className='text-blue-500 font-bold'>Sign up </Link></h5>
-        <h5 className='font-medium ml-15 mt-1 text-center'>Or Check Verification <Link to='/verify' className='text-blue-500 font-bold'>Verify </Link></h5>
+        <h5 className='font-medium ml-10 mt-8 text-center'>Don't have an account? <Link to='/signup' className='text-blue-500 font-bold'>Sign up </Link></h5>
+        <h5 className='font-medium ml-10 mt-1 text-center'>Or Check Verification <Link to='/verify' className='text-blue-500 font-bold'>Verify </Link></h5>
       </form>
     </div>
   )
