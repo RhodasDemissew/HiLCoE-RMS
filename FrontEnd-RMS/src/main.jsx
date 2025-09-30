@@ -13,13 +13,13 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import LogIn from './pages/Auth/logIn.jsx'
 import Verify from './pages/Auth/verify.jsx'
 import SignUp from './pages/Auth/signUp.jsx'
-import S_Dashboard from './pages/student/S_Dashboard.jsx'
-import Users from './pages/student/Users.jsx';
-import ResearchStats from './pages/student/ResearchStat.jsx';
-import ActivityLog from './pages/student/ActivityLog.jsx';
-import Messages from './pages/student/Message.jsx';
-import Settings from './pages/student/Settings.jsx';
-import Dashboard from './pages/student/Dasboard.jsx'
+import S_Dashboard from './pages/coordinator/S_Dashboard.jsx'
+import Users from './pages/coordinator/Users.jsx';
+import ResearchStats from './pages/coordinator/ResearchStat.jsx';
+import ActivityLog from './pages/coordinator/ActivityLog.jsx';
+import Messages from './pages/coordinator/Message.jsx';
+import Settings from './pages/coordinator/Settings.jsx';
+import Dashboard from './pages/coordinator/Dasboard.jsx'
 
 
 const router = createBrowserRouter([
@@ -41,7 +41,7 @@ const router = createBrowserRouter([
 
   // Student dashboard routes with sidebar
   {
-    path: '/student',
+    path: '/coordinator',
     element: <S_Dashboard />,
     children: [
       { path: 'dashboard', element: <Dashboard /> },

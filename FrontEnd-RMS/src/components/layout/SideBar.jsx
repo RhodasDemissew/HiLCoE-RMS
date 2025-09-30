@@ -1,4 +1,5 @@
 import React from 'react';
+import { assets } from '../../assets/assets.js';
 import { 
   LayoutDashboard, 
   Users, 
@@ -21,16 +22,16 @@ const Sidebar = ({ activeRoute, onRouteChange }) => {
   ];
 
   return (
-    <div className="w-64 bg-blue-900 min-h-screen flex flex-col">
+    <div className="w-64 bg-blue-950 min-h-screen flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b border-blue-800">
+      <div className="p-6 border-b border-b-gray-400">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
+            <img  className=' t-0' src={assets.HiLCoE_Logo} alt="" />
           </div>
           <div>
-            <h2 className="text-white font-semibold">MILCOB</h2>
-            <p className="text-blue-300 text-xs">Research Management</p>
+            <h2 className="text-white font-semibold font-caprasimo">HiLCoE</h2>
+            <p className="text-blue-300 text-md">Research Management</p>
           </div>
         </div>
       </div>
@@ -48,7 +49,7 @@ const Sidebar = ({ activeRoute, onRouteChange }) => {
                   onClick={() => onRouteChange(item.id)}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
                     isActive
-                      ? 'bg-blue-800 text-white'
+                      ? 'bg-blue-500 text-white'
                       : 'text-blue-200 hover:bg-blue-800 hover:text-white'
                   }`}
                 >

@@ -1,5 +1,8 @@
-import React from 'react';
-import { TrendingUp, Users, FileText, Clock } from 'lucide-react';
+import React, { Profiler } from 'react';
+import { TrendingUp, Users, FileText, Clock, User } from 'lucide-react';
+import ProgressChart from '../../components/ui/Chart';
+import Button from '../../components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const stats = [
@@ -20,20 +23,33 @@ const Dashboard = () => {
     { title: 'Upcoming Progress Report', date: '30 Jan 2025', type: 'report', icon: TrendingUp },
   ];
 
+  const messages = [
+    { title: 'Supervisor Meeting', description:'Great progress on the literature review. Please revise the methodology section.', type: 'meeting', icon: User },
+    { title: 'Supervisor Meeting', description:'Great progress on the literature review. Please revise the methodology section.', type: 'meeting', icon: User },
+    { title: 'Supervisor Meeting', description:'Great progress on the literature review. Please revise the methodology section.', type: 'meeting', icon: User },
+    
+  ];
+
+   const CHART_SERIES = [
+    { name: "Submissions", data: [0, 0, 0, 0, 0] },
+    { name: "Approvals", data: [0, 0, 0, 0, 0] },
+    ];
+  const CHART_LABELS = ["Figma", "Sketch", "XD", "PS", "AI"];
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className=" p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome, Dr Mesfin</h1>
         <p className="text-gray-600">Today is a good day to make progress</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-280">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
+            <div key={index} className="bg-white p-6 rounded-lg shadow-sm ">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.label}</p>
@@ -48,7 +64,7 @@ const Dashboard = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-425">
         {/* Activity Log */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity Log</h3>
@@ -82,6 +98,7 @@ const Dashboard = () => {
               </tbody>
             </table>
           </div>
+           <Link to='activity-log' ><Button caption='View All Log' className="w-full mt-20 text-blue-600 text-sm font-semibold hover:text-blue-800 transition-colors" /></Link> 
         </div>
 
         {/* Events and Deadlines */}
@@ -109,11 +126,42 @@ const Dashboard = () => {
               );
             })}
           </div>
-          <button className="w-full mt-4 text-blue-600 text-sm font-medium hover:text-blue-800 transition-colors">
+          <button className="w-full mt-10 text-blue-600 text-sm font-medium hover:text-blue-800 transition-colors">
             View Full Calendar
           </button>
         </div>
+
+        {/* Message Section (side by side) */}
+        <div className="bg-white p-6 rounded-lg shadow-sm overflow-y-auto overflow-x-hidden  max-h-96 w-112">
+          <h3 className="text-lg font-semibold text-gray-900 ">Messages</h3>
+          <div className="space-y-1">
+            {messages.map((messages, index) => {
+              const Icon = messages.icon;
+              return (
+                <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                  <div className={`p-2 rounded-lg ${
+                    messages.type === 'meeting' ? 'bg-blue-100' :
+                    messages.type === 'deadline' ? 'bg-red-100' : 'bg-green-100'
+                  }`}>
+                    <Icon size={16} className={
+                      messages.type === 'meeting' ? 'text-blue-600' :
+                      messages.type === 'deadline' ? 'text-red-600' : 'text-green-600'
+                    } />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{messages.title}</p>
+                    <p className="text-sm text-gray-500">{messages.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <button className="w-full mt-4 text-blue-600 text-sm font-medium hover:text-blue-800 transition-colors">
+            View All Messeage
+          </button>
+        </div>
       </div>
+      
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -131,13 +179,10 @@ const Dashboard = () => {
         </div>
 
         {/* Research Stats */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-white p-6 rounded-lg shadow-sm h-110">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Research Stats</h3>
           <div className="flex items-center justify-center h-48 bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <TrendingUp size={48} className="text-blue-500 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Research Progress Trends</p>
-            </div>
+            <ProgressChart labels={CHART_LABELS} series={CHART_SERIES} />
           </div>
         </div>
       </div>

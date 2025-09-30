@@ -14,6 +14,7 @@ import search from './icons/search.png'
 import Upload from './icons/Upload.png'
 import vector_desktop from './icons/vector_desktop.png'
 import word from './icons/word.png'
+import notification from './icons/Notification.png'
 
 export const assets = {
     AI_3D,
@@ -31,6 +32,7 @@ export const assets = {
     search,
     Upload,
     vector_desktop,
-    word
+    word,
+    notification
 }
 
