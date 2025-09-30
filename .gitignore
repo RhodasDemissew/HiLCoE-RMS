@@ -10,3 +10,5 @@ dist/
 .vite/
 coverage
 .vscode
+appsettings.json
+
