@@ -10,6 +10,13 @@ function requireEnv(name, fallback = undefined) {
   return v;
 }
 
+function sanitizeBaseUrl(urlLike, def = 'http://localhost:5173') {
+  const raw = (urlLike ?? def).toString().trim();
+  // In case someone added inline comments like "http://... (the UI base URL ...)"
+  const head = raw.split(/\s|\(/)[0];
+  return head.replace(/\/$/, '');
+}
+
 export const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   mongoUri: requireEnv('MONGO_URI'),
@@ -17,6 +24,11 @@ export const config = {
   storageDir: requireEnv('STORAGE_DIR', './storage'),
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigin: process.env.CORS_ORIGIN || '*',
+  appBaseUrl: sanitizeBaseUrl(process.env.APP_BASE_URL, 'http://localhost:5173'),
+  smtpHost: process.env.SMTP_HOST || '',
+  smtpPort: parseInt(process.env.SMTP_PORT || '0', 10),
+  smtpUser: process.env.SMTP_USER || '',
+  smtpPass: process.env.SMTP_PASS || '',
+  smtpSecure: String(process.env.SMTP_SECURE || '').toLowerCase() === 'true',
 };
-
 

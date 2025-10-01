@@ -1,0 +1,184 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api, setToken } from "../../../api/client.js";
+import logoImage from "../../../assets/images/logo.png";
+import settingsIcon from "../../../assets/icons/settings.png";
+import notificationIcon from "../../../assets/icons/notification.png";
+import SupervisorDashboardWorkspace from "../components/DashboardWorkspace.jsx";
+import ReviewWorkspace from "../../coordinatorDashboard/components/ReviewWorkspace.jsx";
+import { supNav, supKpis, supCopy } from "../content.js";
+
+function AppShell({ sidebar, topbar, children }) {
+  return (
+    <div className="min-h-screen bg-[color:var(--neutral-100)]">
+      {sidebar}
+      <div className="ml-[260px] flex min-h-screen flex-col">
+        {topbar}
+        <main className="flex-1 overflow-y-auto">
+          <div className="container-px py-8">{children}</div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function Sidebar({ items, active, onSelect }) {
+  return (
+    <aside className="fixed inset-y-0 left-0 w-[260px] bg-[color:var(--brand-900)] text-white">
+      <div className="flex h-full flex-col">
+        <div className="px-6 py-8">
+          <div className="flex items-center gap-3">
+            <img src={logoImage} alt="HiLCoE" className="h-12 w-12 rounded-full" loading="lazy" decoding="async" />
+            <div>
+              <div className="font-semibold text-lg">HiLCoE</div>
+              <div className="text-xs text-white/70">Research Management</div>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 space-y-2 px-4">
+          {items.map((item) => {
+            const isActive = item.label === active;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className={[
+                  "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition",
+                  isActive ? "bg-white/10 text-white border-l-4 border-[color:var(--brand-600)]" : "text-white/80 hover:bg-white/10",
+                ].join(" ")}
+                onClick={() => onSelect?.(item.label)}
+              >
+                {item.icon ? (
+                  <img src={item.icon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
+                ) : null}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="px-4 pb-6 pt-4">
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
+            onClick={() => onSelect?.("Settings")}
+          >
+            <img src={settingsIcon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
+            <span>Settings</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function Topbar({ user, notifications = [] }) {
+  const navigate = useNavigate();
+  const displayName = user?.name || "Supervisor";
+  const initials = (displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => (s[0] || '').toUpperCase()).join('')) || 'S';
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const notificationRef = useRef(null);
+  const profileMenuRef = useRef(null);
+
+  function handleLogout() {
+    setToken(null);
+    localStorage.removeItem('userRole');
+    navigate('/login', { replace: true });
+  }
+
+  return (
+    <header className="border-b border-[color:var(--neutral-200)] bg-white/70 backdrop-blur">
+      <div className="container-px flex h-20 items-center justify-between gap-6">
+        <div className="flex-1" />
+        <div className="flex items-center gap-6">
+          <div className="relative" ref={notificationRef}>
+            <button type="button" className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[color:var(--brand-600)] shadow-soft" onClick={() => setIsNotificationOpen((p) => !p)} aria-label="Notifications" aria-expanded={isNotificationOpen}>
+              <img src={notificationIcon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
+              <span className="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--brand-600)] text-xs font-semibold text-white">{notifications.length}</span>
+            </button>
+            {isNotificationOpen && (
+              <div className="absolute right-0 z-20 mt-4 w-80 rounded-[18px] border border-[color:var(--neutral-200)] bg-white p-4 shadow-soft">
+                <div className="text-sm font-semibold text-[color:var(--neutral-900)]">Notifications</div>
+                <div className="mt-3 text-xs text-[color:var(--neutral-500)]">No new alerts</div>
+              </div>
+            )}
+          </div>
+          <div className="relative" ref={profileMenuRef}>
+            <button type="button" className="flex items-center gap-3 rounded-full bg-white px-4 py-2 text-left shadow-soft" onClick={() => setIsProfileOpen((p) => !p)} aria-expanded={isProfileOpen} aria-haspopup="menu">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-sm font-semibold text-[color:var(--brand-600)]">{initials}</span>
+              <div className="text-xs text-[color:var(--neutral-600)]">
+                <div className="font-semibold text-[color:var(--neutral-900)]">{displayName}</div>
+                Supervisor
+              </div>
+            </button>
+            {isProfileOpen && (
+              <div className="absolute right-0 z-20 mt-3 w-48 rounded-[14px] border border-[color:var(--neutral-200)] bg-white p-3 shadow-soft" role="menu" aria-label="Profile actions">
+                <button type="button" className="w-full rounded-[10px] px-4 py-2 text-sm font-semibold text-[color:var(--brand-600)] transition hover:bg-[color:var(--neutral-100)]" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function PlaceholderContent({ title }) {
+  return (
+    <div className="grid grid-cols-12 gap-5">
+      <div className="col-span-12">
+        <section className="card rounded-card border border-muted bg-white px-8 py-12 text-center shadow-soft">
+          <h1 className="h2 text-[color:var(--neutral-900)]">{title}</h1>
+          <p className="body mt-3 text-[color:var(--neutral-600)]">This section is under construction. Check back soon.</p>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export default function SupervisorDashboardPage() {
+  const [activeSection, setActiveSection] = useState("Dashboard");
+  const [user, setUser] = useState({ name: "Dr. Supervisor", role: "Supervisor" });
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadProfile() {
+      try {
+        const res = await api('/auth/me');
+        const data = await res.json().catch(() => null);
+        if (mounted && res.ok && data) setUser((prev) => ({ ...prev, ...data }));
+      } catch {}
+    }
+    loadProfile();
+    return () => { mounted = false; };
+  }, []);
+
+  let content;
+  switch (activeSection) {
+    case "Dashboard":
+      content = <SupervisorDashboardWorkspace user={user} kpis={supKpis} />;
+      break;
+    case "My Reviews":
+      content = <ReviewWorkspace />;
+      break;
+    case "Calendar":
+    case "Message":
+      content = <PlaceholderContent title={activeSection} />;
+      break;
+    default:
+      content = <SupervisorDashboardWorkspace user={user} kpis={supKpis} />;
+      break;
+  }
+
+  return (
+    <AppShell
+      sidebar={<Sidebar items={supNav} active={activeSection} onSelect={setActiveSection} />}
+      topbar={<Topbar user={user} />}
+    >
+      {content}
+    </AppShell>
+  );
+}
+

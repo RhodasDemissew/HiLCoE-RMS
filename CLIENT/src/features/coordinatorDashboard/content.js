@@ -13,6 +13,7 @@ export const coordinatorNav = [
   { label: "Users", icon: usersIcon },
   { label: "Research Stats", icon: statsIcon },
   { label: "Activity Log", icon: activityIcon },
+  { label: "Templates", icon: statsIcon },
   { label: "Calendar", icon: calendarIcon },
   { label: "Message", icon: messageIcon },
 ];

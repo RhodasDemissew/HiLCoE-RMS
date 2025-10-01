@@ -6,6 +6,9 @@ import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
 import logoImage from "../../../assets/images/logo.png";
 import CoordinatorDashboardWorkspace from "../components/DashboardWorkspace.jsx";
+import CoordinatorUsersWorkspace from "../components/UsersWorkspace.jsx";
+import ReviewWorkspace from "../components/ReviewWorkspace.jsx";
+import TemplatesWorkspace from "../components/TemplatesWorkspace.jsx";
 import {
   coordinatorActivity,
   coordinatorEvents,
@@ -373,6 +376,15 @@ export default function CoordinatorDashboardPage() {
     case "Dashboard":
       content = <CoordinatorDashboardWorkspace {...workspaceProps} />;
       break;
+    case "Users":
+      content = <CoordinatorUsersWorkspace />;
+      break;
+    case "Research Stats":
+      content = <ReviewWorkspace />;
+      break;
+    case "Templates":
+      content = <TemplatesWorkspace />;
+      break;
     default:
       content = <PlaceholderContent title={activeSection} />;
       break;
@@ -381,12 +393,21 @@ export default function CoordinatorDashboardPage() {
   return (
     <AppShell
       sidebar={<Sidebar items={coordinatorNav} active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar user={user} notifications={coordinatorNotifications} showSearch={!userLoading} />}
+      topbar={<Topbar user={user} notifications={coordinatorNotifications} showSearch={activeSection === "Dashboard" && !userLoading} />}
     >
       {content}
     </AppShell>
   );
 }
+
+
+
+
+
+
+
+
+
 
 
 
