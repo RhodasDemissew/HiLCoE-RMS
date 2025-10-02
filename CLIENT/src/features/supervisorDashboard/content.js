@@ -6,7 +6,7 @@ import messageIcon from "../../assets/icons/message.png";
 export const supNav = [
   { label: "Dashboard", icon: dashboardIcon },
   { label: "My Reviews", icon: reportsIcon },
-  { label: "Calendar", icon: calendarIcon },
+  { label: "Schedule", icon: calendarIcon },
   { label: "Message", icon: messageIcon },
 ];
 
@@ -21,4 +21,3 @@ export const supCopy = {
   fallbackName: "Supervisor",
   welcomeMessage: "Today is a good day to make progress",
 };
-

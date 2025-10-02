@@ -127,7 +127,7 @@ export default function UserAddModal({ open, onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="student_id">
-              Student ID
+              Researcher ID
             </label>
             <input
               id="student_id"
@@ -174,3 +174,4 @@ export default function UserAddModal({ open, onClose, onSuccess }) {
     </div>
   );
 }
+

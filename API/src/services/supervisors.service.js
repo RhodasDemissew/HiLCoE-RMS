@@ -2,6 +2,8 @@ import { Role } from '../models/Role.js';
 import { User } from '../models/User.js';
 import { StudentVerification } from '../models/StudentVerification.js';
 import { Supervisor } from '../models/Supervisor.js';
+import { config } from '../config/env.js';
+import { notify } from './notificationService.js';
 
 const DEFAULT_SPECIALIZATIONS = ['AI/ML','Data Science','Networks','Cybersecurity','SE','DB','HCI'];
 
@@ -140,17 +142,46 @@ export const supervisorsService = {
       pushUnique({ id, name: formatSupervisorName(doc.first_name, doc.middle_name, doc.last_name), email: doc.email });
     });
 
-    return Array.from(byEmail.values());
+    const list = Array.from(byEmail.values());
+
+    // Capacity filtering: remove supervisors who already reached max supervisees
+    try {
+      const counters = await StudentVerification.aggregate([
+        { $match: { 'assigned_supervisor.supervisor_id': { $ne: null } } },
+        { $group: { _id: '$assigned_supervisor.supervisor_id', count: { $sum: 1 } } },
+      ]);
+      const countMap = new Map(counters.map((c) => [String(c._id), c.count]));
+      const max = Math.max(parseInt(config.supervisorMaxStudents || 10, 10), 1);
+      return list.filter((s) => (countMap.get(String(s.id)) || 0) < max);
+    } catch {
+      // On failure, fall back to unfiltered list so UI still works, server will enforce on assign
+      return list;
+    }
   },
 
-  async assign({ studentId, supervisorId }) {
+  async assign({ studentId, supervisorId, actorId = null }) {
     if (!studentId) throw new Error('studentId is required');
     if (!supervisorId) throw new Error('supervisorId is required');
 
     const student = await StudentVerification.findById(studentId);
     if (!student) throw new Error('Student not found');
 
+    // If already assigned to the same supervisor, keep as-is
+    const existingId = student.assigned_supervisor?.supervisor_id ? String(student.assigned_supervisor.supervisor_id) : '';
+    const targetId = String(supervisorId);
+    if (existingId && existingId === targetId) {
+      return student;
+    }
+
+    // Enforce capacity before assigning
+    const max = Math.max(parseInt(config.supervisorMaxStudents || 10, 10), 1);
+    const currentCount = await StudentVerification.countDocuments({ 'assigned_supervisor.supervisor_id': supervisorId });
+    if (currentCount >= max) {
+      throw new Error(`Supervisor has reached the maximum of ${max} researchers`);
+    }
+
     const userSupervisor = await User.findById(supervisorId).select('name email');
+    const actor = actorId ? await User.findById(actorId).select('name') : null;
     if (userSupervisor) {
       student.assigned_supervisor = {
         supervisor_id: userSupervisor._id,
@@ -158,6 +189,7 @@ export const supervisorsService = {
         supervisor_email: userSupervisor.email,
       };
       await student.save();
+      try { await notify(userSupervisor._id, 'student_assigned', { studentId: String(student._id), name: `${student.first_name} ${student.last_name}`, actor_id: actorId, actor_name: actor?.name || '' }); } catch {}
       return student;
     }
 
@@ -175,15 +207,23 @@ export const supervisorsService = {
     };
 
     await student.save();
+    if (docSupervisor.user) {
+      try { await notify(docSupervisor.user, 'student_assigned', { studentId: String(student._id), name: `${student.first_name} ${student.last_name}`, actor_id: actorId, actor_name: actor?.name || '' }); } catch {}
+    }
     return student;
   },
 
-  async unassign({ studentId }) {
+  async unassign({ studentId, actorId = null }) {
     if (!studentId) throw new Error('studentId is required');
     const student = await StudentVerification.findById(studentId);
     if (!student) throw new Error('Student not found');
+    const prev = student.assigned_supervisor;
     student.assigned_supervisor = null;
     await student.save();
+    if (prev?.supervisor_id) {
+      const actor = actorId ? await User.findById(actorId).select('name') : null;
+      try { await notify(prev.supervisor_id, 'student_unassigned', { studentId: String(student._id), name: `${student.first_name} ${student.last_name}`, actor_id: actorId, actor_name: actor?.name || '' }); } catch {}
+    }
     return student;
   },
 

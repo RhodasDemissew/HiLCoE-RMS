@@ -1,10 +1,10 @@
-import dashboardIcon from "../../assets/icons/dashboard.png";
+﻿import dashboardIcon from "../../assets/icons/dashboard.png";
 import usersIcon from "../../assets/icons/message.png";
 import statsIcon from "../../assets/icons/reports.png";
 import activityIcon from "../../assets/icons/submission.png";
 import calendarIcon from "../../assets/icons/caldash.png";
 import messageIcon from "../../assets/icons/chat.png";
-import studentsIcon from "../../assets/icons/submission.png";
+import ResearchersIcon from "../../assets/icons/submission.png";
 import supervisorsIcon from "../../assets/icons/dashboard.png";
 import activeResearchIcon from "../../assets/icons/research.png";
 
@@ -14,12 +14,20 @@ export const coordinatorNav = [
   { label: "Research Stats", icon: statsIcon },
   { label: "Activity Log", icon: activityIcon },
   { label: "Templates", icon: statsIcon },
-  { label: "Calendar", icon: calendarIcon },
+  {
+    label: "Schedule",
+    icon: calendarIcon,
+    children: [
+      { label: "Synopsis Scheduling" },
+      { label: "Defense Scheduling" },
+      { label: "View Calendar" },
+    ],
+  },
   { label: "Message", icon: messageIcon },
 ];
 
 export const coordinatorSummary = [
-  { label: "Students", value: 56, trend: "+12", icon: studentsIcon },
+  { label: "Researchers", value: 56, trend: "+12", icon: ResearchersIcon },
   { label: "Supervisors", value: 20, trend: "+3", icon: supervisorsIcon },
   { label: "Active Research", value: 43, trend: "+8", icon: activeResearchIcon },
 ];
@@ -63,3 +71,4 @@ export const coordinatorResearchSeries = [
 ];
 
 export const coordinatorResearchLabels = ["Figma", "Sketch", "XD", "PS", "AI"];
+

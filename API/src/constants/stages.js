@@ -11,6 +11,7 @@ export const STAGE_ORDER = [
 
 export const SUBMISSION_STATUSES = {
   UNDER_REVIEW: 'under_review',
+  AWAITING_COORDINATOR: 'awaiting_coordinator',
   NEEDS_CHANGES: 'needs_changes',
   APPROVED: 'approved',
   REJECTED: 'rejected',

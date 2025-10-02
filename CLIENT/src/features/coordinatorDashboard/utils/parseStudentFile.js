@@ -70,6 +70,8 @@ export async function parseStudentFile(file) {
     }
     seenIds.add(dedupeKey);
 
+    const program = coerceString(normalizedRow.program ?? normalizedRow.department ?? '');
+
     entries.push({
       first_name: firstName,
       middle_name: middleName,

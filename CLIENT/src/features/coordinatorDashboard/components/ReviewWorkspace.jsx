@@ -5,6 +5,7 @@ import { api } from "../../../api/client.js";
 function StatusBadge({ status }) {
   const meta = {
     under_review: { label: "Under Review", cls: "bg-blue-50 text-blue-700" },
+    awaiting_coordinator: { label: "Awaiting Coordinator", cls: "bg-indigo-50 text-indigo-700" },
     needs_changes: { label: "Needs Changes", cls: "bg-amber-50 text-amber-700" },
     approved: { label: "Approved", cls: "bg-emerald-50 text-emerald-700" },
     rejected: { label: "Rejected", cls: "bg-red-50 text-red-600" },
@@ -12,18 +13,18 @@ function StatusBadge({ status }) {
   return <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${meta.cls}`}>{meta.label}</span>;
 }
 
-function RowActions({ submission, onDecision, downloadingId, onDownload }) {
+function RowActions({ submission, onOpenDecision, downloadingId, onDownload }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button type="button" className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100" onClick={() => onDecision(submission, "approve")}>Approve</button>
-      <button type="button" className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100" onClick={() => onDecision(submission, "needs_changes")}>Needs Changes</button>
-      <button type="button" className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-100" onClick={() => onDecision(submission, "reject")}>Reject</button>
+      <button type="button" className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100" onClick={() => onOpenDecision(submission, "approve")}>Approve</button>
+      <button type="button" className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100" onClick={() => onOpenDecision(submission, "needs_changes")}>Needs Changes</button>
+      <button type="button" className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-100" onClick={() => onOpenDecision(submission, "reject")}>Reject</button>
       <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => onDownload(submission)} disabled={downloadingId === submission.id}>{downloadingId === submission.id ? "Downloading." : "Download"}</button>
     </div>
   );
 }
 
-export default function ReviewWorkspace() {
+export default function ReviewWorkspace({ hideSynopsis = false }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,17 +32,21 @@ export default function ReviewWorkspace() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState({});
   const [downloadingId, setDownloadingId] = useState(null);
+  const [dialog, setDialog] = useState({ open: false, submission: null, decision: '', notes: '' });
 
-  const stages = [
-    "Synopsis",
-    "Proposal",
-    "Progress Report 1",
-    "Progress Report 2",
-    "Thesis Report",
-    "Final Draft (Pre-Defense)",
-    "Final Draft (Post-Defense)",
-    "Journal Article",
-  ];
+  const stages = useMemo(() => {
+    const list = [
+      "Synopsis",
+      "Proposal",
+      "Progress Report 1",
+      "Progress Report 2",
+      "Thesis Report",
+      "Final Draft (Pre-Defense)",
+      "Final Draft (Post-Defense)",
+      "Journal Article",
+    ];
+    return hideSynopsis ? list.filter((s) => s !== 'Synopsis') : list;
+  }, [hideSynopsis]);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -62,9 +67,29 @@ export default function ReviewWorkspace() {
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
+  // Refresh when other coordinator actions occur (e.g., researchers imported/deleted/assigned)
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key === 'coordinatorDataUpdated') {
+        fetchList();
+      }
+    }
+    function onFocus() { fetchList(); }
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [fetchList]);
+
   const grouped = useMemo(() => {
+    const visible = (items || []).filter((it) => {
+      const r = it.researcher || {};
+      return Boolean(r && (r.name || r.email));
+    });
     const map = new Map();
-    items.forEach((it) => {
+    visible.forEach((it) => {
       const r = it.researcher || {};
       const key = String(r._id || r.id || r.email || it.id || Math.random());
       if (!map.has(key)) map.set(key, { researcher: r, submissions: [] });
@@ -86,7 +111,11 @@ export default function ReviewWorkspace() {
     return grouped.filter((g) => (g.researcher?.name || g.researcher?.email || "").toLowerCase().includes(term));
   }, [grouped, search]);
 
-  async function handleDecision(submission, decision) {
+  function openDecisionDialog(submission, decision) {
+    setDialog({ open: true, submission, decision, notes: '' });
+  }
+
+  async function handleDecision(submission, decision, notes = '') {
     if (decision === 'analyze') {
       try {
         const res = await api(`/stages/submissions/${submission.id}/analyze`, { method: 'POST' });
@@ -101,7 +130,7 @@ export default function ReviewWorkspace() {
     try {
       const res = await api(`/stages/submissions/${submission.id}/review`, {
         method: "POST",
-        body: JSON.stringify({ decision }),
+        body: JSON.stringify({ decision, notes }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to submit review");
@@ -175,7 +204,7 @@ export default function ReviewWorkspace() {
           <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left">
             <thead className="bg-[color:var(--neutral-50)] text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
               <tr>
-                <th className="px-6 py-3">Student</th>
+                <th className="px-6 py-3">Researcher</th>
                 <th className="px-6 py-3">Latest Stage</th>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">AI/NLP</th>
@@ -260,7 +289,7 @@ export default function ReviewWorkspace() {
                                       </div>
                                     </div>
                                     <StatusBadge status={sub.status} />
-                                    <RowActions submission={sub} onDecision={handleDecision} downloadingId={downloadingId} onDownload={handleDownload} />
+                                    <RowActions submission={sub} onOpenDecision={openDecisionDialog} downloadingId={downloadingId} onDownload={handleDownload} />
                                   </div>
                                 </div>
                               ))}
@@ -280,6 +309,32 @@ export default function ReviewWorkspace() {
           </table>
         </div>
       </div>
+      {/* Decision Modal */}
+      {dialog.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="h4 text-[color:var(--neutral-900)]">{dialog.decision === 'approve' ? 'Approve' : dialog.decision === 'needs_changes' ? 'Request Changes' : 'Reject'} Submission</h3>
+            <p className="mt-2 text-sm text-[color:var(--neutral-600)]">Add optional notes for the researcher/coordinator.</p>
+            <textarea
+              className="mt-4 w-full resize-y rounded-lg border border-[color:var(--neutral-300)] p-3 text-sm outline-none focus:border-[color:var(--brand-500)]"
+              rows={4}
+              placeholder="Write notes (optional)"
+              value={dialog.notes}
+              onChange={(e) => setDialog((d) => ({ ...d, notes: e.target.value }))}
+            />
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-4 py-2 text-sm font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => setDialog({ open: false, submission: null, decision: '', notes: '' })}>Cancel</button>
+              <button type="button" className="rounded-full bg-[color:var(--brand-600)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--brand-500)]" onClick={async () => {
+                const { submission, decision, notes } = dialog;
+                setDialog({ open: false, submission: null, decision: '', notes: '' });
+                await handleDecision(submission, decision, notes);
+              }}>Submit Decision</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
+
+

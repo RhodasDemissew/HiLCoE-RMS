@@ -19,7 +19,7 @@ const stageSubmissionSchema = new mongoose.Schema(
     notes: { type: String, default: '' },
     status: {
       type: String,
-      enum: ['under_review', 'needs_changes', 'approved', 'rejected'],
+      enum: ['under_review', 'awaiting_coordinator', 'needs_changes', 'approved', 'rejected'],
       default: 'under_review',
     },
     file: { type: fileSchema, required: true },

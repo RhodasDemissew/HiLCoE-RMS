@@ -64,7 +64,7 @@ router.patch('/:id', async (req, res) => {
 
 router.post('/assign', async (req, res) => {
   try {
-    const student = await supervisorsService.assign(req.body || {});
+    const student = await supervisorsService.assign({ ...(req.body || {}), actorId: req.user.id });
     res.status(200).json(student);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -73,7 +73,7 @@ router.post('/assign', async (req, res) => {
 
 router.post('/unassign', async (req, res) => {
   try {
-    const student = await supervisorsService.unassign(req.body || {});
+    const student = await supervisorsService.unassign({ ...(req.body || {}), actorId: req.user.id });
     res.status(200).json(student);
   } catch (err) {
     res.status(400).json({ error: err.message });

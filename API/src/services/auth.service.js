@@ -3,6 +3,7 @@ import { studentVerificationRepo } from '../repositories/studentVerification.rep
 import { hashPassword, verifyPassword, signJWT } from '../utils/crypto.js';
 import { config } from '../config/env.js';
 import { sendMail } from './mailer.js';
+import { projectsService } from './projects.service.js';
 
 const VERIFY_TOKEN_WINDOW_MINUTES = 30;
 
@@ -109,6 +110,18 @@ export const authService = {
     });
 
     await studentVerificationRepo.markVerified(record, normalizedEmail);
+
+    // Auto-create a default project for the newly registered researcher so they appear in scheduling
+    try {
+      await projectsService.create({
+        title: 'Research Project',
+        area: record.program || '',
+        semester: record.semester || undefined,
+      }, user._id);
+    } catch (e) {
+      // Non-fatal; coordinator can still create later
+      console.warn('auto-create project failed:', e?.message);
+    }
 
     const roleName = role.name;
     const token = signJWT({ sub: String(user._id), role: roleName }, config.jwtSecret, 60 * 60 * 8);

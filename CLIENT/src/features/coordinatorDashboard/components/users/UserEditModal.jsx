@@ -128,7 +128,7 @@ export default function UserEditModal({ open, student, onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="student_id_edit">
-              Student ID
+              Researcher ID
             </label>
             <input
               id="student_id_edit"
@@ -174,4 +174,5 @@ export default function UserEditModal({ open, student, onClose, onSuccess }) {
     </div>
   );
 }
+
 

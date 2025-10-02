@@ -103,6 +103,7 @@ export const researcherStagesController = {
       const submission = await reviewSubmission({
         submissionId: req.params.id,
         reviewerId: req.user.id,
+        reviewerRole: req.user.role,
         decision: req.body.decision,
         notes: req.body.notes,
       });

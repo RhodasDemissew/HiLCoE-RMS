@@ -25,7 +25,7 @@ export const projectsController = {
   },
   async updateSchedule(req, res) {
     try {
-      const item = await projectsService.updateMilestoneSchedule(req.params.id, req.params.type, req.body);
+      const item = await projectsService.updateMilestoneSchedule(req.params.id, req.params.type, req.body, req.user);
       res.json(item);
     } catch (e) { res.status(400).json({ error: e.message }); }
   }

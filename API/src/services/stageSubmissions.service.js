@@ -2,11 +2,13 @@ import dayjs from 'dayjs';
 import multer from 'multer';
 import { StageSubmission } from '../models/StageSubmission.js';
 import { User } from '../models/User.js';
+import { Role } from '../models/Role.js';
 import { StudentVerification } from '../models/StudentVerification.js';
 import { ResearchProgress } from '../models/ResearchProgress.js';
 import { STAGE_ORDER, SUBMISSION_STATUSES, getStageIndex, getStageKey } from '../constants/stages.js';
 import { getOrCreateProgress, isStageUnlocked, advanceProgress, markSynopsisRejected } from './researcherProgress.service.js';
 import { saveBufferFile } from './storageService.js';
+import { notify } from './notificationService.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -91,24 +93,65 @@ export async function listStageSubmissionsForCoordinator({ stage, reviewerId, ro
     }
   }
 
+  // Synopsis (index 0) is coordinator-only; hide from supervisors/advisors
+  if (!isCoordinator) {
+    if (typeof filter.stage_index === 'undefined') filter.stage_index = { $ne: 0 };
+    else if (typeof filter.stage_index === 'number') {
+      if (filter.stage_index === 0) return [];
+    } else if (filter.stage_index && typeof filter.stage_index === 'object') {
+      filter.stage_index = { ...filter.stage_index, $ne: 0 };
+    }
+  }
+
   return StageSubmission.find(filter).sort({ created_at: -1 }).populate('researcher', 'name email');
 }
 
-export async function reviewSubmission({ submissionId, reviewerId, decision, notes }) {
+export async function reviewSubmission({ submissionId, reviewerId, reviewerRole, decision, notes }) {
   const submission = await StageSubmission.findById(submissionId);
   if (!submission) throw new Error('Submission not found');
 
   const progress = await getOrCreateProgress(submission.researcher);
   const stageName = STAGE_ORDER[submission.stage_index];
+  const roleName = String(reviewerRole || '').toLowerCase();
+  const isCoordinator = roleName.includes('coordinator');
+  const reviewer = await User.findById(reviewerId).select('name');
+  const actorName = reviewer?.name || 'Reviewer';
+
+  // Only coordinators can review Synopsis
+  if (submission.stage_index === 0 && !isCoordinator) {
+    throw new Error('Only coordinators may review synopsis');
+  }
 
   switch (decision) {
     case 'approve':
-      submission.status = SUBMISSION_STATUSES.APPROVED;
-      submission.reviewed_at = new Date();
-      submission.reviewer = reviewerId;
-      submission.decision_notes = notes || '';
-      await submission.save();
-      await advanceProgress(progress, submission.stage_index);
+      if (isCoordinator) {
+        submission.status = SUBMISSION_STATUSES.APPROVED;
+        submission.reviewed_at = new Date();
+        submission.reviewer = reviewerId;
+        submission.decision_notes = notes || '';
+        await submission.save();
+        await advanceProgress(progress, submission.stage_index);
+        try { await notify(submission.researcher, 'submission_approved', { submissionId: String(submission._id), stage: stageName, actor_id: reviewerId, actor_name: actorName }); } catch {}
+      } else {
+        // Advisor/supervisor approval forwards to coordinator for final decision
+        submission.status = SUBMISSION_STATUSES.AWAITING_COORDINATOR;
+        submission.reviewed_at = new Date();
+        submission.reviewer = reviewerId;
+        submission.decision_notes = notes || '';
+        await submission.save();
+        try { await notify(submission.researcher, 'submission_forwarded', { submissionId: String(submission._id), stage: stageName, actor_id: reviewerId, actor_name: actorName }); } catch {}
+        // Explicitly notify all coordinators
+        try {
+          const coordRole = await Role.findOne({ name: /coordinator/i });
+          if (coordRole?._id) {
+            const coords = await User.find({ role: coordRole._id }).select('_id');
+            const researcherUser = await User.findById(submission.researcher).select('name');
+            for (const c of coords) {
+              try { await notify(c._id, 'submission_needs_final_review', { submissionId: String(submission._id), stage: stageName, actor_id: reviewerId, actor_name: actorName, subject_id: String(submission.researcher), subject_name: researcherUser?.name || '' }); } catch {}
+            }
+          }
+        } catch {}
+      }
       break;
     case 'reject':
       submission.status = SUBMISSION_STATUSES.REJECTED;
@@ -119,6 +162,7 @@ export async function reviewSubmission({ submissionId, reviewerId, decision, not
       if (submission.stage_index === 0) {
         await markSynopsisRejected(progress);
       }
+      try { await notify(submission.researcher, 'submission_rejected', { submissionId: String(submission._id), stage: stageName, actor_id: reviewerId, actor_name: actorName }); } catch {}
       break;
     case 'needs_changes':
       submission.status = SUBMISSION_STATUSES.NEEDS_CHANGES;
@@ -126,6 +170,7 @@ export async function reviewSubmission({ submissionId, reviewerId, decision, not
       submission.reviewer = reviewerId;
       submission.decision_notes = notes || '';
       await submission.save();
+      try { await notify(submission.researcher, 'submission_changes_requested', { submissionId: String(submission._id), stage: stageName, actor_id: reviewerId, actor_name: actorName }); } catch {}
       break;
     default:
       throw new Error('Invalid decision');

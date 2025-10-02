@@ -1,15 +1,15 @@
-ï»¿const columns = [
+const columns = [
   {
     key: "full_name",
     label: "Full Name",
-    format: (user) => [user.first_name, user.middle_name].filter(Boolean).join(" ") || user.last_name || "â€”",
+    format: (user) => [user.first_name, user.middle_name].filter(Boolean).join(" ") || user.last_name || "—",
   },
-  { key: "student_id", label: "Student ID", format: (user) => user.student_id },
-  { key: "program", label: "Program", format: (user) => user.program || "â€”" },
+  { key: "student_id", label: "Researcher ID", format: (user) => user.student_id },
+  { key: "program", label: "Program", format: (user) => user.program || "—" },
   {
     key: "created_at",
     label: "Queued On",
-    format: (user) => (user.created_at ? new Date(user.created_at).toLocaleDateString() : "â€”"),
+    format: (user) => (user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"),
   },
 ];
 
@@ -55,7 +55,7 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
             {loading ? (
               <tr>
                 <td className="px-6 py-6 text-center" colSpan={columns.length + 3}>
-                  Loading studentsâ€¦
+                  Loading researchers…
                 </td>
               </tr>
             ) : users.length ? (
@@ -122,7 +122,7 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
             ) : (
               <tr>
                 <td className="px-6 py-6 text-center text-[color:var(--neutral-500)]" colSpan={columns.length + 3}>
-                  No students have been queued for verification yet.
+                  No researchers have been queued for verification yet.
                 </td>
               </tr>
             )}
@@ -132,4 +132,6 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
     </div>
   );
 }
+
+
 

@@ -110,7 +110,7 @@ export function useResearchProgress() {
 
   // Light polling while there are pending reviews
   useEffect(() => {
-    const hasPending = submissions.some((s) => s.status === 'under_review');
+    const hasPending = submissions.some((s) => s.status === 'under_review' || s.status === 'awaiting_coordinator');
     if (!hasPending) return undefined;
     const id = setInterval(() => {
       loadProgress();

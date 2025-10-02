@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, setToken } from "../../../api/client.js";
 
@@ -9,12 +9,12 @@ import CoordinatorDashboardWorkspace from "../components/DashboardWorkspace.jsx"
 import CoordinatorUsersWorkspace from "../components/UsersWorkspace.jsx";
 import ReviewWorkspace from "../components/ReviewWorkspace.jsx";
 import TemplatesWorkspace from "../components/TemplatesWorkspace.jsx";
+import ScheduleSynopsis from "../components/ScheduleSynopsis.jsx";
 import {
   coordinatorActivity,
   coordinatorEvents,
   coordinatorMessages,
   coordinatorNav,
-  coordinatorNotifications,
   coordinatorPerformance,
   coordinatorResearchLabels,
   coordinatorResearchSeries,
@@ -37,6 +37,7 @@ function AppShell({ sidebar, topbar, children }) {
 
 function Sidebar({ items, active, onSelect }) {
   const hasSettingsNavItem = Array.isArray(items) && items.some((item) => item?.label === "Settings");
+  const [openGroups, setOpenGroups] = useState({ Schedule: true });
   return (
     <aside className="fixed inset-y-0 left-0 w-[260px] bg-[color:var(--brand-900)] text-white">
       <div className="flex h-full flex-col">
@@ -58,31 +59,67 @@ function Sidebar({ items, active, onSelect }) {
 
         <nav className="flex-1 space-y-2 px-4">
           {items.map((item) => {
-            const isActive = item.label === active;
+            const isGroup = Array.isArray(item.children) && item.children.length;
+            if (!isGroup) {
+              const isActive = item.label === active;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={[
+                    "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition",
+                    isActive ? "bg-white/10 text-white border-l-4 border-[color:var(--brand-600)]" : "text-white/80 hover:bg-white/10",
+                  ].join(" ")}
+                  onClick={() => onSelect?.(item.label)}
+                >
+                  {item.icon ? (
+                    <img src={item.icon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
+                  ) : null}
+                  <span>{item.label}</span>
+                </button>
+              );
+            }
+            const open = !!openGroups[item.label];
+            const isAnyChildActive = item.children.some((c) => c.label === active);
             return (
-              <button
-                key={item.label}
-                type="button"
-                className={[
-                  "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition",
-                  isActive
-                    ? "bg-white/10 text-white border-l-4 border-[color:var(--brand-600)]"
-                    : "text-white/80 hover:bg-white/10",
-                ].join(" ")}
-                onClick={() => onSelect?.(item.label)}
-              >
-                {item.icon ? (
-                  <img
-                    src={item.icon}
-                    alt=""
-                    className="h-5 w-5"
-                    loading="lazy"
-                    decoding="async"
-                    aria-hidden
-                  />
-                ) : null}
-                <span>{item.label}</span>
-              </button>
+              <div key={item.label} className="space-y-1">
+                <button
+                  type="button"
+                  className={[
+                    "flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-semibold transition",
+                    isAnyChildActive ? "bg-white/10 text-white border-l-4 border-[color:var(--brand-600)]" : "text-white/80 hover:bg-white/10",
+                  ].join(" ")}
+                  onClick={() => setOpenGroups((prev) => ({ ...prev, [item.label]: !prev[item.label] }))}
+                >
+                  <span className="flex items-center gap-3">
+                    {item.icon ? (
+                      <img src={item.icon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
+                    ) : null}
+                    <span>{item.label}</span>
+                  </span>
+                  <span aria-hidden className="text-xs opacity-80">{open ? '▾' : '▸'}</span>
+                </button>
+                {open && (
+                  <div className="ml-8 space-y-1">
+                    {item.children.map((child) => {
+                      const childActive = child.label === active;
+                      return (
+                        <button
+                          key={child.label}
+                          type="button"
+                          className={[
+                            "flex w-full items-center rounded-lg px-3 py-2 text-sm transition",
+                            childActive ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/10",
+                          ].join(" ")}
+                          onClick={() => onSelect?.(child.label)}
+                        >
+                          <span>{child.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
@@ -111,11 +148,11 @@ function Sidebar({ items, active, onSelect }) {
   );
 }
 
-function Topbar({ showSearch = true, user, notifications = [] }) {
+function Topbar({ showSearch = true, user, notifications = [], onMarkAllRead, onClearAll }) {
   const navigate = useNavigate();
   const displayName = user?.name || "Coordinator";
   const displayRole = user?.role || "Coordinator";
-  const initials =
+  const userInitials =
     displayName
       .split(/\s+/)
       .filter(Boolean)
@@ -127,7 +164,23 @@ function Topbar({ showSearch = true, user, notifications = [] }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const notificationRef = useRef(null);
   const profileMenuRef = useRef(null);
+  const unreadCount = notifications.filter((n) => !n.read_at).length;
   const hasNotifications = notifications.length > 0;
+
+  function nameInitials(name = '') {
+    return (name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => (s[0] || '').toUpperCase()).join('')) || '';
+  }
+  function fmt(n) {
+    const title = String(n.type || 'notification').replace(/_/g, ' ');
+    const p = n.payload || {};
+    const descParts = [];
+    if (p.stage) descParts.push(`Stage: ${p.stage}`);
+    if (p.subject_name) descParts.push(`Student: ${p.subject_name}`);
+    const desc = descParts.join(' · ');
+    const time = n.created_at ? new Date(n.created_at).toLocaleString() : '';
+    const actorName = p.actor_name || '';
+    return { id: String(n._id || n.id || Math.random()), title, description: desc, time, actorName, actorInitials: nameInitials(actorName) };
+  }
 
   useEffect(() => {
     if (!isNotificationOpen) {
@@ -240,7 +293,7 @@ function Topbar({ showSearch = true, user, notifications = [] }) {
                 aria-hidden
               />
               <span className="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--brand-600)] text-xs font-semibold text-white">
-                {notifications.length}
+                {unreadCount}
               </span>
             </button>
 
@@ -249,22 +302,39 @@ function Topbar({ showSearch = true, user, notifications = [] }) {
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-[color:var(--neutral-900)]">Notifications</h3>
                   <span className="text-xs text-[color:var(--neutral-500)]">
-                    {hasNotifications ? `${notifications.length} new` : "No new alerts"}
+                    {unreadCount ? `${unreadCount} new` : hasNotifications ? 'All read' : 'No alerts'}
                   </span>
                 </div>
 
+                {hasNotifications && (
+                  <div className="mt-2 flex items-center justify-end gap-2 text-xs">
+                    <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={onMarkAllRead}>Mark all read</button>
+                    <button type="button" className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-600 hover:bg-red-100" onClick={onClearAll}>Clear all</button>
+                  </div>
+                )}
+
                 {hasNotifications ? (
-                  <ul className="mt-4 space-y-3">
-                    {notifications.map((item) => (
-                      <li
-                        key={item.id}
-                        className="rounded-[14px] border border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-3"
-                      >
-                        <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{item.title}</p>
-                        <p className="mt-1 text-xs text-[color:var(--neutral-600)]">{item.description}</p>
-                        <span className="mt-2 inline-block text-xs text-[color:var(--neutral-500)]">{item.time}</span>
-                      </li>
-                    ))}
+                  <ul className="mt-4 max-h-80 space-y-3 overflow-y-auto">
+                    {notifications.map((n) => {
+                      const item = fmt(n);
+                      return (
+                        <li key={item.id} className="flex items-start gap-3 rounded-[14px] border border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-3">
+                          <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-[11px] font-semibold text-[color:var(--brand-700)]">
+                            {item.actorInitials || 'â€¢'}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-[color:var(--neutral-900)]">{item.title}</div>
+                            <div className="mt-0.5 text-xs text-[color:var(--neutral-600)]">
+                              {item.actorName ? (<>
+                                <span className="font-medium text-[color:var(--neutral-800)]">{item.actorName}</span>
+                                {item.description ? ` Â· ${item.description}` : ''}
+                              </>) : item.description }
+                            </div>
+                            <span className="mt-1 inline-block text-[10px] text-[color:var(--neutral-500)]">{item.time}</span>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : (
                   <div className="mt-4 rounded-[14px] border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-6 text-center">
@@ -285,7 +355,7 @@ function Topbar({ showSearch = true, user, notifications = [] }) {
               aria-haspopup="menu"
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-sm font-semibold text-[color:var(--brand-600)]">
-                {initials}
+                {userInitials}
               </span>
               <div className="text-xs text-[color:var(--neutral-600)]">
                 <div className="font-semibold text-[color:var(--neutral-900)]">{displayName}</div>
@@ -332,6 +402,7 @@ export default function CoordinatorDashboardPage() {
   const [activeSection, setActiveSection] = useState("Dashboard");
   const [user, setUser] = useState({ name: "Dr Mesfin", role: "Coordinator" });
   const [userLoading, setUserLoading] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     let mounted = true;
@@ -354,6 +425,41 @@ export default function CoordinatorDashboardPage() {
       mounted = false;
     };
   }, []);
+
+  // Notifications: fetch on mount, focus, and light polling
+  useEffect(() => {
+    let stopped = false;
+    async function load() {
+      try {
+        const res = await api('/notifications');
+        const data = await res.json().catch(() => ([]));
+        if (!stopped) setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
+      } catch {}
+    }
+    load();
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    const id = setInterval(load, 20000);
+    return () => { stopped = true; window.removeEventListener('focus', onFocus); clearInterval(id); };
+  }, []);
+
+  async function loadNotifications() {
+    try {
+      const res = await api('/notifications');
+      const data = await res.json().catch(() => ([]));
+      setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
+    } catch {}
+  }
+
+  async function markAllRead() {
+    try { await api('/notifications/read-all', { method: 'PATCH' }); } catch {}
+    loadNotifications();
+  }
+
+  async function clearAll() {
+    try { await api('/notifications', { method: 'DELETE' }); } catch {}
+    loadNotifications();
+  }
 
   const performanceData = useMemo(
     () => coordinatorPerformance.map((item) => ({ label: item.label, value: item.value })),
@@ -385,6 +491,15 @@ export default function CoordinatorDashboardPage() {
     case "Templates":
       content = <TemplatesWorkspace />;
       break;
+    case "Synopsis Scheduling":
+      content = <ScheduleSynopsis />;
+      break;
+    case "Defense Scheduling":
+      content = <PlaceholderContent title={activeSection} />;
+      break;
+    case "View Calendar":
+      content = <PlaceholderContent title={activeSection} />;
+      break;
     default:
       content = <PlaceholderContent title={activeSection} />;
       break;
@@ -393,12 +508,17 @@ export default function CoordinatorDashboardPage() {
   return (
     <AppShell
       sidebar={<Sidebar items={coordinatorNav} active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar user={user} notifications={coordinatorNotifications} showSearch={activeSection === "Dashboard" && !userLoading} />}
+      topbar={<Topbar user={user} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} showSearch={activeSection === "Dashboard" && !userLoading} />}
     >
       {content}
     </AppShell>
   );
 }
+
+
+
+
+
 
 
 

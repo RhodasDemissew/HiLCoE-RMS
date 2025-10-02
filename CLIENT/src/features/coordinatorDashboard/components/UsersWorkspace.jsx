@@ -12,7 +12,7 @@ import EditSupervisorModal from "./supervisors/EditSupervisorModal.jsx";
 import ImportSupervisorsModal from "./supervisors/ImportSupervisorsModal.jsx";
 import ConfirmDeleteModal from "./supervisors/ConfirmDeleteModal.jsx";
 
-function SupervisorsPlaceholder({ onGoToStudents }) {
+function SupervisorsPlaceholder({ onGoToResearchers }) {
   return (
     <div className="rounded-3xl border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] p-10 text-center text-sm text-[color:var(--neutral-500)]">
       <p className="font-semibold text-[color:var(--neutral-700)]">Supervisor–User synchronization planning</p>
@@ -21,9 +21,9 @@ function SupervisorsPlaceholder({ onGoToStudents }) {
         <button
           type="button"
           className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
-          onClick={onGoToStudents}
+          onClick={onGoToResearchers}
         >
-          Go to Students to assign
+          Go to Researchers to assign
         </button>
       </div>
     </div>
@@ -61,13 +61,13 @@ function Toast({ toast, onDismiss }) {
 }
 
 export default function UsersWorkspace() {
-  const [students, setStudents] = useState([]);
+  const [Researchers, setResearchers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("students");
+  const [activeTab, setActiveTab] = useState("Researchers");
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [editingStudent, setEditingStudent] = useState(null);
@@ -85,14 +85,15 @@ export default function UsersWorkspace() {
   const [deleteSupervisorTarget, setDeleteSupervisorTarget] = useState(null);
   const [deletingSupervisor, setDeletingSupervisor] = useState(false);
 
-  // Track available supervisors to validate existing assignments in Students tab
+  // Track available supervisors to validate existing assignments in Researchers tab
   const [availableSupervisorIds, setAvailableSupervisorIds] = useState([]);
 
   const fetchAvailableSupervisorIds = useCallback(async () => {
     try {
-      const res = await api(`/supervisors?limit=300&_=${Date.now()}`, { cache: 'no-store' });
+      // Use the same source as the assignment modal to avoid ID mismatches
+      const res = await api(`/supervisors/available?_=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+      const items = Array.isArray(data?.items) ? data.items : [];
       const ids = items
         .map((s) => s?.id ?? s?._id ?? s?.supervisor_id ?? s?.email)
         .filter(Boolean)
@@ -103,10 +104,10 @@ export default function UsersWorkspace() {
     }
   }, []);
 
-  const studentsWithValidAssignments = useMemo(() => {
-    if (!availableSupervisorIds?.length) return students;
+  const ResearchersWithValidAssignments = useMemo(() => {
+    if (!availableSupervisorIds?.length) return Researchers;
     const valid = new Set(availableSupervisorIds.map((v) => String(v).toLowerCase()));
-    return students.map((stu) => {
+    return Researchers.map((stu) => {
       const asg = stu?.assigned_supervisor;
       if (!asg) return stu;
       const key = String(
@@ -117,26 +118,26 @@ export default function UsersWorkspace() {
       }
       return stu;
     });
-  }, [students, availableSupervisorIds]);
+  }, [Researchers, availableSupervisorIds]);
 
-  const sortedStudents = useMemo(
-    () => studentsWithValidAssignments.slice().sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)),
-    [studentsWithValidAssignments]
+  const sortedResearchers = useMemo(
+    () => ResearchersWithValidAssignments.slice().sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)),
+    [ResearchersWithValidAssignments]
   );
 
   const departments = useMemo(() => {
     const values = new Set(
-      sortedStudents
+      sortedResearchers
         .map((student) => (student.program || "").trim())
         .filter(Boolean)
     );
     return ["all", ...Array.from(values).sort()];
-  }, [sortedStudents]);
+  }, [sortedResearchers]);
 
-  const filteredStudents = useMemo(() => {
+  const filteredResearchers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const department = departmentFilter === "all" ? "" : departmentFilter;
-    return sortedStudents.filter((student) => {
+    return sortedResearchers.filter((student) => {
       const matchesDepartment = !department || (student.program || "").toLowerCase() === department.toLowerCase();
       if (!matchesDepartment) return false;
       if (!term) return true;
@@ -153,32 +154,32 @@ export default function UsersWorkspace() {
         .toLowerCase();
       return haystack.includes(term);
     });
-  }, [sortedStudents, searchTerm, departmentFilter]);
+  }, [sortedResearchers, searchTerm, departmentFilter]);
 
-  const fetchStudents = useCallback(async () => {
+  const fetchResearchers = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const res = await api("/student-verifications?limit=200");
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to load students");
+        throw new Error(data?.error || "Failed to load Researchers");
       }
-      setStudents(Array.isArray(data?.items) ? data.items : []);
+      setResearchers(Array.isArray(data?.items) ? data.items : []);
     } catch (err) {
-      setError(err.message || "Failed to load students");
+      setError(err.message || "Failed to load Researchers");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchStudents();
-  }, [fetchStudents]);
+    fetchResearchers();
+  }, [fetchResearchers]);
 
-  // Keep available supervisors in sync while on Students tab
+  // Keep available supervisors in sync while on Researchers tab
   useEffect(() => {
-    if (activeTab === 'students') {
+    if (activeTab === 'Researchers') {
       fetchAvailableSupervisorIds();
     }
   }, [activeTab, fetchAvailableSupervisorIds]);
@@ -213,7 +214,7 @@ export default function UsersWorkspace() {
   }
 
   function handleAddSuccess(student) {
-    setStudents((prev) => [student, ...prev]);
+    setResearchers((prev) => [student, ...prev]);
     showToast({ type: "success", message: "Student queued for verification." });
     setIsAddOpen(false);
   }
@@ -221,10 +222,10 @@ export default function UsersWorkspace() {
   function handleImportSuccess(summary) {
     const inserted = summary?.inserted || 0;
     const duplicates = summary?.duplicates?.length || 0;
-    const message = `Imported ${inserted} students${duplicates ? `, ${duplicates} duplicate IDs skipped` : ""}.`;
+    const message = `Imported ${inserted} Researchers${duplicates ? `, ${duplicates} duplicate IDs skipped` : ""}.`;
     showToast({ type: "success", message });
     setIsImportOpen(false);
-    fetchStudents();
+    fetchResearchers();
   }
 
   function handleEdit(student) {
@@ -232,7 +233,7 @@ export default function UsersWorkspace() {
   }
 
   function handleEditSuccess(updated) {
-    setStudents((prev) => prev.map((item) => (item._id === updated._id ? updated : item)));
+    setResearchers((prev) => prev.map((item) => (item._id === updated._id ? updated : item)));
     showToast({ type: "success", message: "Student details updated." });
     setEditingStudent(null);
   }
@@ -242,7 +243,7 @@ export default function UsersWorkspace() {
   }
 
   function handleAssignSuccess(updated) {
-    setStudents((prev) => prev.map((item) => (item._id === updated._id ? updated : item)));
+    setResearchers((prev) => prev.map((item) => (item._id === updated._id ? updated : item)));
     setAssignTarget(null);
     // refresh availability to reflect any capacity/visibility changes
     fetchAvailableSupervisorIds();
@@ -262,12 +263,13 @@ export default function UsersWorkspace() {
       const res = await api(`/students/${deleteTarget._id}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to delete student");
+        throw new Error(data?.error || "Failed to delete researcher");
       }
-      setStudents((prev) => prev.filter((item) => item._id !== deleteTarget._id));
-      showToast({ type: "success", message: "Student removed from verification list." });
+      setResearchers((prev) => prev.filter((item) => item._id !== deleteTarget._id));
+      showToast({ type: "success", message: "Researcher removed from verification list." });
+      try { localStorage.setItem('coordinatorDataUpdated', String(Date.now())); } catch {}
     } catch (err) {
-      showToast({ type: "error", message: err.message || "Failed to delete student" });
+      showToast({ type: "error", message: err.message || "Failed to delete researcher" });
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
@@ -285,10 +287,10 @@ export default function UsersWorkspace() {
         <div>
           <h1 className="text-2xl font-semibold text-[color:var(--neutral-900)]">Users</h1>
           <p className="text-sm text-[color:var(--neutral-500)]">
-            Queue eligible researchers and manage verification readiness before accounts are created.
+            Queue eligible Researchers and manage verification readiness before accounts are created.
           </p>
         </div>
-        {activeTab === "students" && (
+        {activeTab === "Researchers" && (
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -330,7 +332,7 @@ export default function UsersWorkspace() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-6 border-b border-[color:var(--neutral-200)] pb-3 text-sm font-semibold">
             {[
-              { key: "students", label: "Students" },
+              { key: "Researchers", label: "Researchers" },
               { key: "supervisors", label: "Supervisors" },
             ].map((tab) => {
               const isActive = activeTab === tab.key;
@@ -351,7 +353,7 @@ export default function UsersWorkspace() {
             })}
           </div>
 
-          {activeTab === "students" ? (
+          {activeTab === "Researchers" ? (
             <>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
@@ -386,7 +388,7 @@ export default function UsersWorkspace() {
               </div>
 
               <UsersTable
-                users={filteredStudents}
+                users={filteredResearchers}
                 loading={loading}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -399,7 +401,7 @@ export default function UsersWorkspace() {
                     });
                     const data = await res.json().catch(() => ({}));
                     if (!res.ok) throw new Error(data?.error || 'Failed to unassign');
-                    setStudents((prev) => prev.map((s) => (s._id === student._id ? { ...s, assigned_supervisor: null } : s)));
+                    setResearchers((prev) => prev.map((s) => (s._id === student._id ? { ...s, assigned_supervisor: null } : s)));
                     showToast({ type: 'success', message: 'Supervisor removed from student.' });
                     fetchAvailableSupervisorIds();
                   } catch (err) {
@@ -515,8 +517,8 @@ export default function UsersWorkspace() {
             const data = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(data?.error || 'Failed to delete supervisor');
             setSupervisors((prev) => prev.filter((s) => s._id !== deleteSupervisorTarget._id));
-            // Also unassign this supervisor from any students shown in the Students tab
-            setStudents((prev) => {
+            // Also unassign this supervisor from any Researchers shown in the Researchers tab
+            setResearchers((prev) => {
               const ids = new Set(
                 [deleteSupervisorTarget._id, deleteSupervisorTarget.supervisor_id, deleteSupervisorTarget.id, deleteSupervisorTarget.email]
                   .filter(Boolean)
@@ -535,8 +537,8 @@ export default function UsersWorkspace() {
               });
             });
             showToast({ type: 'success', message: 'Supervisor deleted.' });
-            // Refresh students from server to ensure consistency
-            fetchStudents();
+            // Refresh Researchers from server to ensure consistency
+            fetchResearchers();
             // Refresh availability set so badges are validated
             fetchAvailableSupervisorIds();
           } catch (err) {
@@ -561,3 +563,5 @@ export default function UsersWorkspace() {
     </section>
   );
 }
+
+
