@@ -21,13 +21,16 @@ function PreviewTable({ entries = [], errors = [] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-[color:var(--neutral-100)] text-sm text-[color:var(--neutral-700)]">
-            {entries.slice(0, 10).map((e, idx) => (
-              <tr key={`${e.studentId}-${idx}`}>
-                <td className="px-4 py-3">{[e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ')}</td>
-                <td className="px-4 py-3 font-semibold">{e.studentId}</td>
-                <td className="px-4 py-3">{e.program || '-'}</td>
-              </tr>
-            ))}
+            {entries.slice(0, 10).map((e, idx) => {
+              const fullName = [e.first_name, e.middle_name, e.last_name].filter(Boolean).join(' ');
+              return (
+                <tr key={`${e.student_id || idx}-${idx}`}>
+                  <td className="px-4 py-3">{fullName || '-'}</td>
+                  <td className="px-4 py-3 font-semibold">{e.student_id || '-'}</td>
+                  <td className="px-4 py-3">{e.program || '-'}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -145,4 +148,3 @@ export default function ImportUsersModal({ open, onClose, onSuccess, onToast }) 
     </Transition>
   );
 }
-
