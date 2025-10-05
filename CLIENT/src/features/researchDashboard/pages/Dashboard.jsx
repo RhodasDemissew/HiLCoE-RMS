@@ -418,7 +418,12 @@ export default function ResearcherDashboard() {
     let stopped = false;
     async function load() {
       try {
-        const res = await api('/notifications');
+        if (typeof document !== 'undefined' && document.body?.dataset?.modalOpen === '1') return;
+      } catch {}
+      try {
+        const res = await api('/notifications', { cache: 'no-store' });
+        if (res.status === 304 || res.status === 204) return;
+        if (!res.ok) return;
         const data = await res.json().catch(() => ([]));
         if (!stopped) setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
       } catch {}
@@ -448,7 +453,9 @@ export default function ResearcherDashboard() {
 
   async function loadNotifications() {
     try {
-      const res = await api('/notifications');
+      const res = await api('/notifications', { cache: 'no-store' });
+      if (res.status === 304 || res.status === 204) return;
+      if (!res.ok) return;
       const data = await res.json().catch(() => ([]));
       setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
     } catch {}

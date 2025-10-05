@@ -1,0 +1,32 @@
+{
+  "version": "v1.0",
+  "max_nonconforming_paragraph_ratio": 0.1,
+  "weights": {
+    "required_headings": 2.0,
+    "title_page_keywords": 1.0,
+    "page_count_range": 0.5
+  },
+  "required_headings": [
+    "Abstract",
+    "Acknowledgment",
+    "Table of Contents",
+    "List of Figures/Tables",
+    "Introduction",
+    "Literature Review",
+    "Methodology",
+    "System Design & Implementation (if applied)",
+    "Results & Discussion",
+    "Conclusion & Recommendations",
+    "References",
+    "Appendices"
+  ],
+  "title_page_keywords": [
+    "HiLCoE School of Computer Science and Technology",
+    "Master of Science in Computer Science",
+    "Prepared by",
+    "ID No",
+    "Advisor",
+    "Date of Submission"
+  ],
+  "page_count_range": [60, 200]
+}

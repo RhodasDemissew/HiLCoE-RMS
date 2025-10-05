@@ -31,5 +31,6 @@ export const config = {
   smtpPass: process.env.SMTP_PASS || '',
   smtpSecure: String(process.env.SMTP_SECURE || '').toLowerCase() === 'true',
   supervisorMaxStudents: parseInt(process.env.SUPERVISOR_MAX_STUDENTS || '10', 10),
+  formatCheckerUrl: process.env.FORMAT_CHECKER_URL || '',
 };
 

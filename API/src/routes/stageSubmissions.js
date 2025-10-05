@@ -15,5 +15,9 @@ router.post('/submissions/:id/review', researcherStagesController.reviewSubmissi
 router.get('/coordinator/submissions', researcherStagesController.coordinatorList);
 router.post('/submissions/:id/analyze', researcherStagesController.analyze);
 router.get('/submissions/:id/analysis', researcherStagesController.analysis);
+// Formatting compliance
+router.post('/submissions/:id/format-check', researcherStagesController.formatCheck);
+router.get('/submissions/:id/format-report', researcherStagesController.formatReport);
+router.get('/submissions/:id/format-report.json', researcherStagesController.formatReportDownload);
 
 export default router;

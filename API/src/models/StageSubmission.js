@@ -38,6 +38,20 @@ const stageSubmissionSchema = new mongoose.Schema(
       score: { type: Number, default: null },
       updated_at: { type: Date, default: null },
     },
+    format_check: {
+      status: {
+        type: String,
+        enum: ['idle', 'queued', 'running', 'pass', 'issues', 'failed'],
+        default: 'idle',
+      },
+      overall_pass: { type: Boolean, default: null },
+      score: { type: Number, default: null }, // 0..1
+      policy_name: { type: String, default: '' },
+      policy_version: { type: String, default: '' },
+      checked_at: { type: Date, default: null },
+      findings: { type: [Object], default: [] }, // { rule, pass, details }
+      error: { type: String, default: '' },
+    },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }, collection: 'stage_submissions' }
 );

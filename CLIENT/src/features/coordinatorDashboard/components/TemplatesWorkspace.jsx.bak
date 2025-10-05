@@ -7,9 +7,8 @@ export default function TemplatesWorkspace() {
   const [error, setError] = useState("");
 
   const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState("");
-  const [type, setType] = useState("Proposal");
-  const [version, setVersion] = useState("1");
+  const [type, setType] = useState("proposal");
+  const [version, setVersion] = useState(1);
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -47,20 +46,16 @@ export default function TemplatesWorkspace() {
     setSaving(true);
     setSaveError("");
     try {
-      const payload = { type, version: String(version ?? '').trim() || '1', url: url.trim() };
-      const endpoint = editingId ? `/templates/${editingId}` : "/templates";
-      const method = editingId ? "PATCH" : "POST";
-      const res = await api(endpoint, {
-        method,
+      const res = await api("/templates", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ type, version: Number(version) || 1, url: url.trim() }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to save template");
       setIsAdding(false);
-      setEditingId("");
-      setType("Proposal");
-      setVersion("1");
+      setType("proposal");
+      setVersion(1);
       setUrl("");
       setToast({ id: Date.now(), message: "Template saved." });
       fetchTemplates();
@@ -68,38 +63,6 @@ export default function TemplatesWorkspace() {
       setSaveError(err.message || "Failed to save template");
     } finally {
       setSaving(false);
-    }
-  }
-
-  function startAdd() {
-    setIsAdding(true);
-    setEditingId("");
-    setType("Proposal");
-    setVersion("1");
-    setUrl("");
-  }
-
-  function startEdit(tpl) {
-    setIsAdding(true);
-    setEditingId(tpl._id || "");
-    setType(tpl.type || "");
-    setVersion(String(tpl.version ?? "1"));
-    setUrl(tpl.url || "");
-  }
-
-  async function handleDelete(id) {
-    if (!id) return;
-    if (!window.confirm("Delete this template?")) return;
-    try {
-      const res = await api(`/templates/${id}`, { method: 'DELETE' });
-      if (!res.ok && res.status !== 204) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || 'Failed to delete template');
-      }
-      setToast({ id: Date.now(), message: 'Template deleted.' });
-      fetchTemplates();
-    } catch (err) {
-      setToast({ id: Date.now(), message: err.message || 'Delete failed' });
     }
   }
 
@@ -113,9 +76,9 @@ export default function TemplatesWorkspace() {
         <button
           type="button"
           className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
-          onClick={startAdd}
+          onClick={() => setIsAdding(true)}
         >
-          {isAdding && editingId ? 'Add New' : 'Add Template'}
+          Add Template
         </button>
       </header>
 
@@ -129,18 +92,21 @@ export default function TemplatesWorkspace() {
                 value={type}
                 onChange={(e) => setType(e.target.value)}
               >
-                <option value="Synopsis">Synopsis</option>
-                <option value="Proposal">Proposal</option>
-                <option value="Progress Report I">Progress Report I</option>
-                <option value="Progress Report II">Progress Report II</option>
-                <option value="Thesis">Thesis</option>
-                <option value="Journal Article">Journal Article</option>
+                                <option value="synopsis">Synopsis</option>
+                <option value="proposal">Proposal</option>
+                <option value="progress_report_1">Progress Report 1</option>
+                <option value="progress_report_2">Progress Report 2</option>
+                <option value="thesis_report">Thesis Report</option>
+                <option value="final_draft_pre-defense">Final Draft (Pre-Defense)</option>
+                <option value="final_draft_post-defense">Final Draft (Post-Defense)</option>
+                <option value="journal_article">Journal Article</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">Version</label>
               <input
-                type="text"
+                type="number"
+                min={1}
                 className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
                 value={version}
                 onChange={(e) => setVersion(e.target.value)}
@@ -168,7 +134,6 @@ export default function TemplatesWorkspace() {
               onClick={() => {
                 if (saving) return;
                 setIsAdding(false);
-                setEditingId("");
                 setSaveError("");
               }}
               disabled={saving}
@@ -180,7 +145,7 @@ export default function TemplatesWorkspace() {
               className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60"
               disabled={saving}
             >
-              {saving ? (editingId ? 'Updating.' : 'Saving.') : (editingId ? 'Update' : 'Save')}
+              {saving ? "Saving." : "Save"}
             </button>
           </div>
         </form>
@@ -218,10 +183,6 @@ export default function TemplatesWorkspace() {
                       ) : (
                         '-'
                       )}
-                      <div className="mt-2 flex gap-2 text-xs">
-                        <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => startEdit(tpl)}>Edit</button>
-                        <button type="button" className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-600 hover:bg-red-100" onClick={() => handleDelete(tpl._id)}>Delete</button>
-                      </div>
                     </td>
                   </tr>
                 ))
@@ -243,3 +204,5 @@ export default function TemplatesWorkspace() {
     </section>
   );
 }
+
+

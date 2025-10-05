@@ -5,7 +5,17 @@ import DocumentTypeSelect from "./DocumentTypeSelect.jsx";
 import { getToken } from "../../../../api/client.js";
 
 const API_BASE = import.meta?.env?.VITE_API_BASE || "http://localhost:4000";
+// 10 MB max upload size
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+
+function stageKeyFromName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[()]/g, '')
+    .replace(/__+/g, '_');
+}
+
 
 function humanFileSize(bytes) {
   if (!bytes && bytes !== 0) return "";
@@ -46,6 +56,8 @@ export default function StageSubmissionModal({
 
   useEffect(() => {
     if (!open) return;
+    // Pause focus-based polling while modal is open
+    try { if (typeof document !== 'undefined') document.body.dataset.modalOpen = '1'; } catch {}
     // Reset only when modal opens, not when stages/defaultStage change due to polling
     setDocumentType(defaultStage);
     setTitle('');
@@ -56,6 +68,10 @@ export default function StageSubmissionModal({
     setProgress(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  useEffect(() => {
+    return () => { try { if (typeof document !== 'undefined') delete document.body.dataset.modalOpen; } catch {} };
+  }, []);
 
   function handleFileChange(event) {
     const selected = event.target.files?.[0];
@@ -88,7 +104,8 @@ export default function StageSubmissionModal({
     event.stopPropagation();
   }
 
-  const proposalTemplate = templateUrls?.proposal;
+  const selectedKey = stageKeyFromName(documentType);
+  const selectedTemplate = templateUrls?.[selectedKey] || (selectedKey === 'proposal' ? templateUrls?.proposal : undefined);
 
   const isValid = documentType && title.trim() && file && acknowledged && !uploading;
 
@@ -162,7 +179,7 @@ export default function StageSubmissionModal({
     onClose?.();
   }
 
-  const currentStageLabel = currentStage ? `${currentStage.name} — ${currentStage.status === 'completed' ? 'Completed' : currentStage.status === 'current' ? 'Waiting for submission' : currentStage.status === 'resubmit' ? `Re-submit (${resubmitCountdown ?? 0} days left)` : currentStage.status}` : '';
+  const currentStageLabel = currentStage ? `${currentStage.name} � ${currentStage.status === 'completed' ? 'Completed' : currentStage.status === 'current' ? 'Waiting for submission' : currentStage.status === 'resubmit' ? `Re-submit (${resubmitCountdown ?? 0} days left)` : currentStage.status}` : '';
 
   return (
     <Transition show={open} as={Fragment}>
@@ -216,14 +233,14 @@ export default function StageSubmissionModal({
                   <div>
                     <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">Document Type</label>
                     <DocumentTypeSelect stages={stages} value={documentType} onChange={setDocumentType} />
-                    {documentType === 'Proposal' && proposalTemplate && (
+                    {selectedTemplate && (
                       <a
-                        href={proposalTemplate}
+                        href={selectedTemplate}
                         target="_blank"
                         rel="noreferrer"
                         className="mt-2 inline-flex text-xs font-semibold text-[color:var(--brand-600)] hover:underline"
                       >
-                        Download proposal template
+                        Download template
                       </a>
                     )}
                   </div>
@@ -302,7 +319,7 @@ export default function StageSubmissionModal({
                       className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={!isValid}
                     >
-                      {uploading ? 'Submitting…' : 'Submit'}
+                      {uploading ? 'Submitting�' : 'Submit'}
                     </button>
                   </div>
                 </form>

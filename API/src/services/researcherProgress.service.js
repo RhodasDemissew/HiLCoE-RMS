@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { ResearchProgress } from '../models/ResearchProgress.js';
 import { DocumentTemplate } from '../models/DocumentTemplate.js';
 import { STAGE_ORDER } from '../constants/stages.js';
+import { getStageKey } from '../constants/stages.js';
 import { config } from '../config/env.js';
 
 export async function getOrCreateProgress(researcherId) {
@@ -74,7 +75,58 @@ export async function markSynopsisRejected(progress) {
 }
 
 export function getTemplateUrls(progress) {
-  return {
-    proposal: progress.template_urls?.proposal || config.proposalTemplateUrl || '',
-  };
+  const existing = progress?.template_urls || {};
+  const byStage = {};
+  if (existing.proposal || config.proposalTemplateUrl) {
+    byStage.proposal = existing.proposal || config.proposalTemplateUrl;
+  }
+  return byStage;
+}
+
+export async function getAllStageTemplateUrls() {
+  const byStage = {};
+  const docs = await DocumentTemplate.find().sort({ updated_at: -1, created_at: -1, version: -1 });
+  const norm = (s) => String(s || '')
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[()\-_]/g, '')
+    .replace(/\./g, '');
+
+  const stageDefs = STAGE_ORDER.map((name) => {
+    const key = getStageKey(name);
+    const base = norm(name);
+    const k1 = norm(key);
+    const aliases = new Set([base, k1]);
+    if (key.includes('progress')) {
+      aliases.add(base.replace('report', ''));
+      aliases.add(base.replace('progressreport', 'progress'));
+      // Allow roman numeral template types, e.g., "Progress Report I/II"
+      if (/1/.test(name)) { aliases.add('progressreporti'); aliases.add('progressi'); }
+      if (/2/.test(name)) { aliases.add('progressreportii'); aliases.add('progressii'); }
+    }
+    if (key.includes('final_draft')) {
+      aliases.add('finaldraftpredefense');
+      aliases.add('finaldraftpostdefense');
+      aliases.add('predefense');
+      aliases.add('postdefense');
+    }
+    if (key === 'thesis_report') aliases.add('thesis');
+    if (key === 'journal_article') aliases.add('journal');
+    if (key === 'synopsis') aliases.add('abstract');
+    if (key === 'proposal') aliases.add('researchproposal');
+    return { key, aliases };
+  });
+
+  const matched = new Set();
+  for (const doc of docs) {
+    const t = norm(doc.type);
+    for (const s of stageDefs) {
+      if (matched.has(s.key)) continue;
+      if (s.aliases.has(t)) {
+        byStage[s.key] = doc.url;
+        matched.add(s.key);
+      }
+    }
+  }
+  return byStage;
 }

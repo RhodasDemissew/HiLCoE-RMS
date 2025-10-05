@@ -1,6 +1,7 @@
 import fs from 'fs';
 import dayjs from 'dayjs';
-import { getOrCreateProgress, getTemplateUrls, isStageUnlocked, getStageStatus } from '../services/researcherProgress.service.js';
+import { getOrCreateProgress, getAllStageTemplateUrls, isStageUnlocked, getStageStatus } from '../services/researcherProgress.service.js';
+import { runFormatCheck } from '../services/formatChecker.service.js';
 import { STAGE_ORDER } from '../constants/stages.js';
 import { stageUploadMiddleware, createStageSubmission, listStageSubmissions, reviewSubmission, getSubmissionById, listStageSubmissionsForCoordinator } from '../services/stageSubmissions.service.js';
 
@@ -26,6 +27,16 @@ function serializeSubmission(doc) {
       score: doc.analysis.score,
       updatedAt: doc.analysis.updated_at,
     } : undefined,
+    format: doc.format_check ? {
+      status: doc.format_check.status,
+      overallPass: doc.format_check.overall_pass,
+      score: doc.format_check.score,
+      policyName: doc.format_check.policy_name,
+      policyVersion: doc.format_check.policy_version,
+      checkedAt: doc.format_check.checked_at,
+      findings: doc.format_check.findings,
+      error: doc.format_check.error,
+    } : undefined,
   };
 }
 
@@ -33,7 +44,7 @@ export const researcherStagesController = {
   progress: async (req, res) => {
     try {
       const progress = await getOrCreateProgress(req.user.id);
-      const templateUrls = getTemplateUrls(progress);
+      const templateUrls = await getAllStageTemplateUrls();
       res.json({
         researcherId: req.user.id,
         currentStageIndex: progress.current_stage_index,
@@ -60,7 +71,7 @@ export const researcherStagesController = {
   template: async (req, res) => {
     try {
       const progress = await getOrCreateProgress(req.user.id);
-      const templateUrls = getTemplateUrls(progress);
+      const templateUrls = await getAllStageTemplateUrls();
       res.json(templateUrls);
     } catch (err) {
       res.status(400).json({ error: err.message });
@@ -163,6 +174,47 @@ export const researcherStagesController = {
       res.setHeader('Content-Disposition', `attachment; filename="${submission.file?.filename || 'submission'}"`);
       const stream = fs.createReadStream(submission.file.path);
       stream.pipe(res);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
+  // Formatting compliance endpoints
+  formatCheck: async (req, res) => {
+    try {
+      const submission = await getSubmissionById(req.params.id, null);
+      submission.format_check = { ...(submission.format_check || {}), status: 'running', error: '' };
+      await submission.save();
+      const report = await runFormatCheck({ submission, userId: submission.researcher });
+      submission.format_check = report;
+      await submission.save();
+      res.json(serializeSubmission(submission).format);
+    } catch (err) {
+      try {
+        const s = await getSubmissionById(req.params.id, null);
+        s.format_check = { ...(s.format_check || {}), status: 'failed', error: err.message || 'failed', checked_at: new Date() };
+        await s.save();
+      } catch {}
+      res.status(400).json({ error: err.message });
+    }
+  },
+  formatReport: async (req, res) => {
+    try {
+      const submission = await getSubmissionById(req.params.id, null);
+      const s = serializeSubmission(submission);
+      res.json(s.format || { status: 'idle' });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+  formatReportDownload: async (req, res) => {
+    try {
+      const submission = await getSubmissionById(req.params.id, null);
+      const s = serializeSubmission(submission);
+      const report = s.format || { status: 'idle' };
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=\"format-report-${submission._id}.json\"`);
+      res.send(JSON.stringify(report, null, 2));
     } catch (err) {
       res.status(400).json({ error: err.message });
     }

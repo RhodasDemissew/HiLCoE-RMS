@@ -1,20 +1,23 @@
 {
-  "name": "hilcoe-rms",
-  "private": true,
-  "version": "0.1.0",
-  "scripts": {
-    "api:dev": "npm run dev --prefix API",
-    "api:start": "npm start --prefix API",
-    "api:seed": "npm run seed --prefix API",
-    "client:dev": "npm run dev --prefix CLIENT",
-    "client:build": "npm run build --prefix CLIENT",
-    "client:preview": "npm run preview --prefix CLIENT",
-    "dev": "concurrently \"npm:api:dev\" \"npm:client:dev\""
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "mongodb": "^6.19.0"
-  }
+    "name":  "hilcoe-rms",
+    "private":  true,
+    "version":  "0.1.0",
+    "scripts":  {
+                    "api:dev":  "npm run dev --prefix API",
+                    "api:start":  "npm start --prefix API",
+                    "api:seed":  "npm run seed --prefix API",
+                    "client:dev":  "npm run dev --prefix CLIENT",
+                    "client:build":  "npm run build --prefix CLIENT",
+                    "client:preview":  "npm run preview --prefix CLIENT",
+                    "dev":  "concurrently \"npm:api:dev\" \"npm:client:dev\"",
+                    "checker:dev":  "python -m uvicorn app.main:app --app-dir CHECKER --host 0.0.0.0 --port 8001 --reload",
+                    "checker:docker":  "docker build -t msc-format-checker ./CHECKER \u0026\u0026 docker run --rm -p 8001:8001 msc-format-checker",
+                    "dev:all":  "concurrently \"npm:api:dev\" \"npm:client:dev\" \"npm:checker:dev\""
+                },
+    "devDependencies":  {
+                            "concurrently":  "^8.2.2"
+                        },
+    "dependencies":  {
+                         "mongodb":  "^6.19.0"
+                     }
 }

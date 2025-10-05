@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, setToken } from "../../../api/client.js";
 import logoImage from "../../../assets/images/logo.png";
@@ -6,7 +6,7 @@ import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
 import SupervisorDashboardWorkspace from "../components/DashboardWorkspace.jsx";
 import ReviewWorkspace from "../../coordinatorDashboard/components/ReviewWorkspace.jsx";
-import { supNav, supKpis } from "../content.js";
+import { supNav, supKpis, supCopy } from "../content.js";
 
 function AppShell({ sidebar, topbar, children }) {
   return (
@@ -86,16 +86,14 @@ function Topbar({ user, notifications = [], onMarkAllRead, onClearAll }) {
   function nameInitials(name = '') {
     return (name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => (s[0] || '').toUpperCase()).join('')) || '';
   }
-
   function fmt(n) {
     const title = String(n.type || 'notification').replace(/_/g, ' ');
     const p = n.payload || {};
     const descParts = [];
     if (p.name) descParts.push(p.name);
-    if (p.stage) descParts.push(`Stage: ${p.stage}`);
     const desc = descParts.join(' · ');
     const time = n.created_at ? new Date(n.created_at).toLocaleString() : '';
-    const actorName = p.actor_name || (n.type === 'milestone_submitted' ? 'Researcher' : '');
+    const actorName = p.actor_name || '';
     return { id: String(n._id || n.id || Math.random()), title, description: desc, time, actorName, actorInitials: nameInitials(actorName) };
   }
 
@@ -133,7 +131,7 @@ function Topbar({ user, notifications = [], onMarkAllRead, onClearAll }) {
                       const item = fmt(n);
                       return (
                         <li key={item.id} className="flex items-start gap-3 rounded-[14px] border border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-3">
-                          <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-[11px] font-semibold text-[color:var(--brand-700)]">{item.actorInitials || '•'}</span>
+                          <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-[11px] font-semibold text-[color:var(--brand-700)]">{item.actorInitials || '�'}</span>
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-[color:var(--neutral-900)]">{item.title}</div>
                             <div className="mt-0.5 text-xs text-[color:var(--neutral-600)]">
@@ -208,11 +206,14 @@ export default function SupervisorDashboardPage() {
     return () => { mounted = false; };
   }, []);
 
+  // Notifications
   useEffect(() => {
     let stopped = false;
     async function load() {
       try {
-        const res = await api('/notifications');
+        const res = await api('/notifications', { cache: 'no-store' });
+        if (res.status === 304 || res.status === 204) return; // don't clobber state on not-modified/empty responses
+        if (!res.ok) return;
         const data = await res.json().catch(() => ([]));
         if (!stopped) setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
       } catch {}
@@ -226,7 +227,9 @@ export default function SupervisorDashboardPage() {
 
   async function loadNotifications() {
     try {
-      const res = await api('/notifications');
+      const res = await api('/notifications', { cache: 'no-store' });
+      if (res.status === 304 || res.status === 204) return;
+      if (!res.ok) return;
       const data = await res.json().catch(() => ([]));
       setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
     } catch {}
@@ -268,3 +271,4 @@ export default function SupervisorDashboardPage() {
     </AppShell>
   );
 }
+

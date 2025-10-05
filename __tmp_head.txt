@@ -55,24 +55,7 @@ export async function createStageSubmission({ userId, title, notes = '', stageNa
     status: SUBMISSION_STATUSES.UNDER_REVIEW,
     version,
   });
-  // Notify the assigned advisor/supervisor for stages after Synopsis (e.g., Proposal)
-  try {
-    if (stageIndex > 0) {
-      const user = await User.findById(userId).select('name student_verification');
-      if (user?.student_verification) {
-        const sv = await StudentVerification.findById(user.student_verification).select('assigned_supervisor');
-        const advisorId = sv?.assigned_supervisor?.supervisor_id;
-        if (advisorId) {
-          await notify(advisorId, 'stage_submission_created', {
-            submissionId: String(submission._id),
-            stage: stageName,
-            subject_id: String(userId),
-            subject_name: user?.name || '',
-          });
-        }
-      }
-    }
-  } catch {}
+
   return submission;
 }
 
@@ -103,11 +86,10 @@ export async function listStageSubmissionsForCoordinator({ stage, reviewerId, ro
     if (svIds.length) {
       const users = await User.find({ student_verification: { $in: svIds } }).select('_id');
       const userIds = users.map((u) => u._id);
-      // When there are no assigned users, use an empty $in to match nothing safely
-      filter.researcher = { $in: userIds.length ? userIds : [] };
+      if (userIds.length) filter.researcher = { $in: userIds };
+      else filter.researcher = '__none__';
     } else {
-      // No student verifications found; ensure query matches nothing without casting errors
-      filter.researcher = { $in: [] };
+      filter.researcher = '__none__';
     }
   }
 
@@ -193,6 +175,7 @@ export async function reviewSubmission({ submissionId, reviewerId, reviewerRole,
     default:
       throw new Error('Invalid decision');
   }
+
   return submission;
 }
 

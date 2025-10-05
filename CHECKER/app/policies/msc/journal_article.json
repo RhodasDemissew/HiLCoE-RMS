@@ -1,0 +1,15 @@
+{
+  "version": "v1.0",
+  "max_nonconforming_paragraph_ratio": 0.1,
+  "weights": { "required_headings": 1.0 },
+  "required_headings": [
+    "Abstract (150-250 words)",
+    "Keywords",
+    "Introduction",
+    "Related Work",
+    "Methodology",
+    "Results & Discussion",
+    "Conclusion & Future Work",
+    "References"
+  ]
+}

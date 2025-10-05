@@ -208,10 +208,10 @@ export default function UsersWorkspace() {
     }
   }, [activeTab, fetchSupervisors]);
 
-  function showToast(toastValue) {
+  const showToast = useCallback((toastValue) => {
     if (!toastValue) return;
     setToast({ id: Date.now(), ...toastValue });
-  }
+  }, []);
 
   function handleAddSuccess(student) {
     setResearchers((prev) => [student, ...prev]);

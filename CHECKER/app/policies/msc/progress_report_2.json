@@ -1,0 +1,15 @@
+{
+  "version": "v1.0",
+  "max_nonconforming_paragraph_ratio": 0.1,
+  "weights": { "required_headings": 1.2 },
+  "required_headings": [
+    "Introduction",
+    "Activities Since Last Report",
+    "Results & Findings",
+    "Discussion & Interpretation",
+    "Remaining Work/Future Work",
+    "Updated Timeline",
+    "Advisor's Comments (reserved)",
+    "References (if any)"
+  ]
+}
