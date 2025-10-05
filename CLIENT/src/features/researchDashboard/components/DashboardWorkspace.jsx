@@ -15,7 +15,7 @@ import messageIcon from "../../../assets/icons/message.png";
 
 function StatCard({ title, value }) {
   return (
-    <article className="card rounded-card shadow-soft border border-muted px-6 py-5">
+    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft">
       <p className="text-sm font-medium text-[color:var(--neutral-600)]">{title}</p>
       <p className="mt-3 text-3xl font-semibold text-[color:var(--neutral-900)]">{value}</p>
     </article>
@@ -24,9 +24,9 @@ function StatCard({ title, value }) {
 
 function QuickActionsGrid({ items }) {
   return (
-    <article className="card rounded-card border border-muted bg-white shadow-soft px-6 py-6">
-      <header>
-        <h2 className="h3 text-[color:var(--neutral-900)]">Quick Actions</h2>
+    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft">
+      <header aria-labelledby="quick-actions-title">
+        <h2 id="quick-actions-title" className="h3 text-[color:var(--neutral-900)]">Quick Actions</h2>
         <p className="body mt-1 text-[color:var(--neutral-600)]">Frequently used actions and shortcuts</p>
       </header>
       <div className="mt-6 grid grid-cols-2 gap-4">
@@ -57,8 +57,8 @@ function MilestonesProgress({ items }) {
   };
 
   return (
-    <article className="card rounded-card border border-muted bg-white shadow-soft px-6 py-6">
-      <h2 className="h3 text-[color:var(--neutral-900)]">Research Progress</h2>
+    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft">
+      <h2 id="research-progress-title" className="h3 text-[color:var(--neutral-900)]">Research Progress</h2>
       <p className="body mt-1 text-[color:var(--neutral-600)]">Latest milestone updates</p>
       <div className="mt-6 space-y-5">
         {items.map((item) => (
@@ -84,30 +84,32 @@ function MilestonesProgress({ items }) {
   );
 }
 
-function MessagesPanel({ items }) {
+function MessagesPanel({ items, className = '' }) {
   const hasMessages = items.length > 0;
 
   return (
-    <aside className="card rounded-card border border-muted bg-white shadow-soft px-6 py-6">
-      <h2 className="h3 text-[color:var(--neutral-900)]">Message</h2>
-      {hasMessages ? (
-        <ul className="mt-4 space-y-4">
-          {items.map((msg) => (
-            <li key={msg.id}>{msg.subject}</li>
-          ))}
-        </ul>
-      ) : (
-        <div className="mt-6 rounded-[18px] border border-dashed border-[color:var(--neutral-200)] bg-white/50 py-10 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10">
-            <img src={messageIcon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
+    <aside className={`rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft h-full flex flex-col ${className}`} aria-labelledby="messages-title">
+      <h2 id="messages-title" className="h3 text-[color:var(--neutral-900)]">Messages</h2>
+      <div className="mt-4 flex-1 overflow-auto">
+        {hasMessages ? (
+          <ul className="space-y-4">
+            {items.map((msg) => (
+              <li key={msg.id}>{msg.subject}</li>
+            ))}
+          </ul>
+        ) : (
+          <div className="rounded-[18px] border border-dashed border-[color:var(--neutral-200)] bg-white/50 py-10 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10">
+              <img src={messageIcon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
+            </div>
+            <p className="mt-4 text-sm font-medium text-[color:var(--neutral-700)]">No messages yet.</p>
+            <p className="mt-1 text-xs text-[color:var(--neutral-500)]">Start a conversation with your supervisor.</p>
           </div>
-          <p className="mt-4 text-sm font-medium text-[color:var(--neutral-700)]">No messages yet.</p>
-          <p className="mt-1 text-xs text-[color:var(--neutral-500)]">Start a conversation with your supervisor.</p>
-        </div>
-      )}
+        )}
+      </div>
       <button
         type="button"
-        className="btn mt-6 w-full rounded-[14px] py-3 text-sm font-semibold"
+        className="btn mt-4 w-full rounded-[14px] py-3 text-sm font-semibold"
         onClick={() => console.log("View all messages")}
       >
         View All Messages
@@ -126,8 +128,8 @@ function EventsTimeline({ items }) {
   }
 
   return (
-    <article className="card rounded-card border border-muted bg-white shadow-soft px-6 py-6">
-      <h2 className="h3 text-[color:var(--neutral-900)]">Events and Deadlines</h2>
+    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft" aria-labelledby="events-title">
+      <h2 id="events-title" className="h3 text-[color:var(--neutral-900)]">Events & Deadlines</h2>
       {hasEvents ? (
         <ul className="mt-4 space-y-4">
           {items.map((event) => (
@@ -167,8 +169,8 @@ function ProgressChart({ labels, series }) {
   });
 
   return (
-    <article className="card rounded-card border border-muted bg-white shadow-soft px-6 py-6">
-      <h2 className="h3 text-[color:var(--neutral-900)]">Research Progress Overview</h2>
+    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft min-h-[320px]" aria-labelledby="progress-overview-title">
+      <h2 id="progress-overview-title" className="h3 text-[color:var(--neutral-900)]">Research Progress Overview</h2>
       <p className="body mt-1 text-[color:var(--neutral-600)]">Track your submission and approval rates over time.</p>
       <div className="mt-6 h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -227,45 +229,50 @@ export default function DashboardWorkspace({
   }));
 
   return (
-    <div className="grid grid-cols-5 gap-5">
-      <div className="col-span-12 lg:col-span-12 ">
-        <div className="grid grid-cols-5 gap-5">
-          <div className="col-span-12">
-            <header className="card rounded-card border border-transparent bg-white px-8 py-6 shadow-soft">
-              <h1 className="h2 text-[color:var(--neutral-900)]">{displayTitle}</h1>
-              {displayMessage ? (
-                <p className="body mt-2 text-[color:var(--neutral-600)]">{displayMessage}</p>
-              ) : null}
-            </header>
-          </div>
+    <>
+      <header className="mb-6 rounded-2xl border border-transparent bg-white px-8 py-6 shadow-soft">
+        <h1 className="h2 text-[color:var(--neutral-900)]">{displayTitle}</h1>
+        {displayMessage ? (
+          <p className="body mt-2 text-[color:var(--neutral-600)]">{displayMessage}</p>
+        ) : null}
+      </header>
 
-          {kpiCards.map((card) => (
-            <div key={card.title} className="col-span-12 sm:col-span-6 lg:col-span-3">
-              <StatCard {...card} />
-            </div>
-          ))}
-
-          <div className="col-span-12 lg:col-span-5 min-h-[260px]">
-            <QuickActionsGrid items={quickActionItems} />
+      <div className="grid grid-cols-6 gap-6">
+        {/* Row 1: Metrics (cols 1-8) */}
+        <section className="order-1 col-span-4 lg:col-span-4" aria-labelledby="metrics-title">
+          <h2 id="metrics-title" className="sr-only">Metrics</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {kpiCards.map((card) => (
+              <StatCard key={card.title} {...card} />
+            ))}
           </div>
+        </section>
 
-          <div className="col-span-12 lg:col-span-8 min-h-[260px]">
-            <MilestonesProgress items={milestones} />
-          </div>
+        {/* Right column: Messages spans 3 rows on lg+ */}
+        <aside className="order-5 lg:order-2 col-span-2 lg:col-span-4 lg:row-span-1" aria-labelledby="messages-title">
+          <MessagesPanel items={messages} className="h-full" />
+        </aside>
 
-          <div className="col-span-12 lg:col-span-4 min-h-[260px]">
-            <EventsTimeline items={events} />
-          </div>
+        {/* Row 2: Quick Actions (1-4) */}
+        <section className="order-2 col-span-2 lg:col-span-2" aria-labelledby="quick-actions-title">
+          <QuickActionsGrid items={quickActionItems} />
+        </section>
 
-          <div className="col-span-12 lg:col-span-8 min-h-[300px]">
-            <ProgressChart labels={chartLabels} series={chartSeries} />
-          </div>
-        </div>
+        {/* Row 2: Research Progress (5-8) */}
+        <section className="order-3 col-span-2 lg:col-span-2" aria-labelledby="research-progress-title">
+          <MilestonesProgress items={milestones} />
+        </section>
+
+        {/* Row 3: Events & Deadlines (1-4) */}
+        <section className="order-4 col-span-2 lg:col-span-2" aria-labelledby="events-title">
+          <EventsTimeline items={events} />
+        </section>
+
+        {/* Row 3: Research Progress Overview (5-12) */}
+        <section className="order-6 col-span-12 lg:col-span-8" aria-labelledby="progress-overview-title">
+          <ProgressChart labels={chartLabels} series={chartSeries} />
+        </section>
       </div>
-
-      <aside className="col-span-12 lg:col-span-3 lg:row-span-3 self-start">
-        <MessagesPanel items={messages} />
-      </aside>
-    </div>
+    </>
   );
 }

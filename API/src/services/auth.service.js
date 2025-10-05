@@ -2,6 +2,8 @@
 import { studentVerificationRepo } from '../repositories/studentVerification.repository.js';
 import { hashPassword, verifyPassword, signJWT } from '../utils/crypto.js';
 import { config } from '../config/env.js';
+import { sendMail } from './mailer.js';
+import { projectsService } from './projects.service.js';
 
 const VERIFY_TOKEN_WINDOW_MINUTES = 30;
 
@@ -109,6 +111,18 @@ export const authService = {
 
     await studentVerificationRepo.markVerified(record, normalizedEmail);
 
+    // Auto-create a default project for the newly registered researcher so they appear in scheduling
+    try {
+      await projectsService.create({
+        title: 'Research Project',
+        area: record.program || '',
+        semester: record.semester || undefined,
+      }, user._id);
+    } catch (e) {
+      // Non-fatal; coordinator can still create later
+      console.warn('auto-create project failed:', e?.message);
+    }
+
     const roleName = role.name;
     const token = signJWT({ sub: String(user._id), role: roleName }, config.jwtSecret, 60 * 60 * 8);
     return { token, user: { id: user._id, email: user.email, name: user.name, role: roleName } };
@@ -125,7 +139,18 @@ export const authService = {
       user.reset_token = token;
       user.reset_expires_at = expires;
       await user.save();
-      return { ok: true, reset_token: token, expires_at: expires.toISOString() };
+      const link = `${config.appBaseUrl.replace(/\/$/, '')}/reset?token=${encodeURIComponent(token)}`;
+      try {
+        await sendMail({
+          to: user.email,
+          subject: 'HiLCoE RMS – Set your password',
+          text: `Use the link to set your password: ${link} (expires in 60 minutes)`,
+          html: `<p>Hello ${user.name || ''},</p><p>Click the link below to set your password. This link expires in 60 minutes.</p><p><a href="${link}">Set Password</a></p><p>If the link doesn't work, copy and paste this URL into your browser:</p><p>${link}</p>`,
+        });
+      } catch (e) {
+        console.warn('sendMail failed', e?.message);
+      }
+      return { ok: true, reset_token: config.nodeEnv === 'development' ? token : undefined, link: config.nodeEnv === 'development' ? link : undefined, expires_at: expires.toISOString() };
     }
     return { ok: true };
   },

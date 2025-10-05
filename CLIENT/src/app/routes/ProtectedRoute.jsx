@@ -14,8 +14,15 @@ export default function ProtectedRoute({ redirectTo = "/login" }) {
     return <Navigate to='/researcher' replace />;
   }
 
-  if (location.pathname.startsWith('/researcher') && role.includes('coordinator')) {
-    return <Navigate to='/coordinator' replace />;
+  if (location.pathname.startsWith('/supervisor') && role && !(role.includes('supervisor') || role.includes('advisor'))) {
+    // Coordinators can view supervisor area too if needed; otherwise send to researcher
+    if (role.includes('coordinator')) return <Navigate to='/coordinator' replace />;
+    return <Navigate to='/researcher' replace />;
+  }
+
+  if (location.pathname.startsWith('/researcher')) {
+    if (role.includes('coordinator')) return <Navigate to='/coordinator' replace />;
+    if (role.includes('supervisor') || role.includes('advisor')) return <Navigate to='/supervisor' replace />;
   }
 
   return <Outlet />;

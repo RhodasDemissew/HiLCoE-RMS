@@ -60,6 +60,8 @@ export default function Login() {
           const role = String(profileData.role).toLowerCase();
           if (role.includes('coordinator')) {
             redirect = '/coordinator';
+          } else if (role.includes('supervisor') || role.includes('advisor')) {
+            redirect = '/supervisor';
           }
         }
       } catch (profileError) {

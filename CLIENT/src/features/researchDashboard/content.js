@@ -14,7 +14,7 @@ export const dashboardNavItems = [
   { label: "Dashboard", icon: dashboardIcon },
   { label: "Submission", icon: submissionIcon },
   { label: "My Research", icon: researchIcon },
-  { label: "Calendar", icon: calendarSidebarIcon },
+  { label: "Schedule", icon: calendarSidebarIcon },
   { label: "Message", icon: messageIcon },
 ];
 
@@ -54,3 +54,5 @@ export const dashboardCopy = {
   loadingTitle: "Loading profile?",
   welcomeMessage: "Here's what's happening with your research today.",
 };
+
+

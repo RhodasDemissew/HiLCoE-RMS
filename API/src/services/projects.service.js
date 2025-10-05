@@ -4,6 +4,7 @@ import { milestoneRepo } from '../repositories/milestone.repository.js';
 import { userRepo } from '../repositories/user.repository.js';
 import { notify } from '../services/notificationService.js';
 import { Milestone } from '../models/Milestone.js';
+import { DEFAULT_SEQUENCES, defaultAssignmentRequired, defaultReviewerRoles } from '../utils/milestoneFlow.js';
 
 const MILESTONE_TYPES = ['registration','synopsis','proposal','progress1','progress2','thesis_precheck','defense','thesis_postdefense','journal'];
 
@@ -46,13 +47,22 @@ export const projectsService = {
     const milestones = await milestoneRepo.findByProject(projectId);
     return milestones;
   },
-  async updateMilestoneSchedule(projectId, type, { window_start, window_end, due_at, notes }) {
+  async updateMilestoneSchedule(projectId, type, { window_start, window_end, due_at, notes }, actor) {
     if (!mongoose.isValidObjectId(projectId)) throw new Error('invalid project id');
-    if (!MilestoneTypes.includes(type)) throw new Error('invalid milestone type');
+    if (!MILESTONE_TYPES.includes(type)) throw new Error('invalid milestone type');
     const project = await projectRepo.findById(projectId);
     if (!project) throw new Error('project not found');
-    const milestone = await milestoneRepo.findByProjectAndType(projectId, type);
-    if (!milestone) throw new Error('milestone not found');
+    let milestone = await milestoneRepo.findByProjectAndType(projectId, type);
+    if (!milestone) {
+      milestone = await milestoneRepo.create({
+        project: projectId,
+        type,
+        status: 'scheduled',
+        sequence: DEFAULT_SEQUENCES[type] ?? 0,
+        assignment_required: defaultAssignmentRequired(type),
+        reviewer_roles: defaultReviewerRoles(type),
+      });
+    }
 
     const parseDate = (value, field) => {
       if (value === undefined) return milestone[field];
@@ -81,6 +91,30 @@ export const projectsService = {
     }
 
     await milestoneRepo.save(milestone);
+
+    try {
+      if (project.researcher) {
+        let actorName = '';
+        try {
+          if (actor?.id || actor?._id) {
+            const u = await userRepo.findById(actor.id || actor._id);
+            actorName = u?.name || '';
+          }
+        } catch {}
+        await notify(project.researcher, 'milestone_scheduled', {
+          milestoneId: String(milestone._id),
+          projectId: String(project._id),
+          type,
+          window_start: milestone.window_start,
+          window_end: milestone.window_end,
+          due_at: milestone.due_at,
+          notes: milestone.coordinator_notes || '',
+          actor_id: actor?.id || actor?._id,
+          actor_name: actorName,
+        });
+      }
+    } catch {}
+
     return milestone;
   }
 };

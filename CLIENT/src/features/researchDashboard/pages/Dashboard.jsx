@@ -15,7 +15,6 @@ import {
   dashboardMilestones,
   dashboardChartLabels,
   dashboardChartSeries,
-  dashboardNotifications,
   dashboardCopy,
 } from "../content.js";
 
@@ -111,7 +110,7 @@ function Sidebar({ active, onSelect }) {
   );
 }
 
-function Topbar({ showSearch = false, user, loading = false, fallbackName = "Member" }) {
+function Topbar({ showSearch = false, user, loading = false, fallbackName = "Member", notifications = [], onMarkAllRead, onClearAll }) {
   const navigate = useNavigate();
   const safeFallback = fallbackName || 'Member';
   const displayName = user?.name || safeFallback;
@@ -126,7 +125,33 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const notificationRef = useRef(null);
   const profileMenuRef = useRef(null);
-  const hasNotifications = dashboardNotifications.length > 0;
+  const unreadCount = notifications.filter((n) => !n.read_at).length;
+  const hasNotifications = notifications.length > 0;
+
+  function fmt(n) {
+    const baseTitle = String(n.type || 'notification').replace(/_/g, ' ');
+    const p = n.payload || {};
+    function toTitle(val) {
+      return String(val || '')
+        .split(/[_\s]+/)
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+    }
+    let title = baseTitle;
+    if (p.type && ['milestone_scheduled','milestone_reviewed','milestone_submitted'].includes(n.type)) {
+      title = `${baseTitle} (${toTitle(p.type)})`;
+    }
+    const parts = [];
+    if (p.name) parts.push(p.name);
+    if (p.stage) parts.push(`Stage: ${p.stage}`);
+    if (p.status) parts.push(`Status: ${p.status}`);
+    const desc = parts.join(' • ');
+    const time = n.created_at ? new Date(n.created_at).toLocaleString() : '';
+    const actorName = p.actor_name || '';
+    const actorInitials = (actorName.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => (s[0] || '').toUpperCase()).join('')) || '';
+    return { id: String(n._id || n.id || Math.random()), title, description: desc, time, actorName, actorInitials };
+  }
 
   useEffect(() => {
     if (!isNotificationOpen) {
@@ -252,7 +277,7 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
                 aria-hidden
               />
               <span className="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--brand-600)] text-xs font-semibold text-white">
-                {dashboardNotifications.length}
+                {unreadCount}
               </span>
             </button>
 
@@ -265,23 +290,35 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-[color:var(--neutral-900)]">Notifications</h3>
-                  <span className="text-xs text-[color:var(--neutral-500)]">
-                    {hasNotifications ? `${dashboardNotifications.length} new` : "No new alerts"}
-                  </span>
+                  <span className="text-xs text-[color:var(--neutral-500)]">{hasNotifications ? `${unreadCount} new` : notifications.length ? 'All read' : 'No new alerts'}</span>
                 </div>
 
+                {notifications.length ? (
+                  <div className="mt-2 flex items-center justify-end gap-2 text-xs">
+                    <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={onMarkAllRead}>Mark all read</button>
+                    <button type="button" className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-600 hover:bg-red-100" onClick={onClearAll}>Clear all</button>
+                  </div>
+                ) : null}
+
                 {hasNotifications ? (
-                  <ul className="mt-4 space-y-3">
-                    {dashboardNotifications.map((item) => (
-                      <li
-                        key={item.id}
-                        className="rounded-[14px] border border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-3"
-                      >
-                        <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{item.title}</p>
-                        <p className="mt-1 text-xs text-[color:var(--neutral-600)]">{item.description}</p>
-                        <span className="mt-2 inline-block text-xs text-[color:var(--neutral-500)]">{item.time}</span>
-                      </li>
-                    ))}
+                  <ul className="mt-4 max-h-80 space-y-3 overflow-y-auto">
+                    {notifications.map((n) => {
+                      const item = fmt(n);
+                      return (
+                        <li key={item.id} className="rounded-[14px] border border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-3">
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-[color:var(--neutral-900)]">{item.title}</div>
+                            {item.actorName ? (
+                              <div className="mt-0.5 text-xs text-[color:var(--neutral-700)]">From {item.actorName}</div>
+                            ) : null}
+                            {item.description ? (
+                              <div className="mt-0.5 text-xs text-[color:var(--neutral-600)]">{item.description}</div>
+                            ) : null}
+                            <span className="mt-1 inline-block text-[10px] text-[color:var(--neutral-500)]">{item.time}</span>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : (
                   <div className="mt-4 rounded-[14px] border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-6 text-center">
@@ -357,6 +394,7 @@ export default function ResearcherDashboard() {
   const [activeSection, setActiveSection] = useState("Dashboard");
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -376,6 +414,27 @@ export default function ResearcherDashboard() {
     return () => { isMounted = false; };
   }, []);
 
+  useEffect(() => {
+    let stopped = false;
+    async function load() {
+      try {
+        if (typeof document !== 'undefined' && document.body?.dataset?.modalOpen === '1') return;
+      } catch {}
+      try {
+        const res = await api('/notifications', { cache: 'no-store' });
+        if (res.status === 304 || res.status === 204) return;
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ([]));
+        if (!stopped) setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
+      } catch {}
+    }
+    load();
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    const id = setInterval(load, 20000);
+    return () => { stopped = true; window.removeEventListener('focus', onFocus); clearInterval(id); };
+  }, []);
+
   const fallbackName = dashboardCopy.fallbackName || (user?.role ?? "Member");
   const workspaceProps = {
     user,
@@ -391,6 +450,26 @@ export default function ResearcherDashboard() {
     loadingTitle: dashboardCopy.loadingTitle,
     fallbackName,
   };
+
+  async function loadNotifications() {
+    try {
+      const res = await api('/notifications', { cache: 'no-store' });
+      if (res.status === 304 || res.status === 204) return;
+      if (!res.ok) return;
+      const data = await res.json().catch(() => ([]));
+      setNotifications(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
+    } catch {}
+  }
+
+  async function markAllRead() {
+    try { await api('/notifications/read-all', { method: 'PATCH' }); } catch {}
+    loadNotifications();
+  }
+
+  async function clearAll() {
+    try { await api('/notifications', { method: 'DELETE' }); } catch {}
+    loadNotifications();
+  }
 
   let content;
   switch (activeSection) {
@@ -426,7 +505,7 @@ export default function ResearcherDashboard() {
   return (
     <AppShell
       sidebar={<Sidebar active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar showSearch={activeSection === "Submission"} user={user} loading={userLoading} fallbackName={fallbackName} />}
+      topbar={<Topbar showSearch={activeSection === "Submission"} user={user} loading={userLoading} fallbackName={fallbackName} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} />}
     >
       {content}
     </AppShell>
