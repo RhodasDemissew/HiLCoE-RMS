@@ -34,7 +34,6 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState({});
   const [downloadingId, setDownloadingId] = useState(null);
-  const [dialog, setDialog] = useState({ open: false, submission: null, decision: "", notes: "" });
   const API_BASE = import.meta?.env?.VITE_API_BASE || "http://localhost:4000";
 
   const stages = useMemo(() => {
@@ -99,7 +98,15 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
     return grouped.filter((g) => (g.researcher?.name || g.researcher?.email || "").toLowerCase().includes(term));
   }, [grouped, search]);
 
-  function openDecisionDialog(submission, decision) { setDialog({ open: true, submission, decision, notes: "" }); }
+  function openDecisionDialog(submission, decision) {
+    if (!submission || !decision) return;
+    const pretty = String(decision).replace(/_/g, ' ');
+    let promptLabel = `Confirm ${pretty}`;
+    if (decision === 'needs_changes') promptLabel = 'Describe required changes (optional)';
+    const notes = window.prompt(`${promptLabel}:`, '');
+    if (notes === null) return; // user cancelled
+    handleDecision(submission, decision, notes || '');
+  }
 
   async function handleDecision(submission, decision, notes = "") {
     if (!submission) return;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, setToken } from "../../../api/client.js";
+import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 
 import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
@@ -431,8 +431,22 @@ export default function ResearcherDashboard() {
     load();
     const onFocus = () => load();
     window.addEventListener('focus', onFocus);
-    const id = setInterval(load, 20000);
-    return () => { stopped = true; window.removeEventListener('focus', onFocus); clearInterval(id); };
+    // SSE subscription (no interval polling)
+    const url = `${API_BASE}/notifications/stream?token=${encodeURIComponent(getToken() || '')}`;
+    const es = new EventSource(url);
+    const onNotification = (ev) => {
+      try {
+        const n = JSON.parse(ev.data || '{}');
+        setNotifications((prev) => [n, ...prev]);
+      } catch {}
+    };
+    es.addEventListener('notification', onNotification);
+    es.addEventListener('error', () => {});
+    return () => {
+      stopped = true;
+      window.removeEventListener('focus', onFocus);
+      try { es.close(); } catch {}
+    };
   }, []);
 
   const fallbackName = dashboardCopy.fallbackName || (user?.role ?? "Member");

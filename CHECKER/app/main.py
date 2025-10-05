@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Dict, Any, List
 from datetime import datetime, timezone
 import os, io, json, re
+from docx.enum.text import WD_LINE_SPACING
 
 try:
     from docx import Document  # python-docx
@@ -154,6 +155,24 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
             pass
         return name, size_pt
 
+    def _rfonts_name(run):
+        try:
+            rpr = run._element.rPr
+            rf = getattr(rpr, 'rFonts', None)
+            if rf is None:
+                return ''
+            # Try common font mapping attributes
+            for attr in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
+                try:
+                    v = getattr(rf, attr, None)
+                    if v:
+                        return str(v)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        return ''
+
     def _resolve_font_name(run, paragraph, normal_name):
         try:
             n = run.font.name
@@ -168,6 +187,10 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
                 return str(n).strip()
         except Exception:
             pass
+        # Theme rFonts (docx stores theme-bound font families here)
+        n = _rfonts_name(run)
+        if n:
+            return n.strip()
         return (normal_name or '').strip()
 
     def _resolve_font_size_pt(run, paragraph, normal_size_pt):
@@ -199,25 +222,36 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
             refs_present = True
         # Paragraph spacing
         try:
-            ls = p.paragraph_format.line_spacing
-            if ls is None:
-                non_spacing += 1
+            pf = p.paragraph_format
+            # Accept explicit 1.5 rule even if numeric is None
+            rule = getattr(pf, 'line_spacing_rule', None)
+            if rule == WD_LINE_SPACING.ONE_POINT_FIVE:
+                pass  # spacing ok
             else:
-                val = float(ls)
-                if abs(val - target_spacing) > 0.2:
+                ls = getattr(pf, 'line_spacing', None)
+                if ls is None:
                     non_spacing += 1
+                else:
+                    val = float(ls)
+                    if abs(val - target_spacing) > 0.2:
+                        non_spacing += 1
         except Exception:
             non_spacing += 1
-        # Runs: font + size (with inheritance resolution)
+        # Runs: font + size (with inheritance resolution) â€” evaluate per paragraph
         ran_any = False
+        p_font_bad = False
+        p_size_bad = False
         for r in p.runs:
+            # Ignore empty/whitespace-only runs
+            if not (r.text or '').strip():
+                continue
             ran_any = True
             fname = _resolve_font_name(r, p, normal_name)
             if (fname or '').strip().lower() != target_font.lower():
-                non_font += 1
+                p_font_bad = True
             size_pt = _resolve_font_size_pt(r, p, normal_size_pt)
             if size_pt is None or abs(size_pt - target_size_pt) > 0.6:
-                non_size += 1
+                p_size_bad = True
         if not ran_any:
             # No runs: fall back to paragraph style and Normal
             try:
@@ -225,7 +259,7 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
             except Exception:
                 p_name = ''
             if (p_name or normal_name or '').strip().lower() != target_font.lower():
-                non_font += 1
+                p_font_bad = True
             try:
                 ps = getattr(getattr(p, 'style', None), 'font', None)
                 ps = getattr(ps, 'size', None)
@@ -234,7 +268,11 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
                 p_size = None
             base_size = p_size if p_size is not None else normal_size_pt
             if base_size is None or abs(base_size - target_size_pt) > 0.6:
-                non_size += 1
+                p_size_bad = True
+        if p_font_bad:
+            non_font += 1
+        if p_size_bad:
+            non_size += 1
 
     # Convert non-conformance counts to ratios
     font_pass = (non_font / total) <= tol_ratio
@@ -243,11 +281,12 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
     findings.append({"rule": "font_family", "pass": font_pass, "details": f"Required: {target_font}"})
     findings.append({"rule": "font_size", "pass": size_pass, "details": f"Required: {target_size_pt} pt"})
     findings.append({"rule": "line_spacing", "pass": spacing_pass, "details": f"Required: {target_spacing}"})
-    findings.append({"rule": "heading_numbering", "pass": heading_ok, "details": "1, 1.1, 1.2�"})
+    findings.append({"rule": "heading_numbering", "pass": heading_ok, "details": "1, 1.1, 1.2...¿½"})
     findings.append({"rule": "ieee_references_block", "pass": refs_present, "details": "References like [1], [2] present"})
 
     return findings
 
+ROBUST_EVAL_DOCX = _eval_docx
 
 def _eval_pdf(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
     findings: List[Dict[str, Any]] = []
@@ -416,106 +455,8 @@ def _contains_all(text: str, keywords: List[str]):
 
 
 def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
-    findings: List[Dict[str, Any]] = []
-    if Document is None:
-        return findings
-    doc = Document(io.BytesIO(buf))
-
-    target_font = policy.get("font", "Times New Roman")
-    target_size_pt = float(policy.get("font_size", 12))
-    target_spacing = float(policy.get("line_spacing", 1.5))
-    tol_ratio = float(policy.get("max_nonconforming_paragraph_ratio", policy.get("tolerance", 0.1)))
-
-    sec = doc.sections[0]
-    inch_emu = 914400
-    def _emu_to_in(val):
-        try:
-            return float(val) / inch_emu
-        except Exception:
-            return 0.0
-    margins_ok = (
-        abs(_emu_to_in(sec.top_margin) - 1.0) < 0.15 and
-        abs(_emu_to_in(sec.bottom_margin) - 1.0) < 0.15 and
-        abs(_emu_to_in(sec.left_margin) - 1.0) < 0.15 and
-        abs(_emu_to_in(sec.right_margin) - 1.0) < 0.15
-    )
-    findings.append({"rule": "margins", "pass": margins_ok, "details": "1\" on all sides"})
-
-    paragraphs = list(doc.paragraphs)
-    total = max(1, len(paragraphs))
-
-    non_font = 0
-    non_size = 0
-    non_spacing = 0
-    heading_ok = True
-    refs_present = False
-
-    for p in paragraphs:
-        txt = p.text or ""
-        if (getattr(p.style, 'name', '') or '').lower().startswith('heading'):
-            if not HEADING_RE.search(txt):
-                heading_ok = False
-        if NUM_RE.search(txt):
-            refs_present = True
-        try:
-            ls = p.paragraph_format.line_spacing
-            if ls is None:
-                non_spacing += 1
-            else:
-                val = float(ls)
-                if abs(val - target_spacing) > 0.2:
-                    non_spacing += 1
-        except Exception:
-            non_spacing += 1
-        ran_any = False
-        for r in p.runs:
-            ran_any = True
-            try:
-                fname = getattr(getattr(r.font, 'name', None), 'strip', lambda: r.font.name)()
-            except Exception:
-                fname = r.font.name
-            if (not fname) or (fname != target_font):
-                non_font += 1
-            try:
-                size = getattr(r.font, 'size', None)
-                if size is None:
-                    non_size += 1
-                else:
-                    pt = float(size.pt) if hasattr(size, 'pt') else float(size) / 2.0
-                    if abs(pt - target_size_pt) > 0.6:
-                        non_size += 1
-            except Exception:
-                non_size += 1
-        if not ran_any:
-            non_font += 1
-            non_size += 1
-
-    font_pass = (non_font / total) <= tol_ratio
-    size_pass = (non_size / total) <= tol_ratio
-    spacing_pass = (non_spacing / total) <= tol_ratio
-    findings.append({"rule": "font_family", "pass": font_pass, "details": f"Required: {target_font}"})
-    findings.append({"rule": "font_size", "pass": size_pass, "details": f"Required: {target_size_pt} pt"})
-    findings.append({"rule": "line_spacing", "pass": spacing_pass, "details": f"Required: {target_spacing}"})
-    findings.append({"rule": "heading_numbering", "pass": heading_ok, "details": "1, 1.1, 1.2..."})
-    findings.append({"rule": "ieee_references_block", "pass": refs_present, "details": "References like [1], [2] present"})
-
-    # Structural checks for DOCX
-    try:
-        req_heads = policy.get("required_headings") or []
-        if req_heads:
-            combined = "\n".join([p.text or "" for p in paragraphs[:50]])
-            ok, missing = _contains_all(combined, req_heads)
-            findings.append({"rule": "required_headings", "pass": ok, "details": ("Missing: " + ", ".join(missing)) if not ok else "All required headings present"})
-        title_keys = policy.get("title_page_keywords") or []
-        if title_keys:
-            title_blob = "\n".join([p.text or "" for p in paragraphs[:30]])
-            ok, missing = _contains_all(title_blob, title_keys)
-            findings.append({"rule": "title_page_keywords", "pass": ok, "details": ("Missing: " + ", ".join(missing)) if not ok else "Title page keywords present"})
-    except Exception:
-        pass
-
-    return findings
-
+    # Delegate to the robust implementation defined earlier
+    return ROBUST_EVAL_DOCX(buf, policy)
 
 def _eval_pdf(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
     findings: List[Dict[str, Any]] = []
@@ -610,3 +551,7 @@ async def check(
         "policyVersion": str(version),
         "checkedAt": datetime.now(timezone.utc).isoformat(),
     }
+
+
+
+
