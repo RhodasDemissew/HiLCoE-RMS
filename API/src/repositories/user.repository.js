@@ -6,6 +6,11 @@ export const userRepo = {
   findById: (id) => User.findById(id).populate('role'),
   list: () => User.find().populate('role').limit(200),
   create: (data) => User.create(data),
+  findActiveByRoleName: async (roleName) => {
+    const role = await Role.findOne({ name: roleName });
+    if (!role) return [];
+    return User.find({ role: role._id, status: 'active' }).populate('role');
+  },
 };
 
 export const roleRepo = {
