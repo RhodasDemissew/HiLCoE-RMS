@@ -5,10 +5,12 @@ import { User } from '../models/User.js';
 import { Role } from '../models/Role.js';
 import { StudentVerification } from '../models/StudentVerification.js';
 import { ResearchProgress } from '../models/ResearchProgress.js';
+import { Project } from '../models/Project.js';
 import { STAGE_ORDER, SUBMISSION_STATUSES, getStageIndex, getStageKey } from '../constants/stages.js';
 import { getOrCreateProgress, isStageUnlocked, advanceProgress, markSynopsisRejected } from './researcherProgress.service.js';
 import { saveBufferFile } from './storageService.js';
 import { notify } from './notificationService.js';
+import { messagingService } from './messaging.service.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -189,6 +191,25 @@ export async function reviewSubmission({ submissionId, reviewerId, reviewerRole,
       submission.decision_notes = notes || '';
       await submission.save();
       try { await notify(submission.researcher, 'submission_changes_requested', { submissionId: String(submission._id), stage: stageName, actor_id: reviewerId, actor_name: actorName }); } catch {}
+      try {
+        const project = await Project.findOne({ researcher: submission.researcher }).select('_id title researcher advisor');
+        if (project) {
+          const body = notes ? `Feedback for ${stageName}: ${notes}` : `Your ${stageName} submission needs changes.`;
+          await messagingService.emitSystemMessageForProject(project._id, {
+            body,
+            meta: {
+              submissionId: String(submission._id),
+              stage: stageName,
+              decision: 'needs_changes',
+              reviewerId: String(reviewerId),
+            },
+            kind: 'feedback',
+            actorId: reviewerId,
+          });
+        }
+      } catch (err) {
+        console.warn('messaging emit failed', err?.message || err);
+      }
       break;
     default:
       throw new Error('Invalid decision');
@@ -204,3 +225,7 @@ export async function getSubmissionById(id, userId) {
   }
   return submission;
 }
+
+
+
+

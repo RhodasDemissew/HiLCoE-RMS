@@ -6,6 +6,7 @@ import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
 import SupervisorDashboardWorkspace from "../components/DashboardWorkspace.jsx";
 import ReviewWorkspace from "../../coordinatorDashboard/components/ReviewWorkspace.jsx";
+import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import { supNav, supKpis, supCopy } from "../content.js";
 
 function AppShell({ sidebar, topbar, children }) {
@@ -266,8 +267,16 @@ export default function SupervisorDashboardPage() {
     case "My Reviews":
       content = <ReviewWorkspace hideSynopsis />;
       break;
-    case "Calendar":
     case "Message":
+      content = (
+        <MessagingWorkspace
+          currentUser={user}
+          roleLabel={user?.role || 'Supervisor'}
+          emptyStateTitle="Collaborate with your researcher and coordinator."
+        />
+      );
+      break;
+    case "Calendar":
       content = <PlaceholderContent title={activeSection} />;
       break;
     default:
@@ -284,4 +293,7 @@ export default function SupervisorDashboardPage() {
     </AppShell>
   );
 }
+
+
+
 

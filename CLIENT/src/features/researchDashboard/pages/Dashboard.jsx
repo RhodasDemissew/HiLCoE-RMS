@@ -8,6 +8,7 @@ import logoImage from "../../../assets/images/logo.png";
 import SubmissionWorkspace from "../components/SubmissionWorkspace.jsx";
 import MyResearchWorkspace from "../components/MyResearchWorkspace.jsx";
 import DashboardWorkspace from "../components/DashboardWorkspace.jsx";
+import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import {
   dashboardNavItems,
   dashboardKpiCards,
@@ -501,8 +502,16 @@ export default function ResearcherDashboard() {
     case "My Research":
       content = <MyResearchWorkspace />;
       break;
-    case "Calendar":
     case "Message":
+      content = (
+        <MessagingWorkspace
+          currentUser={user}
+          roleLabel={user?.role || fallbackName}
+          emptyStateTitle="No conversations yet. Start one with your advisor or coordinator."
+        />
+      );
+      break;
+    case "Calendar":
     case "Settings":
       content = <PlaceholderContent title={activeSection} />;
       break;
@@ -525,6 +534,9 @@ export default function ResearcherDashboard() {
     </AppShell>
   );
 }
+
+
+
 
 
 

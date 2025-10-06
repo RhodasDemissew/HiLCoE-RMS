@@ -4,6 +4,7 @@ import { projectRepo } from '../repositories/project.repository.js';
 import { User } from '../models/User.js';
 import { canTransition } from '../utils/state.js';
 import { notify } from '../services/notificationService.js';
+import { messagingService } from './messaging.service.js';
 import {
   DEFAULT_SEQUENCES,
   getPreviousRequirement,
@@ -135,8 +136,27 @@ export const milestonesService = {
           actor_id: actor?.id || actor?._id,
           actor_name: actorName,
         });
+        if (to === 'changes_requested') {
+          try {
+            const body = ms.coordinator_notes
+              ? `Milestone ${ms.type} needs changes: ${ms.coordinator_notes}`
+              : `Milestone ${ms.type} needs changes.`;
+            await messagingService.emitSystemMessageForProject(proj._id, {
+              body,
+              meta: {
+                milestoneId: String(ms._id),
+                type: ms.type,
+                status: to,
+                actorId: actor?.id || actor?._id ? String(actor?.id || actor?._id) : undefined,
+              },
+              kind: 'feedback',
+              actorId: actor?.id || actor?._id,
+            });
+          } catch (err) {
+            console.warn('[messaging] milestone feedback emit failed', err?.message || err);
+          }
+        }
       }
-
       if (to === 'scheduled') {
         // Notify the Researcher for scheduling and include actor details when available
         let actorName = '';
@@ -170,3 +190,6 @@ export const milestonesService = {
     return ms;
   },
 };
+
+
+

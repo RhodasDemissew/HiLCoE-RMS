@@ -25,6 +25,8 @@ import './models/Schedule.js';
 import './models/Grade.js';
 import './models/DocumentTemplate.js';
 import './models/Notification.js';
+import './models/Conversation.js';
+import './models/Message.js';
 import './models/ExtensionRequest.js';
 import './models/VerificationJob.js';
 import './models/AuditLog.js';
@@ -40,6 +42,7 @@ import defenseRouter from './routes/defense.js';
 import extensionsRouter from './routes/extensions.js';
 import templatesRouter from './routes/templates.js';
 import notificationsRouter from './routes/notifications.js';
+import conversationsRouter from './routes/conversations.js';
 import reportsRouter from './routes/reports.js';
 import verificationsRouter from './routes/verifications.js';
 import stageSubmissionsRouter from './routes/stageSubmissions.js';
@@ -80,6 +83,7 @@ app.use('/defense', defenseRouter);
 app.use('/extensions', extensionsRouter);
 app.use('/templates', templatesRouter);
 app.use('/notifications', notificationsRouter);
+app.use('/conversations', conversationsRouter);
 app.use('/reports', reportsRouter);
 app.use('/verifications', verificationsRouter);
 app.use('/student-verifications', studentVerificationsRouter);
@@ -102,6 +106,8 @@ connectMongo().then(() => {
   ensureStorage();
   app.listen(config.port, () => console.log(`Server running on http://localhost:${config.port}`));
 });
+
+
 
 
 

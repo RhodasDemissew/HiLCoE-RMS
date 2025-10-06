@@ -1,0 +1,302 @@
+import mongoose from 'mongoose';
+import { conversationRepo } from '../repositories/conversation.repository.js';
+import { messageRepo } from '../repositories/message.repository.js';
+import { projectRepo } from '../repositories/project.repository.js';
+import { userRepo } from '../repositories/user.repository.js';
+import { notify } from './notificationService.js';
+
+const MAX_BODY_LENGTH = 4000;
+
+const toId = (value) => (typeof value === 'string' || value instanceof mongoose.Types.ObjectId)
+  ? String(value)
+  : String(value?._id || value?.id || value);
+
+function sanitizeBody(body) {
+  return typeof body === 'string' ? body.trim() : '';
+}
+
+function buildPreview(body, attachments = []) {
+  if (body) return body.length > 160 ? `${body.slice(0, 157)}...` : body;
+  if (attachments.length > 0) return `Attachment: ${attachments[0].name}`;
+  return '';
+}
+
+function presentParticipant(raw) {
+  if (!raw) return null;
+  const userDoc = raw.user && raw.user.name !== undefined ? raw.user : raw;
+  const userId = toId(raw.user || raw);
+  return {
+    id: userId,
+    role: raw.role || userDoc?.role?.name || '',
+    user: {
+      id: userId,
+      name: userDoc?.name || '',
+      email: userDoc?.email || '',
+      role: userDoc?.role?.name || '',
+    },
+  };
+}
+
+function isValidObjectId(value) {
+  return mongoose.isValidObjectId(value);
+}
+
+async function loadParticipants(userIds) {
+  const uniqueIds = [...new Set(userIds.map((id) => String(id)))];
+  const participants = [];
+  for (const id of uniqueIds) {
+    if (!isValidObjectId(id)) continue;
+    const user = await userRepo.findById(id);
+    if (user) {
+      participants.push({ user: user._id, role: user.role?.name || '' });
+    }
+  }
+  return participants;
+}
+
+function findMarkerForUser(conversation, userId) {
+  return (conversation.read_markers || []).find((marker) => String(marker.user) === String(userId));
+}
+
+async function computeUnreadCount(conversation, userId) {
+  if (!conversation.last_message_at) return 0;
+  const marker = findMarkerForUser(conversation, userId);
+  if (marker?.last_read_at && marker.last_read_at >= conversation.last_message_at) return 0;
+  const since = marker?.last_read_at || null;
+  return messageRepo.countAfter(conversation._id, since);
+}
+
+async function ensureCoordinatorParticipants() {
+  const coordinators = await userRepo.findActiveByRoleName('Coordinator');
+  return coordinators.map((user) => ({ user: user._id, role: user.role?.name || '' }));
+}
+
+export const messagingService = {
+  async ensureProjectConversation(projectId, actorId) {
+    if (!isValidObjectId(projectId)) throw new Error('invalid project id');
+    const project = await projectRepo.findById(projectId).populate('researcher advisor');
+    if (!project) throw new Error('project not found');
+
+    const participants = [];
+    if (project.researcher) participants.push({ user: project.researcher._id, role: project.researcher.role?.name || 'Researcher' });
+    if (project.advisor) participants.push({ user: project.advisor._id, role: project.advisor.role?.name || 'Advisor' });
+    const coordinators = await ensureCoordinatorParticipants();
+    participants.push(...coordinators);
+
+    const filtered = [];
+    const seen = new Set();
+    for (const part of participants) {
+      const key = String(part.user);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      filtered.push(part);
+    }
+
+    let conversation = await conversationRepo.findProjectConversation(projectId);
+    if (conversation) {
+      const existing = new Set(conversation.participants.map((p) => String(p.user)));
+      let changed = false;
+      for (const part of filtered) {
+        if (!existing.has(String(part.user))) {
+          conversation.participants.push(part);
+          changed = true;
+        }
+      }
+      if (changed) await conversation.save();
+      return conversation;
+    }
+
+    const creator = actorId && isValidObjectId(actorId) ? actorId : filtered[0]?.user;
+    conversation = await conversationRepo.create({
+      type: 'project',
+      subject: project.title || 'Project messaging',
+      project: project._id,
+      participants: filtered,
+      created_by: creator,
+    });
+    return conversationRepo.findByIdForUser(conversation._id, creator || filtered[0]?.user);
+  },
+
+  async createDirectConversation(participantIds, createdBy, subject = '') {
+    const participants = await loadParticipants([...participantIds, createdBy]);
+    if (participants.length < 2) throw new Error('at least two participants required');
+
+    const conversation = await conversationRepo.create({
+      type: participants.length === 2 ? 'direct' : 'system',
+      subject: subject.trim(),
+      participants,
+      created_by: participants.find((p) => String(p.user) === String(createdBy))?.user || participants[0].user,
+    });
+    return conversationRepo.findByIdForUser(conversation._id, createdBy);
+  },
+
+  async listConversations(userId) {
+    const conversations = await conversationRepo.listForUser(userId);
+    const result = [];
+    for (const conv of conversations) {
+      const unread = await computeUnreadCount(conv, userId);
+      result.push({
+        id: String(conv._id),
+        type: conv.type,
+        subject: conv.subject,
+        project: conv.project ? {
+          id: String(conv.project._id || conv.project),
+          title: conv.project.title,
+        } : null,
+        participants: conv.participants.map(presentParticipant).filter(Boolean),
+        last_message: conv.last_message?.created_at ? {
+          sender: conv.last_message.sender ? {
+            id: toId(conv.last_message.sender),
+            name: conv.last_message.sender?.name || '',
+            role: conv.last_message.sender?.role?.name || '',
+          } : null,
+          preview: conv.last_message.preview || '',
+          kind: conv.last_message.kind || 'text',
+          created_at: conv.last_message.created_at,
+        } : null,
+        last_message_at: conv.last_message_at,
+        unread_count: unread,
+      });
+    }
+    return result;
+  },
+
+  async getConversation(conversationId, userId) {
+    const conversation = await conversationRepo.findByIdForUser(conversationId, userId);
+    if (!conversation) throw new Error('conversation not found');
+    const unread = await computeUnreadCount(conversation, userId);
+    return {
+      id: String(conversation._id),
+      type: conversation.type,
+      subject: conversation.subject,
+      project: conversation.project ? {
+        id: String(conversation.project._id || conversation.project),
+        title: conversation.project.title,
+      } : null,
+      participants: conversation.participants.map(presentParticipant).filter(Boolean),
+      last_message_at: conversation.last_message_at,
+      unread_count: unread,
+    };
+  },
+
+  async listMessages(conversationId, userId, { before, limit = 50 } = {}) {
+    const conversation = await conversationRepo.findByIdForUser(conversationId, userId);
+    if (!conversation) throw new Error('conversation not found');
+    const beforeDate = before ? new Date(before) : undefined;
+    const messages = await messageRepo.listForConversation(conversationId, { before: beforeDate, limit });
+    const items = messages.reverse().map((msg) => ({
+      id: String(msg._id),
+      conversation: String(msg.conversation),
+      body: msg.body,
+      kind: msg.kind,
+      attachments: msg.attachments || [],
+      meta: msg.meta,
+      sender: msg.sender ? {
+        id: String(msg.sender._id || msg.sender),
+        name: msg.sender.name || '',
+        role: msg.sender.role?.name || '',
+      } : null,
+      created_at: msg.created_at,
+    }));
+    return {
+      conversation: String(conversationId),
+      items,
+      next_cursor: items.length === limit ? items[0]?.created_at : null,
+    };
+  },
+
+  async sendMessage(conversationId, userId, { body, attachments = [], kind = 'text', meta = null }) {
+    const conversation = await conversationRepo.findByIdForUser(conversationId, userId);
+    if (!conversation) throw new Error('conversation not found');
+    const text = sanitizeBody(body);
+    if (!text && (!attachments || attachments.length === 0)) throw new Error('message body required');
+    if (text.length > MAX_BODY_LENGTH) throw new Error('message too long');
+
+    const normalizedAttachments = (attachments || []).map((att) => ({
+      name: att.name,
+      url: att.url,
+      size: att.size || 0,
+      content_type: att.content_type || att.mime || '',
+    })).filter((att) => att.name && att.url);
+
+    const created = await messageRepo.create({
+      conversation: conversationId,
+      sender: userId,
+      body: text,
+      attachments: normalizedAttachments,
+      kind,
+      meta,
+    });
+    await created.populate({ path: 'sender', select: 'name email role' });
+
+    const preview = buildPreview(text, normalizedAttachments);
+    await conversationRepo.touchLastMessage(conversationId, {
+      sender: created.sender?._id || created.sender,
+      preview,
+      kind,
+      created_at: created.created_at,
+    });
+    await conversationRepo.addReadMarker(conversationId, {
+      user: userId,
+      last_read_at: created.created_at,
+      last_read_message: created._id,
+    });
+
+    const participantIds = conversation.participants.map((p) => String(p.user));
+    const notifyTargets = participantIds.filter((id) => id !== String(userId));
+    await Promise.all(notifyTargets.map((targetId) => notify(targetId, 'message_received', {
+      conversationId: String(conversationId),
+      senderId: String(userId),
+      preview,
+    })));
+
+    return {
+      id: String(created._id),
+      conversation: String(conversationId),
+      body: created.body,
+      kind: created.kind,
+      attachments: created.attachments,
+      meta: created.meta,
+      sender: {
+        id: String(created.sender._id || created.sender),
+        name: created.sender.name || '',
+        role: created.sender.role?.name || '',
+      },
+      created_at: created.created_at,
+    };
+  },
+
+  async markRead(conversationId, userId, messageId = null) {
+    const conversation = await conversationRepo.findByIdForUser(conversationId, userId);
+    if (!conversation) throw new Error('conversation not found');
+    let markerMessageId = messageId;
+    let readAt = new Date();
+    if (!markerMessageId) {
+      const latest = await messageRepo.findLatest(conversationId);
+      if (!latest) {
+        await conversationRepo.addReadMarker(conversationId, { user: userId, last_read_at: readAt, last_read_message: null });
+        return { ok: true };
+      }
+      markerMessageId = latest._id;
+      readAt = latest.created_at || readAt;
+    }
+    await conversationRepo.addReadMarker(conversationId, {
+      user: userId,
+      last_read_at: readAt,
+      last_read_message: markerMessageId,
+    });
+    return { ok: true };
+  },
+
+  async emitSystemMessageForProject(projectId, { body, meta = null, kind = 'system', actorId = null }) {
+    const conversation = await this.ensureProjectConversation(projectId, actorId);
+    const sender = actorId || conversation.created_by;
+    return this.sendMessage(conversation._id, sender, {
+      body,
+      attachments: [],
+      kind,
+      meta,
+    });
+  },
+};
+

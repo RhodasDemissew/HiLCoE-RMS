@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 
@@ -10,6 +10,7 @@ import CoordinatorUsersWorkspace from "../components/UsersWorkspace.jsx";
 import ReviewWorkspace from "../components/ReviewWorkspace.jsx";
 import TemplatesWorkspace from "../components/TemplatesWorkspace.jsx";
 import ScheduleSynopsis from "../components/ScheduleSynopsis.jsx";
+import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import {
   coordinatorActivity,
   coordinatorEvents,
@@ -97,7 +98,7 @@ function Sidebar({ items, active, onSelect }) {
                     ) : null}
                     <span>{item.label}</span>
                   </span>
-                  <span aria-hidden className="text-xs opacity-80">{open ? '▾' : '▸'}</span>
+                  <span aria-hidden className="text-xs opacity-80">{open ? '?' : '?'}</span>
                 </button>
                 {open && (
                   <div className="ml-8 space-y-1">
@@ -176,7 +177,7 @@ function Topbar({ showSearch = true, user, notifications = [], onMarkAllRead, on
     const descParts = [];
     if (p.stage) descParts.push(`Stage: ${p.stage}`);
     if (p.subject_name) descParts.push(`Student: ${p.subject_name}`);
-    const desc = descParts.join(' · ');
+    const desc = descParts.join(' � ');
     const time = n.created_at ? new Date(n.created_at).toLocaleString() : '';
     const actorName = p.actor_name || '';
     return { id: String(n._id || n.id || Math.random()), title, description: desc, time, actorName, actorInitials: nameInitials(actorName) };
@@ -320,14 +321,14 @@ function Topbar({ showSearch = true, user, notifications = [], onMarkAllRead, on
                       return (
                         <li key={item.id} className="flex items-start gap-3 rounded-[14px] border border-[color:var(--neutral-200)] bg-[color:var(--neutral-100)] px-4 py-3">
                           <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-[11px] font-semibold text-[color:var(--brand-700)]">
-                            {item.actorInitials || 'â€¢'}
+                            {item.actorInitials || '•'}
                           </span>
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-[color:var(--neutral-900)]">{item.title}</div>
                             <div className="mt-0.5 text-xs text-[color:var(--neutral-600)]">
                               {item.actorName ? (<>
                                 <span className="font-medium text-[color:var(--neutral-800)]">{item.actorName}</span>
-                                {item.description ? ` Â· ${item.description}` : ''}
+                                {item.description ? ` · ${item.description}` : ''}
                               </>) : item.description }
                             </div>
                             <span className="mt-1 inline-block text-[10px] text-[color:var(--neutral-500)]">{item.time}</span>
@@ -512,6 +513,15 @@ export default function CoordinatorDashboardPage() {
     case "Templates":
       content = <TemplatesWorkspace />;
       break;
+    case "Message":
+      content = (
+        <MessagingWorkspace
+          currentUser={user}
+          roleLabel={user?.role || 'Coordinator'}
+          emptyStateTitle="Message researchers and advisors in one place."
+        />
+      );
+      break;
     case "Synopsis Scheduling":
       content = <ScheduleSynopsis />;
       break;
@@ -535,6 +545,11 @@ export default function CoordinatorDashboardPage() {
     </AppShell>
   );
 }
+
+
+
+
+
 
 
 
