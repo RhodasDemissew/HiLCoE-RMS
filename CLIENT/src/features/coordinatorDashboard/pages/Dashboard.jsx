@@ -98,7 +98,7 @@ function Sidebar({ items, active, onSelect }) {
                     ) : null}
                     <span>{item.label}</span>
                   </span>
-                  <span aria-hidden className="text-xs opacity-80">{open ? '?' : '?'}</span>
+                  
                 </button>
                 {open && (
                   <div className="ml-8 space-y-1">
@@ -545,6 +545,7 @@ export default function CoordinatorDashboardPage() {
     </AppShell>
   );
 }
+
 
 
 
