@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, setToken } from "../../../api/client.js";
+import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 
 import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
@@ -426,7 +426,7 @@ export default function CoordinatorDashboardPage() {
     };
   }, []);
 
-  // Notifications: fetch on mount, focus, and light polling
+  // Notifications: fetch on mount and subscribe via SSE (no polling)
   useEffect(() => {
     let stopped = false;
     async function load() {
@@ -441,8 +441,25 @@ export default function CoordinatorDashboardPage() {
     load();
     const onFocus = () => load();
     window.addEventListener('focus', onFocus);
-    const id = setInterval(load, 20000);
-    return () => { stopped = true; window.removeEventListener('focus', onFocus); clearInterval(id); };
+    // SSE subscription
+    const url = `${API_BASE}/notifications/stream?token=${encodeURIComponent(getToken() || '')}`;
+    const es = new EventSource(url);
+    const onNotification = (ev) => {
+      try {
+        const n = JSON.parse(ev.data || '{}');
+        // Prepend newest notification
+        setNotifications((prev) => [n, ...prev]);
+      } catch {}
+    };
+    es.addEventListener('notification', onNotification);
+    es.addEventListener('error', () => {
+      // Let browser handle reconnection; no-op here
+    });
+    return () => {
+      stopped = true;
+      window.removeEventListener('focus', onFocus);
+      try { es.close(); } catch {}
+    };
   }, []);
 
   async function loadNotifications() {

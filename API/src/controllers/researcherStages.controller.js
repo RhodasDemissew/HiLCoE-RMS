@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { getFileStream } from '../services/storageService.js';
 import dayjs from 'dayjs';
 import { getOrCreateProgress, getAllStageTemplateUrls, isStageUnlocked, getStageStatus } from '../services/researcherProgress.service.js';
 import { runFormatCheck } from '../services/formatChecker.service.js';
@@ -172,7 +173,11 @@ export const researcherStagesController = {
       const submission = await getSubmissionById(req.params.id, isCoordinator ? null : req.user.id);
       res.setHeader('Content-Type', submission.file?.mimetype || 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${submission.file?.filename || 'submission'}"`);
-      const stream = fs.createReadStream(submission.file.path);
+      const stream = getFileStream(submission.file.path);
+      stream.on('error', (err) => {
+        console.warn('Download stream error', { id: req.params.id, path: submission.file?.path, err: String(err && err.message || err) });
+        if (!res.headersSent) res.status(404).json({ error: 'File not found' });
+      });
       stream.pipe(res);
     } catch (err) {
       res.status(400).json({ error: err.message });

@@ -48,7 +48,11 @@ import supervisorsRouter from './routes/supervisors.js';
 import studentsRouter from './routes/students.js';
 
 const app = express();
-app.use(cors({ origin: config.corsOrigin }));
+app.use(cors({
+  origin: config.corsOrigin,
+  methods: ['GET','POST','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Authorization','Content-Type'],
+}));
 app.use(express.json({ limit: '5mb' }));
 app.use(morgan('dev'));
 app.use(authOptional);

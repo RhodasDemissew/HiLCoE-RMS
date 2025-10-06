@@ -1,6 +1,7 @@
 {
   "version": "v1.0",
   "max_nonconforming_paragraph_ratio": 0.1,
+  "pass_threshold" : 0.7,
   "weights": {
     "margins": 1.0,
     "font_family": 1.0,

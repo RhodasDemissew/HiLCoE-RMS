@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, setToken } from "../../../api/client.js";
+import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 import logoImage from "../../../assets/images/logo.png";
 import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
@@ -206,7 +206,7 @@ export default function SupervisorDashboardPage() {
     return () => { mounted = false; };
   }, []);
 
-  // Notifications
+  // Notifications: initial load + SSE subscription (no polling)
   useEffect(() => {
     let stopped = false;
     async function load() {
@@ -221,8 +221,21 @@ export default function SupervisorDashboardPage() {
     load();
     const onFocus = () => load();
     window.addEventListener('focus', onFocus);
-    const id = setInterval(load, 20000);
-    return () => { stopped = true; window.removeEventListener('focus', onFocus); clearInterval(id); };
+    const url = `${API_BASE}/notifications/stream?token=${encodeURIComponent(getToken() || '')}`;
+    const es = new EventSource(url);
+    const onNotification = (ev) => {
+      try {
+        const n = JSON.parse(ev.data || '{}');
+        setNotifications((prev) => [n, ...prev]);
+      } catch {}
+    };
+    es.addEventListener('notification', onNotification);
+    es.addEventListener('error', () => {});
+    return () => {
+      stopped = true;
+      window.removeEventListener('focus', onFocus);
+      try { es.close(); } catch {}
+    };
   }, []);
 
   async function loadNotifications() {
