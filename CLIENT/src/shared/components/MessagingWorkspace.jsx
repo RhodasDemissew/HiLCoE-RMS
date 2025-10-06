@@ -74,58 +74,23 @@ function dedupeParticipants(list, currentUserId) {
 
 
 
-function normalizeProject(project) {
-  if (!project) return null;
-  const projectId = toId(project._id || project.id || project);
-  const researcherDoc = project.researcher || null;
-  const advisorDoc = project.advisor || null;
-  const researcher = researcherDoc
-    ? {
-        id: toId(researcherDoc._id || researcherDoc.id || researcherDoc),
-        name: researcherDoc.name || '',
-        email: researcherDoc.email || '',
-      }
-    : null;
-  const advisor = advisorDoc
-    ? {
-        id: toId(advisorDoc._id || advisorDoc.id || advisorDoc),
-        name: advisorDoc.name || '',
-        email: advisorDoc.email || '',
-      }
-    : null;
-  return {
-    id: projectId,
-    title: project.title || "Untitled Project",
-    researcher,
-    advisor,
-  };
-}
-
-
-
 export default function MessagingWorkspace({ currentUser = null, emptyStateTitle = "Start a conversation", roleLabel = "Member" }) {
   const currentUserId = toId(currentUser?.id || currentUser?._id);
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState("");
   const [messages, setMessages] = useState([]);
   const [messagesCursor, setMessagesCursor] = useState(null);
-  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isInitialMessagesLoad, setIsInitialMessagesLoad] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [messageBody, setMessageBody] = useState("");
   const [error, setError] = useState(null);
-  const [projects, setProjects] = useState([]);
-  const [projectOptionsLoaded, setProjectOptionsLoaded] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [researchers, setResearchers] = useState([]);
+  const [isLoadingResearchers, setIsLoadingResearchers] = useState(true);
+  const [selectedResearcherId, setSelectedResearcherId] = useState("");
   const [creatingConversation, setCreatingConversation] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const messagesEndRef = useRef(null);
-
-  const isCoordinator = useMemo(() => {
-    const role = (currentUser?.role || "").toLowerCase();
-    return role.includes("coordinator") || role.includes("admin");
-  }, [currentUser]);
 
   const computedConversations = useMemo(() => {
     const id = String(activeConversationId || "");
@@ -143,38 +108,55 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     });
   }, [conversations, activeConversationId, currentUserId]);
 
-  const filteredConversations = useMemo(() => {
-    if (!searchTerm.trim()) return computedConversations;
-    const q = searchTerm.trim().toLowerCase();
-    return computedConversations.filter((conversation) => {
-      if (conversation.title?.toLowerCase().includes(q)) return true;
-      return (conversation.participants || []).some((p) => {
-        const name = p?.user?.name || p?.user?.email || p?.role;
-        return name?.toLowerCase().includes(q);
-      });
-    });
-  }, [computedConversations, searchTerm]);
-
   const activeConversation = useMemo(
-    () => filteredConversations.find((item) => item.id === activeConversationId) || filteredConversations[0] || null,
-    [filteredConversations, activeConversationId]
+    () => computedConversations.find((item) => item.id === activeConversationId) || null,
+    [computedConversations, activeConversationId]
   );
 
   useEffect(() => {
-    if (!activeConversation && filteredConversations.length > 0) {
-      const fallbackId = filteredConversations[0]?.id;
+    if (!activeConversation && computedConversations.length > 0) {
+      const fallbackId = computedConversations[0]?.id;
       if (fallbackId && fallbackId !== activeConversationId) setActiveConversationId(fallbackId);
     }
-  }, [activeConversation, filteredConversations, activeConversationId]);
+  }, [activeConversation, computedConversations, activeConversationId]);
 
-  const uniqueActiveParticipants = useMemo(() => dedupeParticipants(activeConversation?.participants || [], currentUserId), [activeConversation, currentUserId]);
+  const conversationByResearcherId = useMemo(() => {
+    const map = new Map();
+    computedConversations.forEach((conversation) => {
+      (conversation.participants || []).forEach((p) => {
+        const id = toId(p?.user?.id || p?.user);
+        const roleName = (p?.user?.role || p?.role || "").toLowerCase();
+        if (!id || id === currentUserId) return;
+        if (!roleName.includes("researcher")) return;
+        if (!map.has(id) || conversation.type === "direct") {
+          map.set(id, conversation);
+        }
+      });
+    });
+    return map;
+  }, [computedConversations, currentUserId]);
+
+  const filteredResearchers = useMemo(() => {
+    if (!searchTerm.trim()) return researchers;
+    const q = searchTerm.trim().toLowerCase();
+    return researchers.filter((researcher) => {
+      const name = (researcher.name || "").toLowerCase();
+      const email = (researcher.email || "").toLowerCase();
+      const studentId = (researcher.studentId || "").toLowerCase();
+      return name.includes(q) || email.includes(q) || studentId.includes(q);
+    });
+  }, [researchers, searchTerm]);
+  const uniqueActiveParticipants = useMemo(
+    () => dedupeParticipants(activeConversation?.participants || [], currentUserId),
+    [activeConversation, currentUserId]
+  );
 
   const spotlightParticipants = useMemo(() => {
     if (uniqueActiveParticipants.length > 0) {
       return uniqueActiveParticipants.slice(0, 4);
     }
     const firstFew = [];
-    filteredConversations.forEach((conversation) => {
+    computedConversations.forEach((conversation) => {
       dedupeParticipants(conversation.participants || [], currentUserId).forEach((p) => {
         const id = toId(p?.user?.id || p?.user);
         if (!id || id === currentUserId) return;
@@ -183,13 +165,27 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
       });
     });
     return firstFew.slice(0, 4);
-  }, [uniqueActiveParticipants, filteredConversations, currentUserId]);
+  }, [uniqueActiveParticipants, computedConversations, currentUserId]);
+
+  useEffect(() => {
+    const researcher = uniqueActiveParticipants.find((participant) => {
+      const roleName = (participant?.user?.role || participant?.role || "").toLowerCase();
+      return roleName.includes("researcher");
+    });
+    if (!researcher) {
+      if (selectedResearcherId) setSelectedResearcherId("");
+      return;
+    }
+    const id = toId(researcher?.user?.id || researcher?.user);
+    if (id && id !== selectedResearcherId) {
+      setSelectedResearcherId(id);
+    }
+  }, [uniqueActiveParticipants, selectedResearcherId]);
 
   useEffect(() => {
     let ignore = false;
-    async function fetchConversations(initial = false) {
+    async function fetchConversations() {
       try {
-        if (initial) setIsLoadingConversations(true);
         const res = await api("/conversations", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load conversations");
         const data = await res.json().catch(() => ({ items: [] }));
@@ -201,12 +197,10 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
         }
       } catch (err) {
         if (!ignore) setError(err.message || "Unable to load conversations");
-      } finally {
-        if (!ignore) setIsLoadingConversations(false);
       }
     }
-    fetchConversations(true);
-    const interval = setInterval(() => fetchConversations(false), POLL_INTERVAL);
+    fetchConversations();
+    const interval = setInterval(() => fetchConversations(), POLL_INTERVAL);
     return () => {
       ignore = true;
       clearInterval(interval);
@@ -214,36 +208,39 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
   }, [activeConversationId]);
 
   useEffect(() => {
-    if (!currentUserId || projectOptionsLoaded) return;
+    if (!currentUserId) return undefined;
     let ignore = false;
-    async function loadProjects() {
+    async function loadResearchers(initial = false) {
       try {
-        const res = await api("/projects", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load projects");
-        const data = await res.json().catch(() => []);
+        if (initial) setIsLoadingResearchers(true);
+        const res = await api("/conversations/researchers", { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load researchers");
+        const data = await res.json().catch(() => ({ items: [] }));
         if (ignore) return;
-        const normalized = Array.isArray(data)
-          ? data.map(normalizeProject).filter(Boolean)
-          : [];
-        const relevant = normalized.filter((project) => {
-          if (!project) return false;
-          if (isCoordinator) return true;
-          const matchesResearcher = project.researcher && project.researcher.id === currentUserId;
-          const matchesAdvisor = project.advisor && project.advisor.id === currentUserId;
-          return matchesResearcher || matchesAdvisor;
-        });
-        setProjects(relevant);
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const normalized = items
+          .map((item) => ({
+            id: toId(item?.id || item?._id || item),
+            name: item?.name || "",
+            email: item?.email || "",
+            role: item?.role || "",
+            studentId: item?.studentId || item?.student_id || "",
+          }))
+          .filter((item) => item.id);
+        setResearchers(normalized);
       } catch (err) {
-        console.error("Project load failed", err);
+        console.error("Researcher load failed", err);
       } finally {
-        if (!ignore) setProjectOptionsLoaded(true);
+        if (!ignore) setIsLoadingResearchers(false);
       }
     }
-    loadProjects();
+    loadResearchers(true);
+    const interval = setInterval(() => loadResearchers(false), POLL_INTERVAL);
     return () => {
       ignore = true;
+      clearInterval(interval);
     };
-  }, [currentUserId, isCoordinator, projectOptionsLoaded]);
+  }, [currentUserId]);
 
   useEffect(() => {
     const conversationId = activeConversation?.id;
@@ -325,6 +322,42 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     }
   }
 
+  async function handleSelectResearcher(researcherId) {
+    if (!researcherId) return;
+    const id = String(researcherId);
+    setError(null);
+    setSelectedResearcherId(id);
+    const existing = conversationByResearcherId.get(id);
+    if (existing) {
+      setActiveConversationId(existing.id);
+      return;
+    }
+    try {
+      setCreatingConversation(true);
+      const res = await api(`/conversations/users/${id}/ensure`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Unable to open conversation");
+      const conversation = await res.json().catch(() => null);
+      if (conversation) {
+        const conversationId = String(conversation.id || conversation._id);
+        setConversations((prev) => {
+          const exists = prev.some((item) => String(item.id || item._id) === conversationId);
+          if (exists) {
+            const others = prev.filter((item) => String(item.id || item._id) !== conversationId);
+            return [conversation, ...others];
+          }
+          return [conversation, ...prev];
+        });
+        setActiveConversationId(conversationId);
+      }
+    } catch (err) {
+      setError(err.message || "Unable to start conversation");
+    } finally {
+      setCreatingConversation(false);
+    }
+  }
+
   async function handleSendMessage(event) {
     event?.preventDefault();
     if (!activeConversation?.id || !messageBody.trim()) return;
@@ -346,31 +379,6 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     }
   }
 
-  async function ensureProjectConversation(event) {
-    event?.preventDefault();
-    if (!selectedProjectId) return;
-    try {
-      setCreatingConversation(true);
-      const res = await api(`/conversations/projects/${selectedProjectId}/ensure`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Unable to create conversation");
-      const conversation = await res.json().catch(() => null);
-      if (conversation) {
-        const conversationId = String(conversation.id || conversation._id);
-        setActiveConversationId(conversationId);
-        setConversations((prev) => {
-          const exists = prev.some((item) => String(item.id || item._id) === conversationId);
-          return exists ? prev : [conversation, ...prev];
-        });
-      }
-    } catch (err) {
-      setError(err.message || "Unable to create conversation");
-    } finally {
-      setCreatingConversation(false);
-    }
-  }
-
   useEffect(() => {
     if (!activeConversationId && activeConversation?.id) {
       setActiveConversationId(activeConversation.id);
@@ -384,6 +392,13 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     return formatFullTime(activeConversation.last_message_at);
   }, [activeConversation]);
 
+  const headerSubtitle = useMemo(() => {
+    if (participantNames.length === 0) return "";
+    const names = participantNames.join(", ");
+    const suffix = lastSeen ? ` - Last seen ${lastSeen}` : "";
+    return `${names}${suffix}`;
+  }, [participantNames, lastSeen]);
+
   return (
     <div className="flex h-full min-h-[600px] w-full overflow-hidden rounded-[32px] bg-[#f4f6fb]">
       <aside className="hidden w-[320px] flex-col border-r border-[#e0e7ff] bg-white/90 md:flex">
@@ -393,7 +408,7 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
               type="search"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search"
+              placeholder="Search researchers"
               className="w-full rounded-[18px] border border-[#e3e8f6] bg-[#f7f9ff] px-4 py-2 text-sm text-[#0a1f44] placeholder:text-[#9aa3ba] focus:border-[#2f5eff] focus:outline-none focus:ring-2 focus:ring-[#dbe4ff]"
             />
             <span className="pointer-events-none absolute right-4 top-1/2 block -translate-y-1/2 text-xs text-[#9aa3ba]">?</span>
@@ -417,97 +432,74 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
         )}
 
         <div className="flex-1 overflow-y-auto px-2 pb-6">
-          <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3ba]">Messages</p>
+          <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3ba]">Researchers</p>
           <div className="space-y-1">
-            {isLoadingConversations ? (
+            {isLoadingResearchers ? (
               <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
-                Loading conversations…
+                Loading researchers.
               </div>
-            ) : filteredConversations.length === 0 ? (
+            ) : filteredResearchers.length === 0 ? (
               <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
-                {conversations.length === 0 ? emptyStateTitle : "No matches found"}
+                {researchers.length === 0 ? emptyStateTitle : "No matches found"}
               </div>
             ) : (
-              filteredConversations.map((conversation) => (
-                <button
-                  key={conversation.id}
-                  type="button"
-                  onClick={() => setActiveConversationId(conversation.id)}
-                  className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left transition ${
-                    conversation.id === activeConversationId
-                      ? "bg-[#2f5eff] text-white shadow"
-                      : "bg-white text-[#1f2a44] hover:bg-[#eef2ff]"
-                  }`}
-                >
-                  <span
-                    className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-full border ${
-                      conversation.id === activeConversationId
-                        ? "border-white bg-[#3f6aff]"
-                        : "border-[#e0e7ff] bg-[#eef2ff]"
-                    } text-sm font-semibold`}
+              filteredResearchers.map((researcher) => {
+                const conversation = conversationByResearcherId.get(researcher.id);
+                const isActive = selectedResearcherId === researcher.id;
+                const lastTimestamp =
+                  conversation?.lastTimestamp ||
+                  conversation?.last_message?.created_at ||
+                  conversation?.last_message_at ||
+                  null;
+                const preview = conversation?.last_message?.preview || conversation?.last_message?.body || "Start chatting";
+                const isPending = creatingConversation && selectedResearcherId === researcher.id;
+                const label = researcher.name || researcher.email || researcher.studentId || "Researcher";
+                return (
+                  <button
+                    key={researcher.id}
+                    type="button"
+                    onClick={() => handleSelectResearcher(researcher.id)}
+                    disabled={isPending}
+                    className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left transition ${
+                      isActive ? "bg-[#2f5eff] text-white shadow" : "bg-white text-[#1f2a44] hover:bg-[#eef2ff]"
+                    }`}
                   >
-                    {initials(
-                      (conversation.participants || [])
-                        .find((p) => toId(p?.user?.id || p?.user) !== currentUserId)?.user?.name || conversation.title
-                    )}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={`truncate text-sm font-semibold ${conversation.id === activeConversationId ? "text-white" : "text-[#0a1f44]"}`}>
-                        {conversation.title}
+                    <span
+                      className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-full border ${
+                        isActive ? "border-white bg-[#3f6aff]" : "border-[#e0e7ff] bg-[#eef2ff]"
+                      } text-sm font-semibold`}
+                    >
+                      {initials(label)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`truncate text-sm font-semibold ${isActive ? "text-white" : "text-[#0a1f44]"}`}>
+                          {label}
+                        </p>
+                        {lastTimestamp && (
+                          <span className={`text-[10px] uppercase ${isActive ? "text-white/70" : "text-[#9aa3ba]"}`}>
+                            {formatShortTime(lastTimestamp)}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`mt-1 line-clamp-2 text-xs ${isActive ? "text-white/80" : "text-[#6b7795]"}`}>
+                        {isPending ? "Opening conversation..." : preview}
                       </p>
-                      {conversation.lastTimestamp && (
-                        <span className={`text-[10px] uppercase ${conversation.id === activeConversationId ? "text-white/70" : "text-[#9aa3ba]"}`}>
-                          {formatShortTime(conversation.lastTimestamp)}
-                        </span>
-                      )}
                     </div>
-                    <p className={`mt-1 line-clamp-2 text-xs ${conversation.id === activeConversationId ? "text-white/80" : "text-[#6b7795]"}`}>
-                      {conversation.last_message?.preview || "Start chatting"}
-                    </p>
-                  </div>
-                </button>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
-
-        {projects.length > 0 && (
-          <form onSubmit={ensureProjectConversation} className="border-t border-[#e0e7ff] bg-white px-6 py-4">
-            <label className="flex flex-col gap-2 text-xs font-semibold text-[#4c5a73]">
-              Start a project channel
-              <select
-                value={selectedProjectId}
-                onChange={(event) => setSelectedProjectId(event.target.value)}
-                className="rounded-[14px] border border-[#d7def3] bg-white px-3 py-2 text-sm text-[#1f2a44] focus:border-[#2f5eff] focus:outline-none"
-              >
-                <option value="">Select project...</option>
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="submit"
-              disabled={!selectedProjectId || creatingConversation}
-              className="mt-3 w-full rounded-[14px] bg-[#2f5eff] py-2 text-sm font-semibold text-white transition hover:bg-[#2447cc] disabled:cursor-not-allowed disabled:bg-[#cdd6ff]"
-            >
-              {creatingConversation ? "Creating." : "Open Conversation"}
-            </button>
-          </form>
-        )}
       </aside>
 
       <section className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-[#d7def3] bg-white/95 px-6 py-5 shadow-sm">
           <div>
             <h2 className="text-lg font-semibold text-[#0a1f44]">{activeConversation?.title || "Conversation"}</h2>
-            {participantNames.length > 0 ? (
-              <p className="text-sm text-[#6b7795]">
-                {participantNames.join(", ")} {lastSeen ? ` - Last seen ${lastSeen}` : ""}
-              </p>
+            {headerSubtitle ? (
+              <p className="text-sm text-[#6b7795]">{headerSubtitle}</p>
             ) : (
               <p className="text-sm text-[#9aa3ba]">Select a participant to begin</p>
             )}
@@ -526,6 +518,7 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
             </div>
           )}
 
+
           {activeConversation?.id && (
             <div className="mb-6 text-center">
               <button
@@ -534,18 +527,18 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
                 disabled={!messagesCursor || loadingMore}
                 className="inline-flex items-center justify-center rounded-full border border-[#d7def3] bg-white px-5 py-1 text-xs font-semibold uppercase tracking-wide text-[#6b7795] transition hover:border-[#b5c2ff] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {loadingMore ? "Loading…" : messagesCursor ? "View previous messages" : "Beginning of chat"}
+                {loadingMore ? "Loadingï¿½" : messagesCursor ? "View previous messages" : "Beginning of chat"}
               </button>
             </div>
           )}
 
           {isInitialMessagesLoad ? (
             <div className="rounded-[18px] border border-dashed border-[#d7def3] bg-white px-6 py-8 text-center text-sm text-[#6b7795]">
-              Loading messages…
+              Loading messagesï¿½
             </div>
           ) : messages.length === 0 ? (
             <div className="rounded-[18px] border border-dashed border-[#d7def3] bg-white px-6 py-12 text-center text-sm text-[#6b7795]">
-              {activeConversation?.id ? "No messages yet. Say hello!" : "Pick a conversation from the left to start messaging."}
+              {activeConversation?.id ? "No messages yet. Say hello!" : "Pick a researcher from the left to start messaging."}
             </div>
           ) : (
             <div className="space-y-4">
@@ -585,7 +578,7 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
             <textarea
               value={messageBody}
               onChange={(event) => setMessageBody(event.target.value)}
-              placeholder={activeConversation?.id ? "Write a text here" : "Select a conversation to start messaging"}
+              placeholder={activeConversation?.id ? "Write a text here" : "Select a researcher to start messaging"}
               disabled={!activeConversation?.id}
               className="h-12 w-full resize-none bg-transparent text-sm text-[#0a1f44] placeholder:text-[#9aa3ba] focus:outline-none"
             />
@@ -602,6 +595,7 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     </div>
   );
 }
+
 
 
 
