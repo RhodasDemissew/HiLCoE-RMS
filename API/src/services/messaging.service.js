@@ -71,6 +71,22 @@ async function ensureCoordinatorParticipants() {
   return coordinators.map((user) => ({ user: user._id, role: user.role?.name || '' }));
 }
 
+
+function dedupeParticipantEntries(list = []) {
+  const seen = new Set();
+  const result = [];
+  for (const part of list) {
+    if (!part) continue;
+    const rawUser = part.user?._id || part.user;
+    if (!rawUser) continue;
+    const key = String(rawUser);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ user: rawUser, role: part.role || part.user?.role?.name || '' });
+  }
+  return result;
+}
+
 export const messagingService = {
   async ensureProjectConversation(projectId, actorId) {
     if (!isValidObjectId(projectId)) throw new Error('invalid project id');
@@ -83,14 +99,7 @@ export const messagingService = {
     const coordinators = await ensureCoordinatorParticipants();
     participants.push(...coordinators);
 
-    const filtered = [];
-    const seen = new Set();
-    for (const part of participants) {
-      const key = String(part.user);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      filtered.push(part);
-    }
+    const filtered = dedupeParticipantEntries(participants);
 
     let conversation = await conversationRepo.findProjectConversation(projectId);
     if (conversation) {
@@ -117,6 +126,53 @@ export const messagingService = {
     return conversationRepo.findByIdForUser(conversation._id, creator || filtered[0]?.user);
   },
 
+  async ensureDirectConversation(targetUserId, actorId) {
+    if (!isValidObjectId(targetUserId)) throw new Error('invalid user id');
+    if (!isValidObjectId(actorId)) throw new Error('invalid actor id');
+
+    const [targetUser, actorUser] = await Promise.all([
+      userRepo.findById(targetUserId),
+      userRepo.findById(actorId),
+    ]);
+
+    if (!targetUser) throw new Error('user not found');
+    if (!actorUser) throw new Error('actor not found');
+    if (String(targetUser._id) === String(actorUser._id)) throw new Error('cannot start a conversation with yourself');
+    if ((targetUser.role?.name || '').toLowerCase() !== 'researcher') throw new Error('user is not a researcher');
+    if (targetUser.status && targetUser.status !== 'active') throw new Error('user is not active');
+
+    const coordinatorParticipants = await ensureCoordinatorParticipants();
+    const baseParticipants = [
+      { user: targetUser._id, role: targetUser.role?.name || '' },
+      { user: actorUser._id, role: actorUser.role?.name || '' },
+      ...coordinatorParticipants,
+    ];
+    const participants = dedupeParticipantEntries(baseParticipants);
+
+    let conversation = await conversationRepo.findDirectBetween([actorId, targetUserId]);
+    if (conversation) {
+      const existing = new Set(conversation.participants.map((p) => String(p.user)));
+      let changed = false;
+      for (const part of participants) {
+        if (!existing.has(String(part.user))) {
+          conversation.participants.push(part);
+          changed = true;
+        }
+      }
+      if (changed) await conversation.save();
+      return conversationRepo.findByIdForUser(conversation._id, actorId);
+    }
+
+    conversation = await conversationRepo.create({
+      type: 'direct',
+      subject: '',
+      participants,
+      created_by: participants.find((p) => String(p.user) === String(actorId))?.user || participants[0].user,
+    });
+
+    return conversationRepo.findByIdForUser(conversation._id, actorId);
+  },
+
   async createDirectConversation(participantIds, createdBy, subject = '') {
     const participants = await loadParticipants([...participantIds, createdBy]);
     if (participants.length < 2) throw new Error('at least two participants required');
@@ -128,6 +184,29 @@ export const messagingService = {
       created_by: participants.find((p) => String(p.user) === String(createdBy))?.user || participants[0].user,
     });
     return conversationRepo.findByIdForUser(conversation._id, createdBy);
+  },
+
+  async listResearcherTargets(actorId, searchTerm = '') {
+    const researchers = await userRepo.findActiveByRoleName('Researcher');
+    const q = (searchTerm || '').trim().toLowerCase();
+    const actorIdStr = actorId ? String(actorId) : '';
+    const filtered = researchers
+      .filter((user) => String(user._id) !== actorIdStr)
+      .filter((user) => {
+        if (!q) return true;
+        const name = (user.name || '').toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        const studentId = (user.student_id || '').toLowerCase();
+        return name.includes(q) || email.includes(q) || studentId.includes(q);
+      });
+    filtered.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'en', { sensitivity: 'base' }));
+    return filtered.map((user) => ({
+      id: String(user._id),
+      name: user.name || '',
+      email: user.email || '',
+      role: user.role?.name || '',
+      studentId: user.student_id || '',
+    }));
   },
 
   async listConversations(userId) {
