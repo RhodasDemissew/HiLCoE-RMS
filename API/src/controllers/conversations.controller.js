@@ -71,4 +71,24 @@ export const conversationsController = {
       res.status(400).json({ error: err.message || 'failed to ensure project conversation' });
     }
   },
+
+  listResearchers: async (req, res) => {
+    try {
+      const { q = '' } = req.query || {};
+      const items = await messagingService.listResearcherTargets(req.user.id, q);
+      res.json({ items });
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'failed to list researchers' });
+    }
+  },
+
+  ensureDirect: async (req, res) => {
+    try {
+      const convo = await messagingService.ensureDirectConversation(req.params.userId, req.user.id);
+      res.json(convo);
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'failed to ensure direct conversation' });
+    }
+  },
+
 };

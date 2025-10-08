@@ -11,6 +11,18 @@ export const conversationRepo = {
     .populate({ path: 'participants.user', select: 'name email role' })
     .populate({ path: 'last_message.sender', select: 'name email role' })
     .populate({ path: 'project', select: 'title researcher advisor' }),
+  findDirectBetween: (userIds) => {
+    const normalized = userIds.map((id) => String(id));
+    return Conversation.findOne({
+      type: 'direct',
+      participants: {
+        $all: normalized.map((id) => ({ $elemMatch: { user: id } })),
+      },
+    })
+      .populate({ path: 'participants.user', select: 'name email role' })
+      .populate({ path: 'last_message.sender', select: 'name email role' })
+      .populate({ path: 'project', select: 'title researcher advisor' });
+  },
   listForUser: (userId) => Conversation.find({ 'participants.user': userId })
     .populate({ path: 'participants.user', select: 'name email role' })
     .populate({ path: 'last_message.sender', select: 'name email role' })
