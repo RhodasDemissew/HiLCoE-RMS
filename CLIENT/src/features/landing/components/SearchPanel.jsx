@@ -8,7 +8,7 @@ export default function SearchPanel() {
     // Pull the panel up so it overlaps the hero edge
     <div className="relative -mt-10 mb-14">
       <Container variant="fluid">
-        <div className="mx-auto max-w-[1200px] rounded-search bg-[color:var(--brand-900)] text-white shadow-card">
+        <div className="mx-auto max-w-[1400px] pl-10 pr-10 h-30 rounded-xl bg-[color:var(--brand-900)] text-white shadow-card">
           <form
             className="flex items-center gap-3 p-4 lg:p-5"
             onSubmit={(e) => {
@@ -23,9 +23,9 @@ export default function SearchPanel() {
               placeholder="Find a Research"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="w-full rounded-search bg-white text-[color:var(--neutral-900)] placeholder:text-[color:var(--neutral-600)] px-4 py-3 text-[16px] focus:outline-none focus-ring"
+              className="w-full rounded-xl h-15 mt-2.5 bg-white text-[color:var(--neutral-900)] placeholder:text-[color:var(--neutral-600)] px-4 py-3 text-[16px] focus:outline-none focus-ring"
             />
-            <button className="btn rounded-search px-6" aria-label="Search">
+            <button className="btn rounded-xl px-15 py-5 mt-2.5" aria-label="Search">
               Search
             </button>
           </form>

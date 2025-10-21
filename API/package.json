@@ -14,10 +14,10 @@
     "dayjs": "^1.11.18",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "nodemailer": "^6.9.13",
     "mongoose": "^8.5.1",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.9",
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.1.5"
   },

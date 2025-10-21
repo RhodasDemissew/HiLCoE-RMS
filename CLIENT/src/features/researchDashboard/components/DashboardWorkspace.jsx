@@ -15,16 +15,16 @@ import messageIcon from "../../../assets/icons/message.png";
 
 function StatCard({ title, value }) {
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft">
+    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-6 shadow-soft">
       <p className="text-sm font-medium text-[color:var(--neutral-600)]">{title}</p>
       <p className="mt-3 text-3xl font-semibold text-[color:var(--neutral-900)]">{value}</p>
     </article>
   );
 }
 
-function QuickActionsGrid({ items }) {
+function QuickActionsGrid({ items, cardClassName = '' }) {
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft">
+    <article className={`rounded-2xl border border-[color:var(--neutral-200)] bg-white p-6 shadow-soft ${cardClassName}`}>
       <header aria-labelledby="quick-actions-title">
         <h2 id="quick-actions-title" className="h3 text-[color:var(--neutral-900)]">Quick Actions</h2>
         <p className="body mt-1 text-[color:var(--neutral-600)]">Frequently used actions and shortcuts</p>
@@ -49,7 +49,7 @@ function QuickActionsGrid({ items }) {
   );
 }
 
-function MilestonesProgress({ items }) {
+function MilestonesProgress({ items, cardClassName = '' }) {
   const statusStyles = {
     Pending: "bg-[color:var(--neutral-200)] text-[color:var(--neutral-700)]",
     "In Progress": "bg-[color:var(--brand-600)]/15 text-[color:var(--brand-600)]",
@@ -57,7 +57,7 @@ function MilestonesProgress({ items }) {
   };
 
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft">
+    <article className={`rounded-2xl border border-[color:var(--neutral-200)] bg-white p-6 shadow-soft ${cardClassName}`}>
       <h2 id="research-progress-title" className="h3 text-[color:var(--neutral-900)]">Research Progress</h2>
       <p className="body mt-1 text-[color:var(--neutral-600)]">Latest milestone updates</p>
       <div className="mt-6 space-y-5">
@@ -88,7 +88,7 @@ function MessagesPanel({ items, className = '' }) {
   const hasMessages = items.length > 0;
 
   return (
-    <aside className={`rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft h-full flex flex-col ${className}`} aria-labelledby="messages-title">
+    <aside className={`rounded-2xl border border-[color:var(--neutral-200)] bg-white p-6 shadow-soft h-full flex flex-col ${className}`} aria-labelledby="messages-title">
       <h2 id="messages-title" className="h3 text-[color:var(--neutral-900)]">Messages</h2>
       <div className="mt-4 flex-1 overflow-auto">
         {hasMessages ? (
@@ -118,7 +118,7 @@ function MessagesPanel({ items, className = '' }) {
   );
 }
 
-function EventsTimeline({ items }) {
+function EventsTimeline({ items, cardClassName = '' }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const hasEvents = items.length > 0;
 
@@ -128,7 +128,7 @@ function EventsTimeline({ items }) {
   }
 
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft" aria-labelledby="events-title">
+  <article className={`rounded-2xl border border-[color:var(--neutral-200)] bg-white p-6 shadow-soft ${cardClassName}`} aria-labelledby="events-title">
       <h2 id="events-title" className="h3 text-[color:var(--neutral-900)]">Events & Deadlines</h2>
       {hasEvents ? (
         <ul className="mt-4 space-y-4">
@@ -159,7 +159,7 @@ function EventsTimeline({ items }) {
   );
 }
 
-function ProgressChart({ labels, series }) {
+function ProgressChart({ labels, series, cardClassName = '' }) {
   const chartData = labels.map((label, index) => {
     const entry = { name: label };
     series.forEach((s) => {
@@ -169,11 +169,11 @@ function ProgressChart({ labels, series }) {
   });
 
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white p-5 shadow-soft min-h-[320px]" aria-labelledby="progress-overview-title">
+    <article className={`rounded-2xl border border-[color:var(--neutral-200)] bg-white p-6 shadow-soft min-h-[420px] h-full ${cardClassName}`} aria-labelledby="progress-overview-title">
       <h2 id="progress-overview-title" className="h3 text-[color:var(--neutral-900)]">Research Progress Overview</h2>
       <p className="body mt-1 text-[color:var(--neutral-600)]">Track your submission and approval rates over time.</p>
       <div className="mt-6 h-[280px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="150%">
           <AreaChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorA" x1="0" y1="0" x2="0" y2="1">
@@ -229,50 +229,45 @@ export default function DashboardWorkspace({
   }));
 
   return (
-    <>
-      <header className="mb-6 rounded-2xl border border-transparent bg-white px-8 py-6 shadow-soft">
+    <div className="absolute left-70 w-400 z-10">
+      <header className="mb-8 rounded-2xl border border-transparent  px-8 py-6 shadow-soft">
         <h1 className="h2 text-[color:var(--neutral-900)]">{displayTitle}</h1>
         {displayMessage ? (
           <p className="body mt-2 text-[color:var(--neutral-600)]">{displayMessage}</p>
         ) : null}
       </header>
 
-      <div className="grid grid-cols-6 gap-6">
-        {/* Row 1: Metrics (cols 1-8) */}
-        <section className="order-1 col-span-4 lg:col-span-4" aria-labelledby="metrics-title">
-          <h2 id="metrics-title" className="sr-only">Metrics</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {kpiCards.map((card) => (
-              <StatCard key={card.title} {...card} />
-            ))}
-          </div>
-        </section>
-
-        {/* Right column: Messages spans 3 rows on lg+ */}
-        <aside className="order-5 lg:order-2 col-span-2 lg:col-span-4 lg:row-span-1" aria-labelledby="messages-title">
-          <MessagesPanel items={messages} className="h-full" />
-        </aside>
-
-        {/* Row 2: Quick Actions (1-4) */}
-        <section className="order-2 col-span-2 lg:col-span-2" aria-labelledby="quick-actions-title">
-          <QuickActionsGrid items={quickActionItems} />
-        </section>
-
-        {/* Row 2: Research Progress (5-8) */}
-        <section className="order-3 col-span-2 lg:col-span-2" aria-labelledby="research-progress-title">
-          <MilestonesProgress items={milestones} />
-        </section>
-
-        {/* Row 3: Events & Deadlines (1-4) */}
-        <section className="order-4 col-span-2 lg:col-span-2" aria-labelledby="events-title">
-          <EventsTimeline items={events} />
-        </section>
-
-        {/* Row 3: Research Progress Overview (5-12) */}
-        <section className="order-6 col-span-12 lg:col-span-8" aria-labelledby="progress-overview-title">
-          <ProgressChart labels={chartLabels} series={chartSeries} />
-        </section>
+      {/* Metrics row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6 mb-6">
+        {kpiCards.map((card) => (
+          <StatCard key={card.title} {...card} />
+        ))}
       </div>
-    </>
+
+      {/* Main content: 5-column grid on xl, message panel spans 2 rows */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 xl:gap-6 mb-6">
+        {/* Left: 3 main cards stacked on xl */}
+        <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 xl:gap-6">
+          <QuickActionsGrid items={quickActionItems} cardClassName="w-120 px-8 py-8" />
+          <MilestonesProgress items={milestones} cardClassName="w-150 ml-43 px-8 py-8" />
+        </div>
+          
+        {/* Message panel on the right, spans 2 rows */}
+        <div className="xl:col-span-2 xl:row-span-2 flex flex-col">
+          <MessagesPanel items={messages} className="w-122 ml-35 h-full min-h-[320px] max-h-[460px]" />
+        </div>
+      </div>
+
+      {/* Full width Research Progress Overview at the bottom */}
+        {/* Events on left, Research Progress Overview on right */}
+        <div className="mt-6 row-span-3 grid grid-cols-1 lg:grid-cols-5 gap-4 xl:gap-6">
+          <div className="col-span-1 w-120">
+            <EventsTimeline items={events} cardClassName="h-full min-h-[420px]" />
+          </div>
+          <div className="col-span-4  ml-45">
+            <ProgressChart labels={chartLabels} series={chartSeries} cardClassName="h-full min-h-[420px] " />
+          </div>
+        </div>
+    </div>
   );
 }

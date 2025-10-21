@@ -38,18 +38,18 @@ export default function Hero({ onSignUp }) {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Left copy */}
           <div className="text-white">
-            <div className="eyebrow-bar mb-6" />
-            <h1 className="h1">
+            <div className="absolute left-35 top-55 bg-blue-500 w-60 h-1.5 rounded-2xl  " />
+            <div className=" ml-15 text-5xl w-250 tracking-wide">
               <HeadingLine parts={hero.line1} />
               <HeadingLine parts={hero.line2} />
-            </h1>
+            </div>
 
-            <p className="text-xl mt-5 text-white/80 max-w-[50ch]">
+            <p className="ml-15 text-2xl font-extralight tracking-wider mt-5 text-white/80 font- max-w-[45ch]">
               {hero.subtitle}
             </p>
 
-            <div className="mt-8">
-              <Button className="btn rounded-btn px-7 py-4 text-base" {...buttonProps}>
+            <div className="mt-8 ml-15">
+              <Button className="btn rounded-btn px-12 py-5 text-lg" {...buttonProps}>
                 {hero.primary.label}
               </Button>
             </div>

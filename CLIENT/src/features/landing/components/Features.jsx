@@ -1,6 +1,11 @@
 import Container from "../../../shared/components/ui/Container.jsx";
 import { features } from "../content.js";
 import featureHero from "../../../assets/images/ai.png";
+import featurePolygon1 from "../../../assets/svg/Polygon_1.svg";
+import featurePolygon2 from "../../../assets/svg/Ellipse_1.svg";
+import featurePolygon3 from "../../../assets/svg/Ellipse_2.svg";
+import featurePolygon4 from "../../../assets/svg/Ellipse_3.svg";
+
 
 function FeatureCard({ icon, title, copy }) {
   return (
@@ -10,13 +15,13 @@ function FeatureCard({ icon, title, copy }) {
         <img
           src={icon}
           alt=""
-          className="relative z-15 h-38 w-38 object-contain"
+          className="relative z-15 h-48 w-48 object-contain"
           loading="lazy"
           decoding="async"
         />
       </div>
       <h3 className="mt-6 text-2xl font-bold text-[color:var(--neutral-900)]">{title}</h3>
-      <p className="mt-2 max-w-[22ch] text-md text-[color:var(--neutral-600)]">{copy}</p>
+      <p className="mt-2 max-w-[22ch] text-xl text-[color:var(--neutral-600)]">{copy}</p>
     </article>
   );
 }
@@ -32,7 +37,14 @@ export default function Features() {
               <img
                 src={featureHero}
                 alt="AI assistant"
-                className="relative z-10 w-full max-w-[260px]"
+                className="relative z-10  max-w-[400px]"
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                src={featurePolygon1}
+                alt="AI assistant"
+                className="absolute top-0 left-240 z-10  max-w-[660px]"
                 loading="lazy"
                 decoding="async"
               />
@@ -40,10 +52,10 @@ export default function Features() {
           </div>
 
           <div className="text-center md:text-left">
-            <h2 className="text-4xl font-bold text-[color:var(--neutral-900)]">
+            <div className="text-5xl ml-80 w-190 font-bold text-[color:var(--neutral-900)]">
               {features.eyebrow}
-            </h2>
-            <p className="mt-3 text-xl text-[color:var(--neutral-600)]">
+            </div>
+            <p className="mt-10 ml-80 w-140 text-2xl text-[color:var(--neutral-600)]">
               {features.subtitle}
             </p>
           </div>
@@ -60,6 +72,27 @@ export default function Features() {
             {features.items.map((card) => (
               <FeatureCard key={card.title} {...card} />
             ))}
+            <img
+                src={featurePolygon2}
+                alt="AI assistant"
+                className="absolute left-60 z-10  max-w-[300px]"
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                src={featurePolygon3}
+                alt="AI assistant"
+                className="absolute left-205 z-10  max-w-[400px]"
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                src={featurePolygon4}
+                alt="AI assistant"
+                className="absolute left-340 z-10  max-w-[400px]"
+                loading="lazy"
+                decoding="async"
+              />
           </div>
         </div>
       </Container>

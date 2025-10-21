@@ -56,7 +56,7 @@ export default function Header({ onSignUp }) {
       <Container className="h-16 flex items-center justify-between">
         <Logo />
 
-        <nav className="flex items-center gap-10">
+        <nav className="flex items-center gap-15 ">
           {NAV.map((item) => {
             if (item.href.startsWith("#")) {
               const isAnchorActive = isLanding && activeLink === item.label;
@@ -66,13 +66,13 @@ export default function Header({ onSignUp }) {
                   type="button"
                   onClick={() => handleNavClick(item)}
                   className={[
-                    "medium text-body hover:text-heading transition-colors relative",
-                    isAnchorActive ? "font-semibold text-heading" : "",
+                    "medium text-lg hover:text-heading transition-colors relative",
+                    isAnchorActive ? "font-bold text-heading" : "",
                   ].join(" ")}
                 >
                   {item.label}
                   <span
-                    className={`absolute left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
+                    className={`absolute  left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
                       isAnchorActive ? "scale-x-100" : "scale-x-0"
                     }`}
                   ></span>
@@ -86,13 +86,13 @@ export default function Header({ onSignUp }) {
                 key={item.href}
                 to={item.href}
                 className={[
-                  "medium text-body hover:text-heading transition-colors relative",
+                  "medium text-lg hover:text-heading transition-colors relative",
                   isRouteActive ? "font-semibold text-heading" : "",
                 ].join(" ")}
               >
                 {item.label}
                 <span
-                  className={`absolute left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
+                  className={`absolute  left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
                     isRouteActive ? "scale-x-100" : "scale-x-0"
                   }`}
                 ></span>

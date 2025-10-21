@@ -85,7 +85,7 @@ export default function Login() {
             <h1 className="text-3xl font-semibold text-[color:var(--neutral-900)]">
               Welcome, To <span className="text-[color:var(--brand-600)]">HiLCoE RMS Login</span>
             </h1>
-            <p className="mt-2 text-sm font-medium text-[color:var(--brand-600)] underline">
+            <p className="mt-2 text-xl font-medium text-[color:var(--brand-600)]">
               Simplifying Academic Research Management System
             </p>
 
@@ -120,13 +120,14 @@ export default function Login() {
                       className="h-12 w-full rounded-[14px] border border-[color:var(--neutral-200)] px-4 pr-28 text-sm text-[color:var(--neutral-800)] outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
                       required
                     />
-                    <a
+                    
+                  </div>
+                  <a
                       href="/forgot-password"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[color:var(--brand-600)] hover:underline"
+                      className="absolute right-184 mt-6 -translate-y-1/2 text-sm font-semibold text-[color:var(--brand-600)] hover:underline"
                     >
                       Forgot password?
                     </a>
-                  </div>
                 </div>
 
                 <label className="flex items-center gap-2 text-sm text-[color:var(--neutral-600)]">
@@ -136,9 +137,10 @@ export default function Login() {
                     onChange={(event) => setRemember(event.target.checked)}
                     className="h-4 w-4 rounded border-[color:var(--neutral-300)] text-[color:var(--brand-600)] focus:ring-[color:var(--brand-600)]"
                   />
-                  Remember me
+                  Remember me 
+                  
                 </label>
-
+                
                 {error && <p className="text-sm font-medium text-red-500">{error}</p>}
                 {info && <p className="text-sm font-medium text-[color:var(--brand-600)]">{info}</p>}
 

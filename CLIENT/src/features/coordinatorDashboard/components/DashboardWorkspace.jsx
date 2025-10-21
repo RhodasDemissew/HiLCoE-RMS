@@ -73,7 +73,7 @@ function EventsPanel({ events }) {
       <ul className="mt-4 space-y-4">
         {events.map((event, idx) => (
           <li key={idx} className="flex items-start gap-3 rounded-xl bg-[color:var(--neutral-50)] px-4 py-3">
-            <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-[color:var(--brand-600)]">•</span>
+            <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-[color:var(--brand-600)]">ï¿½</span>
             <div>
               <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{event.title}</p>
               <p className="text-xs text-[color:var(--neutral-500)]">{event.date}</p>
@@ -227,13 +227,16 @@ export default function CoordinatorDashboardWorkspace({
           <ActivityLog items={activity} />
           <div className="grid gap-5 lg:grid-cols-2">
             <PerformanceChart data={performance} />
-            <ResearchStats labels={researchLabels} series={researchSeries} />
+            <EventsPanel events={events} />
           </div>
         </div>
         <div className="space-y-5">
-          <EventsPanel events={events} />
           <MessagesPanel messages={messages} />
         </div>
+        <div className="xl:col-span-2">
+          <ResearchStats labels={researchLabels} series={researchSeries} />
+        </div>
+        
       </div>
     </section>
   );
