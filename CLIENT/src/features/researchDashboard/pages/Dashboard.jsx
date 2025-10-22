@@ -36,7 +36,7 @@ function AppShell({ sidebar, topbar, children }) {
 
 function Sidebar({ active, onSelect }) {
   return (
-    <aside className="fixed inset-y-0 left-0 w-[260px] bg-[color:var(--brand-900)] text-white">
+    <aside className="fixed inset-y-0 left-0 w-[260px] bg-blue-950 text-white">
       <div className="flex h-full flex-col">
         <div className="px-6 py-8">
           <div className="flex items-center gap-3">
@@ -52,7 +52,9 @@ function Sidebar({ active, onSelect }) {
               <div className="text-xs text-white/70">Research Management</div>
             </div>
           </div>
+          
         </div>
+        <div className="bg-gray-400 left-0 mb-5 w-65 h-0.5"></div>
 
         <nav className="flex-1 space-y-2 px-4">
           {dashboardNavItems.map((item) => {
@@ -64,7 +66,7 @@ function Sidebar({ active, onSelect }) {
                 className={[
                   "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition",
                   isActive
-                    ? "bg-white/10 text-white border-l-4 border-[color:var(--brand-600)]"
+                    ? "bg-white/10 text-white "
                     : "text-white/80 hover:bg-white/10",
                 ].join(" ")}
                 onClick={() => {
@@ -85,7 +87,7 @@ function Sidebar({ active, onSelect }) {
             );
           })}
         </nav>
-
+        <div className="bg-gray-400 left-0 w-65 h-0.5"></div>
         <div className="px-4 pb-6 pt-4">
           <button
             type="button"
@@ -95,6 +97,7 @@ function Sidebar({ active, onSelect }) {
               onSelect?.("Settings");
             }}
           >
+            
             <img
               src={settingsIcon}
               alt=""
@@ -235,7 +238,7 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
 
   return (
     <header className="border-b border-muted bg-white/70 backdrop-blur">
-      <div className="container-px flex h-20 items-center justify-between gap-6">
+      <div className="mr-10 flex h-20 items-center justify-end gap-6">
         {showSearch ? (
           <form className="relative w-full max-w-xl" onSubmit={handleSearch}>
             <label htmlFor="global-search" className="sr-only">
@@ -339,7 +342,7 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
             )}
           </div>
 
-          <div className="relative" ref={profileMenuRef}>
+          <div className="relative " ref={profileMenuRef}>
             <button
               type="button"
               className="flex items-center gap-3 rounded-full bg-white px-4 py-2 text-left shadow-soft"

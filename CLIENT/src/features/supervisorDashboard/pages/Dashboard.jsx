@@ -16,7 +16,7 @@ function AppShell({ sidebar, topbar, children }) {
       <div className="ml-[260px] flex min-h-screen flex-col">
         {topbar}
         <main className="flex-1 overflow-y-auto">
-          <div className="container-px py-8">{children}</div>
+          <div className="m-8 mt-0 py-8">{children}</div>
         </main>
       </div>
     </div>
@@ -25,7 +25,7 @@ function AppShell({ sidebar, topbar, children }) {
 
 function Sidebar({ items, active, onSelect }) {
   return (
-    <aside className="fixed inset-y-0 left-0 w-[260px] bg-[color:var(--brand-900)] text-white">
+    <aside className="fixed inset-y-0 left-0 w-[260px] bg-blue-950 text-white">
       <div className="flex h-full flex-col">
         <div className="px-6 py-8">
           <div className="flex items-center gap-3">
@@ -36,7 +36,7 @@ function Sidebar({ items, active, onSelect }) {
             </div>
           </div>
         </div>
-
+        <div className="bg-gray-400 left-0 mb-5 w-65 h-0.5"></div>
         <nav className="flex-1 space-y-2 px-4">
           {items.map((item) => {
             const isActive = item.label === active;
@@ -46,7 +46,7 @@ function Sidebar({ items, active, onSelect }) {
                 type="button"
                 className={[
                   "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition",
-                  isActive ? "bg-white/10 text-white border-l-4 border-[color:var(--brand-600)]" : "text-white/80 hover:bg-white/10",
+                  isActive ? "bg-white/10 text-white " : "text-white/80 hover:bg-white/10",
                 ].join(" ")}
                 onClick={() => onSelect?.(item.label)}
               >
@@ -58,7 +58,7 @@ function Sidebar({ items, active, onSelect }) {
             );
           })}
         </nav>
-
+        <div className="bg-gray-400 left-0  w-65 h-0.5"></div>
         <div className="px-4 pb-6 pt-4">
           <button
             type="button"
@@ -106,7 +106,7 @@ function Topbar({ user, notifications = [], onMarkAllRead, onClearAll }) {
 
   return (
     <header className="border-b border-[color:var(--neutral-200)] bg-white/70 backdrop-blur">
-      <div className="container-px flex h-20 items-center justify-between gap-6">
+      <div className="mr-10 flex h-20 items-center justify-between gap-6">
         <div className="flex-1" />
         <div className="flex items-center gap-6">
           <div className="relative" ref={notificationRef}>

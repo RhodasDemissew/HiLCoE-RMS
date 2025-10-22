@@ -41,7 +41,7 @@ export default function Faq() {
     <div className="min-h-screen bg-faq-gradient">
       <Header />
       <main className="py-16">
-        <Container className="max-w-3xl">
+        <Container className="w-300">
           <h1 className="text-center text-4xl font-semibold text-[color:var(--neutral-900)]">
             {faq.heroTitle}
           </h1>

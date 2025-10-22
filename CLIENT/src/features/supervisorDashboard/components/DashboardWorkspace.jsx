@@ -1,5 +1,19 @@
 import { useMemo } from "react";
 import messageIcon from "../../../assets/icons/message.png";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Legend,
+  Pie,
+  PieChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
 
 function StatCard({ title, value }) {
   return (
@@ -40,6 +54,38 @@ function MessagesPanel({ items = [] }) {
   );
 }
 
+function PerformanceChart({ data }) {
+  const COLORS = ["#3B82F6", "#6366F1", "#F97316", "#0EA5E9", "#22C55E"];
+  return (
+    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
+      <header className="mb-4">
+        <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Server/AI Performance</h2>
+        <p className="text-xs text-[color:var(--neutral-500)]">System utilisation overview</p>
+      </header>
+      <div className="mx-auto h-60 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Tooltip />
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="label"
+              outerRadius={100}
+              innerRadius={60}
+              paddingAngle={2}
+              strokeWidth={0}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`slice-${entry.label}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </article>
+  );
+}
+
 export default function SupervisorDashboardWorkspace({ user, kpis = [], messages = [] }) {
   const resolved = useMemo(() => (Array.isArray(kpis) && kpis.length ? kpis : [{ title: 'Students', value: 0 }, { title: 'Pending Reviews', value: 0 }, { title: 'Approved This Week', value: 0 }, { title: 'Needs Changes', value: 0 }]), [kpis]);
 
@@ -47,7 +93,7 @@ export default function SupervisorDashboardWorkspace({ user, kpis = [], messages
 
   return (
     <>
-      <header className="mb-6 rounded-2xl border border-transparent bg-white px-8 py-6 shadow-soft">
+      <header className=" mb-6 rounded-2xl border border-transparent bg-white px-8 py-6 shadow-soft">
         <h1 className="h2 text-[color:var(--neutral-900)]">Welcome, {displayName}</h1>
         <p className="body mt-2 text-[color:var(--neutral-600)]">Today is a good day to make progress</p>
       </header>
@@ -64,9 +110,10 @@ export default function SupervisorDashboardWorkspace({ user, kpis = [], messages
         </section>
 
         {/* Messages right rail */}
-        <aside className="col-span-12 lg:col-span-4 lg:row-span-3 lg:row-start-1">
+        <aside className="col-span-12 lg:col-span-4 lg:row-span-3">
           <MessagesPanel items={messages} />
         </aside>
+        
 
         {/* Paper Review shortcut */}
         <section className="col-span-12 lg:col-span-8" aria-labelledby="sup-reviews-title">
@@ -77,6 +124,11 @@ export default function SupervisorDashboardWorkspace({ user, kpis = [], messages
               <a href="/supervisor#my-reviews" className="text-sm font-semibold text-[color:var(--brand-600)] hover:underline">Open My Reviews</a>
             </div>
           </article>
+        </section>
+
+        {/* Performance chart (left column) */}
+        <section className="col-span-12 lg:col-span-8" aria-labelledby="sup-performance-title">
+          <PerformanceChart data={[{ label: 'CPU', value: 45 }, { label: 'AI', value: 30 }, { label: 'DB', value: 25 }]} />
         </section>
       </div>
     </>

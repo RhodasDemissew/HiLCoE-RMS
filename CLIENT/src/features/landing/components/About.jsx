@@ -4,15 +4,14 @@ import { about } from "../content.js";
 export default function About() {
   return (
     <section id="about" className="section-y bg-[#F7FAFF]">
-      <Container className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div className="order-2 space-y-6 text-left lg:order-1">
-          <span className="text-2xl font-medium uppercase tracking-[0.4em] text-[color:var(--brand-600)]/80">
+      <Container className="grid mt-19 mb-40 gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="absolute order-2 space-y-6 text-left lg:order-1">
+          <div className="mb-5 ml-18 w-20 h-1 bg-blue-500"/>
+          <span className="text-3xl ml-30 font-bold tracking-wider text-black">
             {about.title}
           </span>
-          <h2 className="p-2 text-4xl font-semibold text-[color:var(--neutral-900)]">
-            {about.headline}
-          </h2>
-          <div className="space-y-5 text-lg text-[color:var(--neutral-700)]">
+          <div className="mt-5 ml-50 w-25 mb-5 h-1 bg-blue-500"/>
+          <div className="space-y-5 w-200 ml-200 text-xl text-[color:var(--neutral-700)]">
             {about.paragraphs.map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
@@ -20,9 +19,8 @@ export default function About() {
         </div>
 
         <div className="order-1 flex justify-center lg:order-2">
-          <div className="relative max-w-md">
-            <div className="absolute -inset-6 rounded-[32px] bg-[color:var(--brand-600)]/12 blur-3xl" aria-hidden />
-            <div className="relative overflow-hidden rounded-[32px] bg-white shadow-[0_32px_90px_rgba(9,26,66,0.18)]">
+          <div className="relative max-w-lg">
+            <div className="relative left-0 top-20 overflow-hidden rounded-[12px] bg-white shadow-[0_32px_90px_rgba(9,26,66,0.18)]">
               <img
                 src={about.image.src}
                 alt={about.image.alt}
