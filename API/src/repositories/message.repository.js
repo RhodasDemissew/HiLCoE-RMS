@@ -17,4 +17,5 @@ export const messageRepo = {
   findLatest: (conversationId) => Message.findOne({ conversation: conversationId })
     .sort({ created_at: -1 })
     .populate({ path: 'sender', select: 'name email role' }),
+  deleteAll: () => Message.deleteMany({}),
 };
