@@ -17,6 +17,7 @@ export const conversationRepo = {
       type: 'direct',
       participants: {
         $all: normalized.map((id) => ({ $elemMatch: { user: id } })),
+        $size: normalized.length, // Ensure exactly the specified number of participants
       },
     })
       .populate({ path: 'participants.user', select: 'name email role' })
@@ -42,4 +43,5 @@ export const conversationRepo = {
       },
     }
   ),
+  deleteAll: () => Conversation.deleteMany({}),
 };
