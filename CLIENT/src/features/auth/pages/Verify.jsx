@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../../shared/components/ui/Button.jsx";
 import { api } from "../../../api/client.js";
+import { validateName, validateStudentId } from "../../../shared/utils/validation.js";
 
 export default function Verify({ onBack, onVerified }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({ firstName: "", middleName: "", lastName: "", studentId: "" });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
 
   function handleBack() {
@@ -28,14 +30,73 @@ export default function Verify({ onBack, onVerified }) {
   function handleChange(event) {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  }
+
+  function handleBlur(event) {
+    const { name, value } = event.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    
+    // Validate field on blur
+    validateField(name, value);
+  }
+
+  function validateField(fieldName, value) {
+    let error = '';
+    
+    switch (fieldName) {
+      case 'firstName':
+        const firstNameResult = validateName(value, 'First Name');
+        error = firstNameResult.message;
+        break;
+      case 'lastName':
+        const lastNameResult = validateName(value, 'Last Name');
+        error = lastNameResult.message;
+        break;
+      case 'middleName':
+        if (value.trim()) {
+          const middleNameResult = validateName(value, 'Middle Name');
+          error = middleNameResult.message;
+        }
+        break;
+      case 'studentId':
+        const studentIdResult = validateStudentId(value);
+        error = studentIdResult.message;
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(prev => ({ ...prev, [fieldName]: error }));
+    return !error;
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
-
-    if (!form.firstName.trim() || !form.lastName.trim() || !form.studentId.trim()) {
-      setError("Fill out all required fields to continue.");
+    
+    // Mark all fields as touched
+    setTouched({
+      firstName: true,
+      lastName: true,
+      studentId: true
+    });
+    
+    // Validate all required fields
+    const isFirstNameValid = validateField('firstName', form.firstName);
+    const isLastNameValid = validateField('lastName', form.lastName);
+    const isStudentIdValid = validateField('studentId', form.studentId);
+    
+    // Validate middle name if provided
+    let isMiddleNameValid = true;
+    if (form.middleName.trim()) {
+      isMiddleNameValid = validateField('middleName', form.middleName);
+    }
+    
+    if (!isFirstNameValid || !isLastNameValid || !isStudentIdValid || !isMiddleNameValid) {
       return;
     }
 
@@ -75,7 +136,7 @@ export default function Verify({ onBack, onVerified }) {
         program: student.program,
       });
     } catch (err) {
-      setError(err.message || "Verification failed");
+      setErrors({ general: err.message || "Verification failed" });
     } finally {
       setLoading(false);
     }
@@ -101,16 +162,24 @@ export default function Verify({ onBack, onVerified }) {
           <div className="space-y-6">
             <div className="flex flex-col gap-2">
               <label htmlFor="firstName" className="text-sm font-medium text-[color:var(--neutral-700)]">
-                First Name
+                First Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="firstName"
                 name="firstName"
                 value={form.firstName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Enter First Name"
-                className="h-12 rounded-[14px] border border-[color:var(--neutral-200)] px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.firstName && errors.firstName 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.firstName && errors.firstName && (
+                <p className="text-sm text-red-500">{errors.firstName}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -122,41 +191,65 @@ export default function Verify({ onBack, onVerified }) {
                 name="middleName"
                 value={form.middleName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Enter Middle Name"
-                className="h-12 rounded-[14px] border border-[color:var(--neutral-200)] px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.middleName && errors.middleName 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.middleName && errors.middleName && (
+                <p className="text-sm text-red-500">{errors.middleName}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="lastName" className="text-sm font-medium text-[color:var(--neutral-700)]">
-                Last Name
+                Last Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="lastName"
                 name="lastName"
                 value={form.lastName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Enter Last Name"
-                className="h-12 rounded-[14px] border border-[color:var(--neutral-200)] px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.lastName && errors.lastName 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.lastName && errors.lastName && (
+                <p className="text-sm text-red-500">{errors.lastName}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="studentId" className="text-sm font-medium text-[color:var(--neutral-700)]">
-                ID
+                Student ID <span className="text-red-500">*</span>
               </label>
               <input
                 id="studentId"
                 name="studentId"
                 value={form.studentId}
                 onChange={handleChange}
-                placeholder="Student ID"
-                className="h-12 rounded-[14px] border border-[color:var(--neutral-200)] px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
+                onBlur={handleBlur}
+                placeholder="Enter Student ID"
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.studentId && errors.studentId 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.studentId && errors.studentId && (
+                <p className="text-sm text-red-500">{errors.studentId}</p>
+              )}
             </div>
           </div>
 
-          {error && <p className="mt-4 text-sm font-medium text-red-500">{error}</p>}
+          {errors.general && <p className="mt-4 text-sm font-medium text-red-500">{errors.general}</p>}
 
           <Button
             type="submit"
