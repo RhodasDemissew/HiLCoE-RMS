@@ -6,17 +6,17 @@ import { NAV } from "../../../features/landing/content.js";
 
 function Logo() {
   return (
-    <Link to="/" className="flex items-center gap-3 ">
+    <Link to="/" className="flex items-center gap-2 md:gap-3">
       <img
         src={logoImage}
         alt="HiLCoE logo"
-        className="h-10 w-10 rounded-full"
+        className="h-8 w-8 md:h-10 md:w-10 rounded-full"
         loading="eager"
         decoding="async"
       />
       <div className="flex flex-col items-center font-caprasimo leading-tight">
-        <div className="h3 text-[var(--brand-600)] font-semibold ">HiLCoE</div>
-        <div className="small text-[color:var(--brand-600)]/80">
+        <div className="text-sm md:text-base text-[var(--brand-600)] font-semibold">HiLCoE</div>
+        <div className="text-xs md:text-sm text-[color:var(--brand-600)]/80 hidden sm:block">
           School Research Management System
         </div>
       </div>
@@ -56,7 +56,8 @@ export default function Header({ onSignUp }) {
       <Container className="h-16 flex items-center justify-between">
         <Logo />
 
-        <nav className="flex items-center gap-15 ">
+        {/* Navigation - Responsive */}
+        <nav className="flex items-center gap-2 md:gap-4 lg:gap-6 xl:gap-8">
           {NAV.map((item) => {
             if (item.href.startsWith("#")) {
               const isAnchorActive = isLanding && activeLink === item.label;
@@ -66,13 +67,13 @@ export default function Header({ onSignUp }) {
                   type="button"
                   onClick={() => handleNavClick(item)}
                   className={[
-                    "medium text-lg hover:text-heading transition-colors relative",
+                    "medium text-xs md:text-sm xl:text-base hover:text-heading transition-colors relative whitespace-nowrap",
                     isAnchorActive ? "font-bold text-heading" : "",
                   ].join(" ")}
                 >
                   {item.label}
                   <span
-                    className={`absolute  left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
+                    className={`absolute left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
                       isAnchorActive ? "scale-x-100" : "scale-x-0"
                     }`}
                   ></span>
@@ -86,13 +87,13 @@ export default function Header({ onSignUp }) {
                 key={item.href}
                 to={item.href}
                 className={[
-                  "medium text-lg hover:text-heading transition-colors relative",
+                  "medium text-xs md:text-sm xl:text-base hover:text-heading transition-colors relative whitespace-nowrap",
                   isRouteActive ? "font-semibold text-heading" : "",
                 ].join(" ")}
               >
                 {item.label}
                 <span
-                  className={`absolute  left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
+                  className={`absolute left-0 right-0 bottom-[-2px] h-[2px] bg-[color:var(--brand-600)] transition-transform ${
                     isRouteActive ? "scale-x-100" : "scale-x-0"
                   }`}
                 ></span>
@@ -101,10 +102,10 @@ export default function Header({ onSignUp }) {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 md:gap-2 lg:gap-3">
           <Link
             to="/login"
-            className="medium font-semibold text-[color:var(--brand-600)] hover:opacity-90 m-1.5"
+            className="medium text-xs md:text-sm lg:text-base font-semibold text-[color:var(--brand-600)] hover:opacity-90 whitespace-nowrap"
           >
             Login
           </Link>
@@ -112,12 +113,12 @@ export default function Header({ onSignUp }) {
             <button
               type="button"
               onClick={onSignUp}
-              className="btn small rounded-btn"
+              className="btn small rounded-btn text-xs md:text-sm px-2 md:px-3 lg:px-4 py-1 md:py-2 whitespace-nowrap"
             >
               Sign Up
             </button>
           ) : (
-            <Link to="/signup" className="btn small rounded-btn">
+            <Link to="/signup" className="btn small rounded-btn text-xs md:text-sm px-2 md:px-3 lg:px-4 py-1 md:py-2 whitespace-nowrap">
               Sign Up
             </Link>
           )}
