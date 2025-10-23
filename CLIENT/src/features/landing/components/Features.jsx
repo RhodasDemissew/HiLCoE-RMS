@@ -30,69 +30,77 @@ export default function Features() {
   return (
     <section id="features" className="section-y">
       <Container>
-        <div className="grid items-center gap-10 md:grid-cols-[min(320px,40%)_1fr] md:gap-16">
-          <div className="mx-auto max-w-xs">
-            <div className="relative ml-3.5">
-              <span className="absolute -left-16 top-10 hidden h-40 w-40 rounded-full bg-[color:var(--brand-600)]/10 blur-3xl md:block" aria-hidden />
+        <div className="grid items-center gap-8 md:gap-12 lg:gap-16 md:grid-cols-2">
+          <div className="order-2 md:order-1">
+            <div className="relative mx-auto max-w-sm md:max-w-md">
+              <span className="absolute -left-8 top-4 hidden h-32 w-32 rounded-full bg-[color:var(--brand-600)]/10 blur-3xl md:block" aria-hidden />
               <img
                 src={featureHero}
                 alt="AI assistant"
-                className="relative z-10  max-w-[400px]"
+                className="relative z-10 w-full h-auto"
                 loading="lazy"
                 decoding="async"
               />
               <img
                 src={featurePolygon1}
                 alt="AI assistant"
-                className="absolute top-0 left-240 z-10  max-w-[660px]"
+                className="absolute top-0 left-0 z-10 w-full h-auto opacity-60"
                 loading="lazy"
                 decoding="async"
               />
             </div>
           </div>
 
-          <div className="text-center md:text-left">
-            <div className="text-5xl ml-80 w-190 font-bold text-[color:var(--neutral-900)]">
+          <div className="order-1 md:order-2 text-center md:text-left">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[color:var(--neutral-900)] leading-tight">
               {features.eyebrow}
-            </div>
-            <p className="mt-10 ml-80 w-140 text-2xl text-[color:var(--neutral-600)]">
+            </h2>
+            <p className="mt-4 md:mt-6 lg:mt-8 text-lg md:text-xl lg:text-2xl text-[color:var(--neutral-600)] max-w-2xl">
               {features.subtitle}
             </p>
           </div>
         </div>
 
-        <div className="mt-20 text-center">
-          <div className="inline-flex items-center gap-6">
-            <span className="h-[3px] w-12 rounded-full bg-[color:var(--brand-600)]" />
-            <h3 className="text-2xl font-semibold text-[color:var(--neutral-900)]">Features</h3>
-            <span className="h-[3px] w-12 rounded-full bg-[color:var(--brand-600)]" />
+        <div className="mt-16 md:mt-20 text-center">
+          <div className="inline-flex items-center gap-4 md:gap-6">
+            <span className="h-[3px] w-8 md:w-12 rounded-full bg-[color:var(--brand-600)]" />
+            <h3 className="text-xl md:text-2xl font-semibold text-[color:var(--neutral-900)]">Features</h3>
+            <span className="h-[3px] w-8 md:w-12 rounded-full bg-[color:var(--brand-600)]" />
           </div>
 
-          <div className="mt-12 grid gap-12 md:grid-cols-3">
+          <div className="mt-8 md:mt-12 grid gap-8 md:gap-12 md:grid-cols-3 relative">
             {features.items.map((card) => (
               <FeatureCard key={card.title} {...card} />
             ))}
-            <img
+            
+            {/* Decorative elements - positioned relatively to avoid layout issues */}
+            <div className="hidden lg:block absolute -left-20 top-10 z-0">
+              <img
                 src={featurePolygon2}
-                alt="AI assistant"
-                className="absolute left-60 z-10  max-w-[300px]"
+                alt=""
+                className="w-32 h-auto opacity-30"
                 loading="lazy"
                 decoding="async"
               />
+            </div>
+            <div className="hidden lg:block absolute -right-20 top-20 z-0">
               <img
                 src={featurePolygon3}
-                alt="AI assistant"
-                className="absolute left-205 z-10  max-w-[400px]"
+                alt=""
+                className="w-40 h-auto opacity-30"
                 loading="lazy"
                 decoding="async"
               />
+            </div>
+            <div className="hidden lg:block absolute left-1/2 top-40 z-0">
               <img
                 src={featurePolygon4}
-                alt="AI assistant"
-                className="absolute left-340 z-10  max-w-[400px]"
+                alt=""
+                className="w-36 h-auto opacity-30"
                 loading="lazy"
                 decoding="async"
               />
+            </div>
           </div>
         </div>
       </Container>
