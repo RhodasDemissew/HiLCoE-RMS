@@ -88,6 +88,11 @@ export default function UsersWorkspace() {
   // Track available supervisors to validate existing assignments in Researchers tab
   const [availableSupervisorIds, setAvailableSupervisorIds] = useState([]);
 
+  // Examiners
+  const [examiners, setExaminers] = useState([]);
+  const [examLoading, setExamLoading] = useState(false);
+  const [examError, setExamError] = useState("");
+
   const fetchAvailableSupervisorIds = useCallback(async () => {
     try {
       // Use the same source as the assignment modal to avoid ID mismatches
@@ -101,6 +106,24 @@ export default function UsersWorkspace() {
       setAvailableSupervisorIds(Array.from(new Set(ids)));
     } catch {
       // ignore; validation is best-effort
+    }
+  }, []);
+
+  const fetchExaminers = useCallback(async () => {
+    setExamLoading(true);
+    setExamError("");
+    try {
+      const res = await api("/users");
+      const data = await res.json().catch(() => []);
+      if (!res.ok) throw new Error(data?.error || "Failed to load users");
+      const list = (Array.isArray(data) ? data : []).filter((user) =>
+        String(user.role || "").toLowerCase().includes("examiner")
+      );
+      setExaminers(list);
+    } catch (err) {
+      setExamError(err.message || "Failed to load examiners");
+    } finally {
+      setExamLoading(false);
     }
   }, []);
 
@@ -207,6 +230,12 @@ export default function UsersWorkspace() {
       fetchSupervisors();
     }
   }, [activeTab, fetchSupervisors]);
+
+  useEffect(() => {
+    if (activeTab === "examiners") {
+      fetchExaminers();
+    }
+  }, [activeTab, fetchExaminers]);
 
   const showToast = useCallback((toastValue) => {
     if (!toastValue) return;
@@ -326,6 +355,17 @@ export default function UsersWorkspace() {
             </button>
           </div>
         )}
+        {activeTab === "examiners" && (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="rounded-xl border border-[color:var(--neutral-200)] px-5 py-2 text-sm font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-100)]"
+              onClick={fetchExaminers}
+            >
+              Refresh
+            </button>
+          </div>
+        )}
       </header>
 
       <div className="rounded-3xl bg-white p-6 shadow-soft">
@@ -334,6 +374,7 @@ export default function UsersWorkspace() {
             {[
               { key: "Researchers", label: "Researchers" },
               { key: "supervisors", label: "Supervisors" },
+              { key: "examiners", label: "Examiners" },
             ].map((tab) => {
               const isActive = activeTab === tab.key;
               return (
@@ -353,7 +394,7 @@ export default function UsersWorkspace() {
             })}
           </div>
 
-          {activeTab === "Researchers" ? (
+          {activeTab === "Researchers" && (
             <>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
@@ -410,7 +451,9 @@ export default function UsersWorkspace() {
                 }}
               />
             </>
-          ) : (
+          )}
+
+          {activeTab === "supervisors" && (
             <>
               {supError && (
                 <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
@@ -447,6 +490,64 @@ export default function UsersWorkspace() {
                 }}
               />
             </>
+          )}
+
+          {activeTab === "examiners" && (
+            <div>
+              {examError && (
+                <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                  {examError}
+                </div>
+              )}
+              <div className="overflow-hidden rounded-2xl border border-[color:var(--neutral-200)]">
+                <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-sm">
+                  <thead className="bg-[color:var(--neutral-50)] text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
+                    <tr>
+                      <th className="px-4 py-3">Name</th>
+                      <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[color:var(--neutral-100)] text-[color:var(--neutral-800)]">
+                    {examLoading ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-6 text-center text-sm text-[color:var(--neutral-500)]">
+                          Loading examiners...
+                        </td>
+                      </tr>
+                    ) : examiners.length ? (
+                      examiners.map((user) => (
+                        <tr key={user._id || user.id || user.email}>
+                          <td className="px-4 py-3 font-semibold">{user.name || [user.first_name, user.last_name].filter(Boolean).join(" ") || "-"}</td>
+                          <td className="px-4 py-3 text-sm text-[color:var(--neutral-600)]">{user.email || "-"}</td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                String(user.status || "").toLowerCase() === "active"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}
+                            >
+                              {user.status || "pending"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[color:var(--neutral-600)]">
+                            {user.created_at ? new Date(user.created_at).toLocaleDateString() : "-"}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-6 text-center text-sm text-[color:var(--neutral-500)]">
+                          No examiners found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
         </div>
       </div>

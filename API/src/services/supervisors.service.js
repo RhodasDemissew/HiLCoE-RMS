@@ -1,11 +1,22 @@
+import dayjs from 'dayjs';
 import { Role } from '../models/Role.js';
 import { User } from '../models/User.js';
 import { StudentVerification } from '../models/StudentVerification.js';
 import { Supervisor } from '../models/Supervisor.js';
+import { StageSubmission } from '../models/StageSubmission.js';
 import { config } from '../config/env.js';
 import { notify } from './notificationService.js';
+import { messagingService } from './messaging.service.js';
+import { STAGE_ORDER } from '../constants/stages.js';
 
 const DEFAULT_SPECIALIZATIONS = ['AI/ML','Data Science','Networks','Cybersecurity','SE','DB','HCI'];
+const STATUS_LABELS = {
+  under_review: 'Under Review',
+  awaiting_coordinator: 'Awaiting Coordinator',
+  needs_changes: 'Needs Changes',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
 
 function formatSupervisorName(first = '', middle = '', last = '') {
   return [first, middle, last].filter((part) => part && part.trim()).join(' ').trim();
@@ -109,6 +120,155 @@ function buildSupervisorPayload(payload = {}) {
 }
 
 export const supervisorsService = {
+  async dashboardOverview(userId) {
+    if (!userId) throw new Error('user id is required');
+    const supervisorIdStr = String(userId);
+    const supervisorDoc = await Supervisor.findOne({ user: userId }).select('_id');
+    const matchSupervisorIds = supervisorDoc?._id
+      ? [supervisorIdStr, String(supervisorDoc._id)]
+      : [supervisorIdStr];
+    const maxStudents = Math.max(parseInt(config.supervisorMaxStudents || 10, 10), 1);
+
+    const [assignedStudents, conversations] = await Promise.all([
+      StudentVerification.find({ 'assigned_supervisor.supervisor_id': { $in: matchSupervisorIds } })
+        .select('_id first_name middle_name last_name student_id program assigned_supervisor'),
+      messagingService.listConversations(userId).catch(() => []),
+    ]);
+
+    const verificationIds = assignedStudents.map((doc) => doc._id);
+    const researcherUsers = verificationIds.length
+      ? await User.find({ student_verification: { $in: verificationIds } })
+          .select('_id name email student_verification')
+      : [];
+    const researcherIds = researcherUsers.map((user) => user._id);
+
+    let pendingReviews = 0;
+    let needsChangesCount = 0;
+    let awaitingCoordinatorCount = 0;
+    let approvedThisWeek = 0;
+    let performanceBuckets = [];
+    let latestSubmissions = [];
+
+    if (researcherIds.length) {
+      const stageMatch = { researcher: { $in: researcherIds }, stage_index: { $gt: 0 } };
+      const oneWeekAgo = dayjs().subtract(7, 'day').toDate();
+      const [
+        pendingDocCount,
+        needsDocCount,
+        awaitingDocCount,
+        approvedDocCount,
+        distribution,
+        latestDocs,
+      ] = await Promise.all([
+        StageSubmission.countDocuments({ ...stageMatch, status: 'under_review' }),
+        StageSubmission.countDocuments({ ...stageMatch, status: 'needs_changes' }),
+        StageSubmission.countDocuments({ ...stageMatch, status: 'awaiting_coordinator' }),
+        StageSubmission.countDocuments({
+          ...stageMatch,
+          reviewer: userId,
+          status: { $in: ['awaiting_coordinator', 'approved'] },
+          reviewed_at: { $gte: oneWeekAgo },
+        }),
+        StageSubmission.aggregate([
+          { $match: stageMatch },
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+        ]),
+        StageSubmission.find(stageMatch)
+          .sort({ submitted_at: -1 })
+          .limit(5)
+          .select('stage_index status submitted_at title researcher')
+          .populate('researcher', 'name email'),
+      ]);
+      pendingReviews = pendingDocCount;
+      needsChangesCount = needsDocCount;
+      awaitingCoordinatorCount = awaitingDocCount;
+      approvedThisWeek = approvedDocCount;
+      performanceBuckets = distribution
+        .map(({ _id, count }) => ({
+          key: _id || 'unknown',
+          label: STATUS_LABELS[_id] || (_id ? _id.replace(/_/g, ' ') : 'Unknown'),
+          value: count,
+        }))
+        .filter((item) => item.value > 0);
+      latestSubmissions = latestDocs.map((doc) => ({
+        id: String(doc._id),
+        stage: STAGE_ORDER[doc.stage_index] || `Stage ${doc.stage_index + 1}`,
+        status: doc.status,
+        submittedAt: doc.submitted_at,
+        title: doc.title,
+        researcher: doc.researcher
+          ? {
+              id: String(doc.researcher._id || doc.researcher),
+              name: doc.researcher.name || '',
+              email: doc.researcher.email || '',
+            }
+          : null,
+      }));
+    }
+
+    const researcherByVerification = new Map(
+      researcherUsers.map((user) => [String(user.student_verification), user])
+    );
+    const students = assignedStudents.map((doc) => {
+      const linked = researcherByVerification.get(String(doc._id));
+      return {
+        id: String(doc._id),
+        studentId: doc.student_id,
+        name: formatSupervisorName(doc.first_name, doc.middle_name, doc.last_name),
+        program: doc.program || '',
+        researcherId: linked ? String(linked._id) : null,
+        email: linked?.email || '',
+      };
+    });
+
+    const messageItems = (Array.isArray(conversations) ? conversations : [])
+      .slice()
+      .sort((a, b) => new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0))
+      .slice(0, 4)
+      .map((conv) => {
+        const others = (conv.participants || []).filter((part) => {
+          const raw = part?.user?.id || part?.user || part?.id;
+          return raw && String(raw) !== supervisorIdStr;
+        });
+        const fallbackTitle = others.length
+          ? others
+              .map((part) => part?.user?.name || part?.user?.email || '')
+              .filter(Boolean)
+              .join(', ')
+          : 'Conversation';
+        return {
+          id: String(conv.id || conv._id || Math.random()),
+          title: conv.subject || conv.project?.title || fallbackTitle,
+          preview: conv.last_message?.preview || '',
+          author: conv.last_message?.sender?.name || '',
+          createdAt: conv.last_message?.created_at || conv.last_message_at || null,
+          unread: conv.unread_count || 0,
+        };
+      });
+
+    return {
+      stats: {
+        students: {
+          total: assignedStudents.length,
+          capacity: maxStudents,
+        },
+        pendingReviews,
+        awaitingCoordinator: awaitingCoordinatorCount,
+        approvedThisWeek,
+        needsChanges: needsChangesCount,
+      },
+      review: {
+        pending: pendingReviews,
+        awaitingCoordinator: awaitingCoordinatorCount,
+        needsChanges: needsChangesCount,
+        latest: latestSubmissions,
+      },
+      performance: performanceBuckets,
+      messages: messageItems,
+      students,
+    };
+  },
+
   async listForAssignment() {
     const role = await Role.findOne({ name: /supervisor/i });
     const users = role

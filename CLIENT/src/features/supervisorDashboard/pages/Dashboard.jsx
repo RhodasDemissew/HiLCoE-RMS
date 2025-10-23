@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 import logoImage from "../../../assets/images/logo.png";
@@ -7,7 +7,7 @@ import notificationIcon from "../../../assets/icons/notification.png";
 import SupervisorDashboardWorkspace from "../components/DashboardWorkspace.jsx";
 import ReviewWorkspace from "../../coordinatorDashboard/components/ReviewWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
-import { supNav, supKpis, supCopy } from "../content.js";
+import { supNav } from "../content.js";
 
 function AppShell({ sidebar, topbar, children }) {
   return (
@@ -193,6 +193,24 @@ export default function SupervisorDashboardPage() {
   const [activeSection, setActiveSection] = useState("Dashboard");
   const [user, setUser] = useState({ name: "Dr. Supervisor", role: "Supervisor" });
   const [notifications, setNotifications] = useState([]);
+  const [overview, setOverview] = useState(null);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState("");
+
+  const loadOverview = useCallback(async () => {
+    setOverviewLoading(true);
+    setOverviewError("");
+    try {
+      const res = await api('/supervisors/dashboard/overview', { cache: 'no-store' });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Failed to load overview");
+      setOverview(data);
+    } catch (err) {
+      setOverviewError(err.message || "Failed to load overview");
+    } finally {
+      setOverviewLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -206,6 +224,20 @@ export default function SupervisorDashboardPage() {
     loadProfile();
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    loadOverview();
+  }, [loadOverview]);
+
+  useEffect(() => {
+    function handleFocus() {
+      if (activeSection === "Dashboard") {
+        loadOverview();
+      }
+    }
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [loadOverview, activeSection]);
 
   // Notifications: initial load + SSE subscription (no polling)
   useEffect(() => {
@@ -262,10 +294,22 @@ export default function SupervisorDashboardPage() {
   let content;
   switch (activeSection) {
     case "Dashboard":
-      content = <SupervisorDashboardWorkspace user={user} kpis={supKpis} />;
+      content = (
+        <SupervisorDashboardWorkspace
+          user={user}
+          overview={overview}
+          loading={overviewLoading}
+          error={overviewError}
+          onRefresh={loadOverview}
+          onOpenMessages={() => setActiveSection("Message")}
+        />
+      );
       break;
     case "My Reviews":
       content = <ReviewWorkspace hideSynopsis />;
+      break;
+    case "Schedule":
+      content = <PlaceholderContent title={activeSection} />;
       break;
     case "Message":
       content = (
@@ -276,11 +320,17 @@ export default function SupervisorDashboardPage() {
         />
       );
       break;
-    case "Calendar":
-      content = <PlaceholderContent title={activeSection} />;
-      break;
     default:
-      content = <SupervisorDashboardWorkspace user={user} kpis={supKpis} />;
+      content = (
+        <SupervisorDashboardWorkspace
+          user={user}
+          overview={overview}
+          loading={overviewLoading}
+          error={overviewError}
+          onRefresh={loadOverview}
+          onOpenMessages={() => setActiveSection("Message")}
+        />
+      );
       break;
   }
 

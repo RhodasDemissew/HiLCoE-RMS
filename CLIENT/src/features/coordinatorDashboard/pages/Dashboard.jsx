@@ -10,6 +10,7 @@ import CoordinatorUsersWorkspace from "../components/UsersWorkspace.jsx";
 import ReviewWorkspace from "../components/ReviewWorkspace.jsx";
 import TemplatesWorkspace from "../components/TemplatesWorkspace.jsx";
 import ScheduleSynopsis from "../components/ScheduleSynopsis.jsx";
+import DefenseScheduleWorkspace from "../components/DefenseScheduleWorkspace.jsx";
 import ActivityLogWorkspace from "../components/ActivityLogWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import {
@@ -578,7 +579,7 @@ export default function CoordinatorDashboardPage() {
       content = <ScheduleSynopsis />;
       break;
     case "Defense Scheduling":
-      content = <PlaceholderContent title={activeSection} />;
+      content = <DefenseScheduleWorkspace />;
       break;
     case "View Calendar":
       content = <PlaceholderContent title={activeSection} />;

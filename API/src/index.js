@@ -30,6 +30,7 @@ import './models/Message.js';
 import './models/ExtensionRequest.js';
 import './models/VerificationJob.js';
 import './models/AuditLog.js';
+import './models/Defense.js';
 
 // Routers
 import authRouter from './routes/auth.js';
@@ -51,6 +52,8 @@ import supervisorsRouter from './routes/supervisors.js';
 import studentsRouter from './routes/students.js';
 import dashboardRouter from './routes/dashboard.js';
 import activityLogRouter from './routes/activityLog.js';
+import calendarRouter from './routes/calendar.js';
+import availabilityRouter from './routes/availability.js';
 
 const app = express();
 app.use(cors({
@@ -93,6 +96,8 @@ app.use('/supervisors', supervisorsRouter);
 app.use('/students', studentsRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/activity-log', activityLogRouter);
+app.use('/calendar', calendarRouter);
+app.use('/availability', availabilityRouter);
 // Stage-gated researcher submissions (mounted under /stages to avoid conflicts with legacy /submissions)
 app.use('/stages', stageSubmissionsRouter);
 

@@ -7,7 +7,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed": "node src/seed/seed.js",
-    "test": "node tests/smoke.js"
+    "test": "node tests/run.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

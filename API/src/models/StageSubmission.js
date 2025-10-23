@@ -52,6 +52,10 @@ const stageSubmissionSchema = new mongoose.Schema(
       findings: { type: [Object], default: [] }, // { rule, pass, details }
       error: { type: String, default: '' },
     },
+    scheduled_at: { type: Date, default: null },
+    scheduled_end_at: { type: Date, default: null },
+    scheduled_venue: { type: String, default: '' },
+    scheduled_meeting_link: { type: String, default: '' },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }, collection: 'stage_submissions' }
 );
