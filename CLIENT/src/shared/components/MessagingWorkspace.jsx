@@ -45,12 +45,25 @@ function conversationTitle(conversation, currentUserId) {
   const trimmed = (conversation.subject || "").trim();
   if (trimmed) return trimmed;
   if (conversation.project?.title) return conversation.project.title;
-  const others = (conversation.participants || []).filter((p) => toId(p?.user?.id || p?.user) !== currentUserId);
+  
+  // Get unique participants (excluding current user)
+  const others = (conversation.participants || [])
+    .filter((p) => toId(p?.user?.id || p?.user) !== currentUserId)
+    .reduce((acc, p) => {
+      const id = toId(p?.user?.id || p?.user);
+      if (id && !acc.some(existing => toId(existing?.user?.id || existing?.user) === id)) {
+        acc.push(p);
+      }
+      return acc;
+    }, []);
+    
   if (others.length) {
-    return others
+    const names = others
       .map((p) => p?.user?.name || p?.user?.email || p?.role || "Member")
       .filter(Boolean)
-      .join(", ");
+      .filter((name, index, arr) => arr.indexOf(name) === index); // Remove duplicates
+    
+    return names.join(", ");
   }
   return "Conversation";
 }
@@ -120,14 +133,14 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     }
   }, [activeConversation, computedConversations, activeConversationId]);
 
-  const conversationByResearcherId = useMemo(() => {
+  const conversationByUserId = useMemo(() => {
     const map = new Map();
     computedConversations.forEach((conversation) => {
       (conversation.participants || []).forEach((p) => {
         const id = toId(p?.user?.id || p?.user);
-        const roleName = (p?.user?.role || p?.role || "").toLowerCase();
         if (!id || id === currentUserId) return;
-        if (!roleName.includes("researcher")) return;
+        
+        // Map all participants for direct conversations
         if (!map.has(id) || conversation.type === "direct") {
           map.set(id, conversation);
         }
@@ -156,11 +169,13 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
       return uniqueActiveParticipants.slice(0, 4);
     }
     const firstFew = [];
+    const seenIds = new Set();
+    
     computedConversations.forEach((conversation) => {
       dedupeParticipants(conversation.participants || [], currentUserId).forEach((p) => {
         const id = toId(p?.user?.id || p?.user);
-        if (!id || id === currentUserId) return;
-        if (firstFew.some((existing) => toId(existing?.user?.id || existing?.user) === id)) return;
+        if (!id || id === currentUserId || seenIds.has(id)) return;
+        seenIds.add(id);
         firstFew.push(p);
       });
     });
@@ -327,7 +342,7 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     const id = String(researcherId);
     setError(null);
     setSelectedResearcherId(id);
-    const existing = conversationByResearcherId.get(id);
+    const existing = conversationByUserId.get(id);
     if (existing) {
       setActiveConversationId(existing.id);
       return;
@@ -379,13 +394,45 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     }
   }
 
+  async function handleCleanupConversations() {
+    try {
+      const res = await api("/conversations/cleanup", {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Failed to cleanup conversations");
+      // Reload conversations after cleanup
+      window.location.reload();
+    } catch (err) {
+      setError(err.message || "Unable to cleanup conversations");
+    }
+  }
+
+  async function handleDeleteAllMessages() {
+    if (!confirm("Are you sure you want to delete ALL messages and conversations? This action cannot be undone.")) {
+      return;
+    }
+    
+    try {
+      const res = await api("/conversations/all", {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete all messages");
+      // Reload conversations after deletion
+      window.location.reload();
+    } catch (err) {
+      setError(err.message || "Unable to delete all messages");
+    }
+  }
+
   useEffect(() => {
     if (!activeConversationId && activeConversation?.id) {
       setActiveConversationId(activeConversation.id);
     }
   }, [activeConversation, activeConversationId]);
 
-  const participantNames = uniqueActiveParticipants.map((p) => p?.user?.name || p?.user?.email || p?.role || roleLabel);
+  const participantNames = uniqueActiveParticipants
+    .map((p) => p?.user?.name || p?.user?.email || p?.role || roleLabel)
+    .filter((name, index, arr) => arr.indexOf(name) === index); // Remove duplicates
 
   const lastSeen = useMemo(() => {
     if (!activeConversation?.last_message_at) return "";
@@ -402,18 +449,32 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
   return (
     <div className="flex h-full min-h-[600px] w-full overflow-hidden rounded-[32px] bg-[#f4f6fb]">
       <aside className="hidden w-[320px] flex-col border-r border-[#e0e7ff] bg-white/90 md:flex">
-        <div className="px-6 pb-4 pt-6">
-          <div className="relative">
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search researchers"
-              className="w-full rounded-[18px] border border-[#e3e8f6] bg-[#f7f9ff] px-4 py-2 text-sm text-[#0a1f44] placeholder:text-[#9aa3ba] focus:border-[#2f5eff] focus:outline-none focus:ring-2 focus:ring-[#dbe4ff]"
-            />
-            <span className="pointer-events-none absolute right-4 top-1/2 block -translate-y-1/2 text-xs text-[#9aa3ba]">?</span>
-          </div>
-        </div>
+         <div className="px-6 pb-4 pt-6">
+           <div className="relative">
+             <input
+               type="search"
+               value={searchTerm}
+               onChange={(event) => setSearchTerm(event.target.value)}
+               placeholder="Search by name, email, or ID..."
+               className="w-full rounded-[18px] border border-[#e3e8f6] bg-[#f7f9ff] px-4 py-2 text-sm text-[#0a1f44] placeholder:text-[#9aa3ba] focus:border-[#2f5eff] focus:outline-none focus:ring-2 focus:ring-[#dbe4ff]"
+             />
+             <span className="pointer-events-none absolute right-4 top-1/2 block -translate-y-1/2 text-xs text-[#9aa3ba]">?</span>
+           </div>
+           <div className="mt-2 space-y-1">
+             <button
+               onClick={handleCleanupConversations}
+               className="w-full rounded-[12px] bg-[#f0f4ff] px-3 py-1 text-xs font-medium text-[#2f5eff] hover:bg-[#e6edff] transition"
+             >
+               Fix Group Conversations
+             </button>
+             <button
+               onClick={handleDeleteAllMessages}
+               className="w-full rounded-[12px] bg-[#fee2e2] px-3 py-1 text-xs font-medium text-[#dc2626] hover:bg-[#fecaca] transition"
+             >
+               Delete All Messages
+             </button>
+           </div>
+         </div>
 
         {spotlightParticipants.length > 0 && (
           <div className="flex items-center gap-4 px-6 pb-4">
@@ -432,65 +493,74 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
         )}
 
         <div className="flex-1 overflow-y-auto px-2 pb-6">
-          <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3ba]">Researchers</p>
-          <div className="space-y-1">
-            {isLoadingResearchers ? (
-              <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
-                Loading researchers.
+          {searchTerm.trim() ? (
+            <>
+              <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3ba]">Search Results</p>
+              <div className="space-y-1">
+                {isLoadingResearchers ? (
+                  <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
+                    Searching...
+                  </div>
+                ) : filteredResearchers.length === 0 ? (
+                  <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
+                    No matches found
+                  </div>
+                ) : (
+                   filteredResearchers.map((researcher) => {
+                     const conversation = conversationByUserId.get(researcher.id);
+                    const isActive = selectedResearcherId === researcher.id;
+                    const lastTimestamp =
+                      conversation?.lastTimestamp ||
+                      conversation?.last_message?.created_at ||
+                      conversation?.last_message_at ||
+                      null;
+                    const preview = conversation?.last_message?.preview || conversation?.last_message?.body || "Start chatting";
+                    const isPending = creatingConversation && selectedResearcherId === researcher.id;
+                    const label = researcher.name || researcher.email || researcher.studentId || "Contact";
+                    return (
+                      <button
+                        key={researcher.id}
+                        type="button"
+                        onClick={() => handleSelectResearcher(researcher.id)}
+                        disabled={isPending}
+                        className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left transition ${
+                          isActive ? "bg-[#2f5eff] text-white shadow" : "bg-white text-[#1f2a44] hover:bg-[#eef2ff]"
+                        }`}
+                      >
+                        <span
+                          className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-full border ${
+                            isActive ? "border-white bg-[#3f6aff]" : "border-[#e0e7ff] bg-[#eef2ff]"
+                          } text-sm font-semibold`}
+                        >
+                          {initials(label)}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className={`truncate text-sm font-semibold ${isActive ? "text-white" : "text-[#0a1f44]"}`}>
+                              {label}
+                            </p>
+                            {lastTimestamp && (
+                              <span className={`text-[10px] uppercase ${isActive ? "text-white/70" : "text-[#9aa3ba]"}`}>
+                                {formatShortTime(lastTimestamp)}
+                              </span>
+                            )}
+                          </div>
+                          <p className={`mt-1 line-clamp-2 text-xs ${isActive ? "text-white/80" : "text-[#6b7795]"}`}>
+                            {isPending ? "Opening conversation..." : preview}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
               </div>
-            ) : filteredResearchers.length === 0 ? (
-              <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
-                {researchers.length === 0 ? emptyStateTitle : "No matches found"}
-              </div>
-            ) : (
-              filteredResearchers.map((researcher) => {
-                const conversation = conversationByResearcherId.get(researcher.id);
-                const isActive = selectedResearcherId === researcher.id;
-                const lastTimestamp =
-                  conversation?.lastTimestamp ||
-                  conversation?.last_message?.created_at ||
-                  conversation?.last_message_at ||
-                  null;
-                const preview = conversation?.last_message?.preview || conversation?.last_message?.body || "Start chatting";
-                const isPending = creatingConversation && selectedResearcherId === researcher.id;
-                const label = researcher.name || researcher.email || researcher.studentId || "Researcher";
-                return (
-                  <button
-                    key={researcher.id}
-                    type="button"
-                    onClick={() => handleSelectResearcher(researcher.id)}
-                    disabled={isPending}
-                    className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left transition ${
-                      isActive ? "bg-[#2f5eff] text-white shadow" : "bg-white text-[#1f2a44] hover:bg-[#eef2ff]"
-                    }`}
-                  >
-                    <span
-                      className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-full border ${
-                        isActive ? "border-white bg-[#3f6aff]" : "border-[#e0e7ff] bg-[#eef2ff]"
-                      } text-sm font-semibold`}
-                    >
-                      {initials(label)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className={`truncate text-sm font-semibold ${isActive ? "text-white" : "text-[#0a1f44]"}`}>
-                          {label}
-                        </p>
-                        {lastTimestamp && (
-                          <span className={`text-[10px] uppercase ${isActive ? "text-white/70" : "text-[#9aa3ba]"}`}>
-                            {formatShortTime(lastTimestamp)}
-                          </span>
-                        )}
-                      </div>
-                      <p className={`mt-1 line-clamp-2 text-xs ${isActive ? "text-white/80" : "text-[#6b7795]"}`}>
-                        {isPending ? "Opening conversation..." : preview}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-8 text-center text-sm text-[#687193]">
+              <p className="mb-2 font-medium">Search to find contacts</p>
+              <p className="text-xs">Type a name, email, or ID to search for people you can message</p>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -534,11 +604,11 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
 
           {isInitialMessagesLoad ? (
             <div className="rounded-[18px] border border-dashed border-[#d7def3] bg-white px-6 py-8 text-center text-sm text-[#6b7795]">
-              Loading messages�
+              Loading messages...�
             </div>
           ) : messages.length === 0 ? (
             <div className="rounded-[18px] border border-dashed border-[#d7def3] bg-white px-6 py-12 text-center text-sm text-[#6b7795]">
-              {activeConversation?.id ? "No messages yet. Say hello!" : "Pick a researcher from the left to start messaging."}
+              {activeConversation?.id ? "No messages yet. Say hello!" : "Search for a contact to start messaging."}
             </div>
           ) : (
             <div className="space-y-4">
@@ -578,7 +648,7 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
             <textarea
               value={messageBody}
               onChange={(event) => setMessageBody(event.target.value)}
-              placeholder={activeConversation?.id ? "Write a text here" : "Select a researcher to start messaging"}
+              placeholder={activeConversation?.id ? "Write a message..." : "Search for a contact to start messaging"}
               disabled={!activeConversation?.id}
               className="h-12 w-full resize-none bg-transparent text-sm text-[#0a1f44] placeholder:text-[#9aa3ba] focus:outline-none"
             />
