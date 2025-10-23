@@ -171,9 +171,9 @@ export const footer = {
     "2:00 PM - 5:00 PM",
   ],
   pages: [
-    { label: "Home", href: "#home" },
-    { label: "Features", href: "#features" },
-    { label: "About Us", href: "#about" },
+    { label: "Home", href: "/" },
+    { label: "Features", href: "/#features" },
+    { label: "About Us", href: "/#about" },
     { label: "Contact Us", href: "/contact" },
   ],
   contact: {
