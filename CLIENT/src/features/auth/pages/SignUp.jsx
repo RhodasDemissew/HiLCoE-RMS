@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../../shared/components/ui/Button.jsx";
 import { api } from "../../../api/client.js";
+import { validateEmail, validatePhone, validatePassword, validateConfirmPassword } from "../../../shared/utils/validation.js";
 
 export default function SignUp({ defaults, onBack, onLogin }) {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ export default function SignUp({ defaults, onBack, onLogin }) {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,28 +44,79 @@ export default function SignUp({ defaults, onBack, onLogin }) {
     const { value } = event.target;
     const field = event.target.dataset.field || event.target.name;
     setForm((prev) => ({ ...prev, [field]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  }
+
+  function handleBlur(event) {
+    const field = event.target.dataset.field || event.target.name;
+    setTouched(prev => ({ ...prev, [field]: true }));
+    
+    // Validate field on blur
+    validateField(field, form[field]);
+  }
+
+  function validateField(fieldName, value) {
+    let error = '';
+    
+    switch (fieldName) {
+      case 'email':
+        const emailResult = validateEmail(value);
+        error = emailResult.message;
+        break;
+      case 'phone':
+        if (value.trim()) {
+          const phoneResult = validatePhone(value);
+          error = phoneResult.message;
+        }
+        break;
+      case 'password':
+        const passwordResult = validatePassword(value);
+        error = passwordResult.message;
+        break;
+      case 'confirmPassword':
+        const confirmPasswordResult = validateConfirmPassword(form.password, value);
+        error = confirmPasswordResult.message;
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(prev => ({ ...prev, [fieldName]: error }));
+    return !error;
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
     setInfo("");
 
     if (!verificationToken) {
-      setError("Verification required before sign up.");
+      setErrors({ general: "Verification required before sign up." });
       return;
     }
 
-    if (!form.email.includes("@")) {
-      setError("Enter a valid email address.");
-      return;
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      password: true,
+      confirmPassword: true
+    });
+    
+    // Validate all fields
+    const isEmailValid = validateField('email', form.email);
+    const isPasswordValid = validateField('password', form.password);
+    const isConfirmPasswordValid = validateField('confirmPassword', form.confirmPassword);
+    
+    // Validate phone if provided
+    let isPhoneValid = true;
+    if (form.phone.trim()) {
+      isPhoneValid = validateField('phone', form.phone);
     }
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
+    
+    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid || !isPhoneValid) {
       return;
     }
 
@@ -87,7 +140,7 @@ export default function SignUp({ defaults, onBack, onLogin }) {
       setInfo("Account created successfully. Redirecting to login...");
       setTimeout(() => navigate("/login", { state: { message: 'Account created successfully. Please login.' } }), 1500);
     } catch (err) {
-      setError(err.message || "Sign up error");
+      setErrors({ general: err.message || "Sign up error" });
     } finally {
       setLoading(false);
     }
@@ -156,16 +209,27 @@ export default function SignUp({ defaults, onBack, onLogin }) {
               <input
                 id="phone"
                 name="phone"
+                data-field="phone"
                 value={form.phone}
                 onChange={handleChange}
-                placeholder="Enter phone"
-                className={inputClasses}
+                onBlur={handleBlur}
+                placeholder="+251993802012"
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.phone && errors.phone 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.phone && errors.phone ? (
+                <p className="text-sm text-red-500">{errors.phone}</p>
+              ) : (
+                <p className="text-sm text-[color:var(--neutral-500)]">Enter Ethiopian phone number with +251 country code (e.g., +251993802012)</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-sm font-medium text-[color:var(--neutral-700)]">
-                Email Address
+                Email Address <span className="text-red-500">*</span>
               </label>
               <input
                 id="email"
@@ -175,14 +239,22 @@ export default function SignUp({ defaults, onBack, onLogin }) {
                 autoComplete="off"
                 value={form.email}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="you@example.com"
-                className={inputClasses}
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.email && errors.email 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.email && errors.email && (
+                <p className="text-sm text-red-500">{errors.email}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="password" className="text-sm font-medium text-[color:var(--neutral-700)]">
-                Password
+                Password <span className="text-red-500">*</span>
               </label>
               <input
                 id="password"
@@ -192,14 +264,22 @@ export default function SignUp({ defaults, onBack, onLogin }) {
                 autoComplete="new-password"
                 value={form.password}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Create a password"
-                className={inputClasses}
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.password && errors.password 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.password && errors.password && (
+                <p className="text-sm text-red-500">{errors.password}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium text-[color:var(--neutral-700)]">
-                Confirm Password
+                Confirm Password <span className="text-red-500">*</span>
               </label>
               <input
                 id="confirmPassword"
@@ -209,13 +289,21 @@ export default function SignUp({ defaults, onBack, onLogin }) {
                 autoComplete="new-password"
                 value={form.confirmPassword}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="Re-enter password"
-                className={inputClasses}
+                className={`h-12 rounded-[14px] border px-4 text-[color:var(--neutral-800)] shadow-sm outline-none transition focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)] ${
+                  touched.confirmPassword && errors.confirmPassword 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-[color:var(--neutral-200)] focus:border-[color:var(--brand-600)]'
+                }`}
               />
+              {touched.confirmPassword && errors.confirmPassword && (
+                <p className="text-sm text-red-500">{errors.confirmPassword}</p>
+              )}
             </div>
           </div>
 
-          {error && <p className="mt-4 text-sm font-medium text-red-500">{error}</p>}
+          {errors.general && <p className="mt-4 text-sm font-medium text-red-500">{errors.general}</p>}
           {info && <p className="mt-4 text-sm font-medium text-[color:var(--brand-600)]">{info}</p>}
 
           <Button
