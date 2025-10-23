@@ -10,6 +10,7 @@ import CoordinatorUsersWorkspace from "../components/UsersWorkspace.jsx";
 import ReviewWorkspace from "../components/ReviewWorkspace.jsx";
 import TemplatesWorkspace from "../components/TemplatesWorkspace.jsx";
 import ScheduleSynopsis from "../components/ScheduleSynopsis.jsx";
+import ActivityLogWorkspace from "../components/ActivityLogWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import {
   coordinatorActivity,
@@ -404,6 +405,8 @@ export default function CoordinatorDashboardPage() {
   const [user, setUser] = useState({ name: "Dr Mesfin", role: "Coordinator" });
   const [userLoading, setUserLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -422,6 +425,29 @@ export default function CoordinatorDashboardPage() {
       }
     }
     loadProfile();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Load dashboard statistics
+  useEffect(() => {
+    let mounted = true;
+    async function loadStats() {
+      try {
+        setStatsLoading(true);
+        const res = await api('/dashboard/statistics');
+        const data = await res.json().catch(() => null);
+        if (mounted && res.ok && data) {
+          setDashboardStats(data);
+        }
+      } catch (error) {
+        console.warn('Dashboard stats fetch failed', error);
+      } finally {
+        if (mounted) setStatsLoading(false);
+      }
+    }
+    loadStats();
     return () => {
       mounted = false;
     };
@@ -488,15 +514,38 @@ export default function CoordinatorDashboardPage() {
     []
   );
 
+  // Create dynamic summary data from API or fallback to mock data
+  const dynamicSummary = dashboardStats ? [
+    { 
+      label: "Researchers", 
+      value: dashboardStats.researchers.total, 
+      trend: `+${dashboardStats.researchers.trend}`, 
+      icon: coordinatorSummary[0].icon 
+    },
+    { 
+      label: "Supervisors", 
+      value: dashboardStats.supervisors.total, 
+      trend: `+${dashboardStats.supervisors.trend}`, 
+      icon: coordinatorSummary[1].icon 
+    },
+    { 
+      label: "Active Research", 
+      value: dashboardStats.activeResearch.total, 
+      trend: `+${dashboardStats.activeResearch.trend}`, 
+      icon: coordinatorSummary[2].icon 
+    }
+  ] : coordinatorSummary;
+
   const workspaceProps = {
-    summary: coordinatorSummary,
-    activity: coordinatorActivity,
+    summary: dynamicSummary,
+    activity: dashboardStats?.recentActivity || coordinatorActivity,
     events: coordinatorEvents,
     messages: coordinatorMessages,
     performance: performanceData,
     researchLabels: coordinatorResearchLabels,
     researchSeries: coordinatorResearchSeries,
     user,
+    statsLoading,
   };
 
   let content;
@@ -509,6 +558,9 @@ export default function CoordinatorDashboardPage() {
       break;
     case "Research Stats":
       content = <ReviewWorkspace />;
+      break;
+    case "Activity Log":
+      content = <ActivityLogWorkspace />;
       break;
     case "Templates":
       content = <TemplatesWorkspace />;
