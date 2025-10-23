@@ -96,6 +96,8 @@ export const messagingService = {
     const participants = [];
     if (project.researcher) participants.push({ user: project.researcher._id, role: project.researcher.role?.name || 'Researcher' });
     if (project.advisor) participants.push({ user: project.advisor._id, role: project.advisor.role?.name || 'Advisor' });
+    
+    // Only add coordinators to project conversations, not direct conversations
     const coordinators = await ensureCoordinatorParticipants();
     participants.push(...coordinators);
 
@@ -138,35 +140,53 @@ export const messagingService = {
     if (!targetUser) throw new Error('user not found');
     if (!actorUser) throw new Error('actor not found');
     if (String(targetUser._id) === String(actorUser._id)) throw new Error('cannot start a conversation with yourself');
-    if ((targetUser.role?.name || '').toLowerCase() !== 'researcher') throw new Error('user is not a researcher');
     if (targetUser.status && targetUser.status !== 'active') throw new Error('user is not active');
 
-    const coordinatorParticipants = await ensureCoordinatorParticipants();
-    const baseParticipants = [
+    // Role-based messaging rules
+    const actorRole = (actorUser.role?.name || '').toLowerCase();
+    const targetRole = (targetUser.role?.name || '').toLowerCase();
+    
+    // Researchers can only talk to supervisors/advisors
+    if (actorRole === 'researcher') {
+      if (targetRole !== 'supervisor' && targetRole !== 'advisor') {
+        throw new Error('Researchers can only message their supervisors');
+      }
+    }
+    
+    // Coordinators and Supervisors can talk to each other and researchers
+    if (actorRole === 'coordinator' || actorRole === 'supervisor' || actorRole === 'advisor') {
+      if (targetRole !== 'researcher' && targetRole !== 'coordinator' && targetRole !== 'supervisor' && targetRole !== 'advisor') {
+        throw new Error('Invalid messaging target for your role');
+      }
+    }
+
+    // Build participants for direct conversation only
+    let participants = [
       { user: targetUser._id, role: targetUser.role?.name || '' },
       { user: actorUser._id, role: actorUser.role?.name || '' },
-      ...coordinatorParticipants,
     ];
-    const participants = dedupeParticipantEntries(baseParticipants);
+
+    const dedupedParticipants = dedupeParticipantEntries(participants);
 
     let conversation = await conversationRepo.findDirectBetween([actorId, targetUserId]);
     if (conversation) {
-      const existing = new Set(conversation.participants.map((p) => String(p.user)));
-      let changed = false;
-      for (const part of participants) {
-        if (!existing.has(String(part.user))) {
-          conversation.participants.push(part);
-          changed = true;
-        }
+      // For direct conversations, ensure we only have the two participants
+      const expectedParticipants = new Set([String(actorId), String(targetUserId)]);
+      const currentParticipants = new Set(conversation.participants.map((p) => String(p.user)));
+      
+      // If conversation has extra participants, clean it up
+      if (currentParticipants.size > 2 || !expectedParticipants.has(String(actorId)) || !expectedParticipants.has(String(targetUserId))) {
+        conversation.participants = dedupedParticipants;
+        await conversation.save();
       }
-      if (changed) await conversation.save();
+      
       return conversationRepo.findByIdForUser(conversation._id, actorId);
     }
 
     conversation = await conversationRepo.create({
       type: 'direct',
       subject: '',
-      participants,
+      participants: dedupedParticipants,
       created_by: participants.find((p) => String(p.user) === String(actorId))?.user || participants[0].user,
     });
 
@@ -187,10 +207,34 @@ export const messagingService = {
   },
 
   async listResearcherTargets(actorId, searchTerm = '') {
-    const researchers = await userRepo.findActiveByRoleName('Researcher');
+    const actorUser = await userRepo.findById(actorId);
+    if (!actorUser) throw new Error('actor not found');
+    
+    const actorRole = (actorUser.role?.name || '').toLowerCase();
     const q = (searchTerm || '').trim().toLowerCase();
     const actorIdStr = actorId ? String(actorId) : '';
-    const filtered = researchers
+    
+    let targetUsers = [];
+    
+    // Role-based target selection
+    if (actorRole === 'researcher') {
+      // Researchers can only see supervisors/advisors
+      const supervisors = await userRepo.findActiveByRoleName('Supervisor');
+      const advisors = await userRepo.findActiveByRoleName('Advisor');
+      targetUsers = [...supervisors, ...advisors];
+    } else if (actorRole === 'coordinator' || actorRole === 'supervisor' || actorRole === 'advisor') {
+      // Coordinators and supervisors can see researchers and other coordinators/supervisors
+      const researchers = await userRepo.findActiveByRoleName('Researcher');
+      const supervisors = await userRepo.findActiveByRoleName('Supervisor');
+      const advisors = await userRepo.findActiveByRoleName('Advisor');
+      const coordinators = await userRepo.findActiveByRoleName('Coordinator');
+      targetUsers = [...researchers, ...supervisors, ...advisors, ...coordinators];
+    } else {
+      // Default to researchers for unknown roles
+      targetUsers = await userRepo.findActiveByRoleName('Researcher');
+    }
+    
+    const filtered = targetUsers
       .filter((user) => String(user._id) !== actorIdStr)
       .filter((user) => {
         if (!q) return true;
@@ -376,6 +420,31 @@ export const messagingService = {
       kind,
       meta,
     });
+  },
+
+  async cleanupDirectConversations() {
+    // Find all direct conversations that have more than 2 participants
+    const conversations = await conversationRepo.listForUser(null);
+    const directConversations = conversations.filter(conv => conv.type === 'direct');
+    
+    for (const conv of directConversations) {
+      if (conv.participants.length > 2) {
+        // Keep only the first two participants (original participants)
+        const originalParticipants = conv.participants.slice(0, 2);
+        conv.participants = originalParticipants;
+        await conv.save();
+      }
+    }
+  },
+
+  async deleteAllMessages() {
+    // Delete all messages
+    await messageRepo.deleteAll();
+    
+    // Delete all conversations
+    await conversationRepo.deleteAll();
+    
+    return { message: 'All messages and conversations deleted successfully' };
   },
 };
 
