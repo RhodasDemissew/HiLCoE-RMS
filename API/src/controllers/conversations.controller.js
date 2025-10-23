@@ -91,4 +91,22 @@ export const conversationsController = {
     }
   },
 
+  cleanup: async (req, res) => {
+    try {
+      await messagingService.cleanupDirectConversations();
+      res.json({ message: 'Direct conversations cleaned up successfully' });
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'failed to cleanup conversations' });
+    }
+  },
+
+  deleteAll: async (req, res) => {
+    try {
+      const result = await messagingService.deleteAllMessages();
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'failed to delete all messages' });
+    }
+  },
+
 };
