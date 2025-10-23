@@ -49,6 +49,8 @@ import stageSubmissionsRouter from './routes/stageSubmissions.js';
 import studentVerificationsRouter from './routes/studentVerifications.js';
 import supervisorsRouter from './routes/supervisors.js';
 import studentsRouter from './routes/students.js';
+import dashboardRouter from './routes/dashboard.js';
+import activityLogRouter from './routes/activityLog.js';
 
 const app = express();
 app.use(cors({
@@ -89,6 +91,8 @@ app.use('/verifications', verificationsRouter);
 app.use('/student-verifications', studentVerificationsRouter);
 app.use('/supervisors', supervisorsRouter);
 app.use('/students', studentsRouter);
+app.use('/dashboard', dashboardRouter);
+app.use('/activity-log', activityLogRouter);
 // Stage-gated researcher submissions (mounted under /stages to avoid conflicts with legacy /submissions)
 app.use('/stages', stageSubmissionsRouter);
 
