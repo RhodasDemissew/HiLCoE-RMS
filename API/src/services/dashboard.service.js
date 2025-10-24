@@ -2,6 +2,8 @@ import { User } from '../models/User.js';
 import { Project } from '../models/Project.js';
 import { StudentVerification } from '../models/StudentVerification.js';
 import { Role } from '../models/Role.js';
+import { StageSubmission } from '../models/StageSubmission.js';
+import { STAGE_ORDER } from '../constants/stages.js';
 import { activityLogService } from './activityLog.service.js';
 
 export const dashboardService = {
@@ -103,6 +105,40 @@ export const dashboardService = {
     } catch (error) {
       console.error('Error fetching dashboard statistics:', error);
       throw new Error('Failed to fetch dashboard statistics');
+    }
+  },
+
+  async getSubmissionsByStage() {
+    try {
+      // Get submission counts for each stage
+      const stageCounts = await StageSubmission.aggregate([
+        {
+          $group: {
+            _id: '$stage_index',
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { _id: 1 }
+        }
+      ]);
+
+      // Create a map of stage index to count
+      const stageCountMap = {};
+      stageCounts.forEach(item => {
+        stageCountMap[item._id] = item.count;
+      });
+
+      // Map to stage names with counts
+      const submissionsByStage = STAGE_ORDER.map((stageName, index) => ({
+        stage: stageName,
+        count: stageCountMap[index] || 0
+      }));
+
+      return submissionsByStage;
+    } catch (error) {
+      console.error('Error fetching submissions by stage:', error);
+      throw new Error('Failed to fetch submissions by stage');
     }
   }
 };
