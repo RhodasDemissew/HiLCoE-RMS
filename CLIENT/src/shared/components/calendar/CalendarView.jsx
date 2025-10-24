@@ -213,6 +213,19 @@ export default function CalendarView({ role, currentUserId, onEventsLoaded }) {
     return Array.from(out);
   }, [eventData]);
 
+  const upcomingEvents = useMemo(() => {
+    const now = dayjs().tz(TZ);
+    return eventData
+      .filter((event) => {
+        if (!event?.start) return false;
+        const start = dayjs(event.start);
+        if (!start.isValid()) return false;
+        return start.isAfter(now) || start.isSame(now, "minute");
+      })
+      .sort((a, b) => dayjs(a.start).diff(dayjs(b.start)))
+      .slice(0, 5);
+  }, [eventData]);
+
   const calendarEvents = useMemo(
     () =>
       eventData.map((event) => ({
@@ -457,6 +470,53 @@ export default function CalendarView({ role, currentUserId, onEventsLoaded }) {
             {actionError || actionMessage}
           </div>
         )}
+
+        <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">Upcoming events</h2>
+            <span className="text-xs text-[color:var(--neutral-400)]">
+              {upcomingEvents.length ? `Showing next ${upcomingEvents.length} event${upcomingEvents.length > 1 ? "s" : ""}` : "Nothing scheduled"}
+            </span>
+          </div>
+          {upcomingEvents.length ? (
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {upcomingEvents.map((event) => {
+                const start = dayjs(event.start).tz(TZ);
+                const startLabel = start.isValid() ? start.format("MMM D, YYYY · HH:mm") : "Date TBD";
+                return (
+                  <li key={event.id} className="rounded-2xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] p-4 transition hover:border-[color:var(--brand-300)] hover:bg-white">
+                    <button
+                      type="button"
+                      className="w-full text-left"
+                      onClick={() => setSelectedEvent(event)}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{event.title}</p>
+                        <span
+                          className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white"
+                          style={{ backgroundColor: eventColor(event.typeKey) }}
+                        >
+                          {event.typeKey || "event"}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs font-medium text-[color:var(--neutral-600)]">{startLabel} (UTC+3)</p>
+                      {event.venue ? (
+                        <p className="mt-1 text-xs text-[color:var(--neutral-500)]">Venue: {event.venue}</p>
+                      ) : null}
+                      {event.link ? (
+                        <p className="mt-1 text-xs text-[color:var(--brand-600)]">Online link available</p>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="mt-3 rounded-2xl border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] p-6 text-sm text-[color:var(--neutral-500)]">
+              No upcoming events in the selected range.
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="rounded-3xl bg-white p-2 shadow-soft">
