@@ -7,6 +7,7 @@ import {
   DefenseUpdateDto,
   DefenseDuplicateDto,
   DefenseRespondDto,
+  DefenseRequestChangeDto,
   DefenseListQuery,
   DefenseAvailabilityQuery,
   DefenseIdParams,
@@ -23,6 +24,7 @@ router.post('/', requireRole('Coordinator', 'Admin'), validate({ body: DefenseCr
 router.patch('/:id', requireRole('Coordinator', 'Admin'), validate({ params: DefenseIdParams, body: DefenseUpdateDto }), defenseController.update);
 router.delete('/:id', requireRole('Coordinator', 'Admin'), validate({ params: DefenseIdParams }), defenseController.cancel);
 router.post('/:id/duplicate', requireRole('Coordinator', 'Admin'), validate({ params: DefenseIdParams, body: DefenseDuplicateDto }), defenseController.duplicate);
+router.post('/:id/request-change', requireRole('Researcher'), validate({ params: DefenseIdParams, body: DefenseRequestChangeDto }), defenseController.requestChange);
 router.post('/:id/respond', validate({ params: DefenseIdParams, body: DefenseRespondDto }), defenseController.respond);
 
 export default router;

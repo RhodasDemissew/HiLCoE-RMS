@@ -1,10 +1,20 @@
 import fs from 'fs';
-import { getFileStream } from '../services/storageService.js';
+import mongoose from 'mongoose';
 import dayjs from 'dayjs';
+import { getFileStream } from '../services/storageService.js';
 import { getOrCreateProgress, getAllStageTemplateUrls, isStageUnlocked, getStageStatus } from '../services/researcherProgress.service.js';
 import { runFormatCheck } from '../services/formatChecker.service.js';
-import { STAGE_ORDER } from '../constants/stages.js';
-import { stageUploadMiddleware, createStageSubmission, listStageSubmissions, reviewSubmission, getSubmissionById, listStageSubmissionsForCoordinator } from '../services/stageSubmissions.service.js';
+import { STAGE_ORDER, SUBMISSION_STATUSES } from '../constants/stages.js';
+import { StageSubmission } from '../models/StageSubmission.js';
+import { Defense } from '../models/Defense.js';
+import {
+  stageUploadMiddleware,
+  createStageSubmission,
+  listStageSubmissions,
+  reviewSubmission,
+  getSubmissionById,
+  listStageSubmissionsForCoordinator,
+} from '../services/stageSubmissions.service.js';
 
 function serializeSubmission(doc) {
   return {
@@ -42,6 +52,154 @@ function serializeSubmission(doc) {
 }
 
 export const researcherStagesController = {
+  dashboardOverview: async (req, res) => {
+    try {
+      const researcherId = req.user?.id;
+      if (!researcherId) throw new Error('User context missing');
+      if (!mongoose.Types.ObjectId.isValid(researcherId)) throw new Error('Invalid researcher identifier');
+
+      const objectId = new mongoose.Types.ObjectId(researcherId);
+      const statusBuckets = await StageSubmission.aggregate([
+        { $match: { researcher: objectId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]);
+
+      const pendingStatuses = [
+        SUBMISSION_STATUSES.UNDER_REVIEW,
+        SUBMISSION_STATUSES.AWAITING_COORDINATOR,
+      ];
+      const attentionStatuses = [
+        SUBMISSION_STATUSES.NEEDS_CHANGES,
+        SUBMISSION_STATUSES.REJECTED,
+      ];
+
+      const kpis = {
+        totalSubmissions: 0,
+        pendingReviews: 0,
+        approved: 0,
+        needsAttention: 0,
+      };
+
+      statusBuckets.forEach((bucket) => {
+        const status = bucket?._id;
+        const count = bucket?.count || 0;
+        if (!status || !count) return;
+        kpis.totalSubmissions += count;
+        if (pendingStatuses.includes(status)) {
+          kpis.pendingReviews += count;
+        }
+        if (status === SUBMISSION_STATUSES.APPROVED) {
+          kpis.approved += count;
+        }
+        if (attentionStatuses.includes(status)) {
+          kpis.needsAttention += count;
+        }
+      });
+
+      const progress = await getOrCreateProgress(researcherId);
+      const totalStages = STAGE_ORDER.length || 1;
+      const milestones = STAGE_ORDER.map((name, index) => {
+        const statusInfo = getStageStatus(progress, index);
+        let statusLabel = 'Pending';
+        let percent = 0;
+        let daysLeft = null;
+
+        if (statusInfo === 'completed' || index < progress.current_stage_index) {
+          statusLabel = 'Completed';
+          percent = 100;
+        } else if (statusInfo === 'current') {
+          statusLabel = 'In Progress';
+          percent = Math.max(10, Math.round((index / totalStages) * 100));
+        } else if (typeof statusInfo === 'object' && statusInfo) {
+          if (statusInfo.state === 'resubmit') {
+            statusLabel = statusInfo.daysLeft != null
+              ? `Resubmit (${statusInfo.daysLeft}d left)`
+              : 'Resubmit';
+            daysLeft = statusInfo.daysLeft ?? null;
+          } else {
+            statusLabel = 'In Progress';
+          }
+          percent = Math.max(10, Math.round((index / totalStages) * 100));
+        } else {
+          statusLabel = 'Pending';
+          percent = 0;
+        }
+
+        const safePercent = Math.max(0, Math.min(100, percent));
+
+        return {
+          label: name,
+          index,
+          status: statusLabel,
+          percent: safePercent,
+          daysLeft,
+        };
+      });
+
+      const now = new Date();
+
+      const defenses = await Defense.find({
+        candidate: objectId,
+        status: { $ne: 'cancelled' },
+        start_at: { $gte: now },
+      })
+        .sort({ start_at: 1 })
+        .limit(3)
+        .select('title start_at end_at venue meeting_link modality status buffer_mins');
+
+      const synopsis = await StageSubmission.findOne({
+        researcher: objectId,
+        stage_index: 0,
+        scheduled_at: { $gte: now },
+      })
+        .sort({ scheduled_at: 1 })
+        .select('title scheduled_at scheduled_end_at scheduled_venue scheduled_meeting_link status');
+
+      const upcoming = [];
+
+      if (synopsis?.scheduled_at) {
+        upcoming.push({
+          id: `synopsis:${synopsis._id}`,
+          type: 'synopsis',
+          title: synopsis.title || 'Synopsis Review',
+          startAt: synopsis.scheduled_at,
+          endAt: synopsis.scheduled_end_at,
+          venue: synopsis.scheduled_venue || '',
+          link: synopsis.scheduled_meeting_link || '',
+          status: synopsis.status || '',
+        });
+      }
+
+      defenses.forEach((defense) => {
+        upcoming.push({
+          id: `defense:${defense._id}`,
+          type: 'defense',
+          title: defense.title,
+          startAt: defense.start_at,
+          endAt: defense.end_at,
+          venue: defense.venue || '',
+          link: defense.meeting_link || '',
+          modality: defense.modality || '',
+          status: defense.status || '',
+          bufferMins: defense.buffer_mins,
+        });
+      });
+
+      upcoming.sort((a, b) => {
+        const aTime = a?.startAt ? new Date(a.startAt).getTime() : Number.MAX_SAFE_INTEGER;
+        const bTime = b?.startAt ? new Date(b.startAt).getTime() : Number.MAX_SAFE_INTEGER;
+        return aTime - bTime;
+      });
+
+      res.json({
+        kpis,
+        milestones,
+        upcoming,
+      });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
   progress: async (req, res) => {
     try {
       const progress = await getOrCreateProgress(req.user.id);

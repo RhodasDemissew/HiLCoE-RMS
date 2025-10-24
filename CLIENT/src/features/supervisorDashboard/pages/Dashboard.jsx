@@ -5,6 +5,7 @@ import logoImage from "../../../assets/images/logo.png";
 import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
 import SupervisorDashboardWorkspace from "../components/DashboardWorkspace.jsx";
+import SupervisorScheduleWorkspace from "../components/ScheduleWorkspace.jsx";
 import ReviewWorkspace from "../../coordinatorDashboard/components/ReviewWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import { supNav } from "../content.js";
@@ -309,7 +310,7 @@ export default function SupervisorDashboardPage() {
       content = <ReviewWorkspace hideSynopsis />;
       break;
     case "Schedule":
-      content = <PlaceholderContent title={activeSection} />;
+      content = <SupervisorScheduleWorkspace user={user} />;
       break;
     case "Message":
       content = (

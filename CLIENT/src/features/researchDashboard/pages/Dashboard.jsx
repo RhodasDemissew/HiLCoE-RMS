@@ -8,6 +8,7 @@ import logoImage from "../../../assets/images/logo.png";
 import SubmissionWorkspace from "../components/SubmissionWorkspace.jsx";
 import MyResearchWorkspace from "../components/MyResearchWorkspace.jsx";
 import DashboardWorkspace from "../components/DashboardWorkspace.jsx";
+import ResearchScheduleWorkspace from "../components/ScheduleWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import {
   dashboardNavItems,
@@ -150,7 +151,7 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
     if (p.name) parts.push(p.name);
     if (p.stage) parts.push(`Stage: ${p.stage}`);
     if (p.status) parts.push(`Status: ${p.status}`);
-    const desc = parts.join(' • ');
+    const desc = parts.join(' - ');
     const time = n.created_at ? new Date(n.created_at).toLocaleString() : '';
     const actorName = p.actor_name || '';
     const actorInitials = (actorName.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => (s[0] || '').toUpperCase()).join('')) || '';
@@ -399,6 +400,11 @@ export default function ResearcherDashboard() {
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [kpiCards, setKpiCards] = useState(dashboardKpiCards);
+  const [milestones, setMilestones] = useState(dashboardMilestones);
+  const [upcomingEvents, setUpcomingEvents] = useState(dashboardCopy.events ?? []);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -416,6 +422,71 @@ export default function ResearcherDashboard() {
     }
     loadProfile();
     return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadDashboardOverview() {
+      setDashboardLoading(true);
+      setDashboardError("");
+      try {
+        const res = await api('/stages/researchers/dashboard', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || 'Failed to load dashboard overview');
+        if (cancelled) return;
+        const nextKpis = [
+          { title: "Total Submissions", value: data?.kpis?.totalSubmissions ?? 0 },
+          { title: "Pending Reviews", value: data?.kpis?.pendingReviews ?? 0 },
+          { title: "Completed Tasks", value: data?.kpis?.approved ?? 0 },
+          { title: "Overdue Items", value: data?.kpis?.needsAttention ?? 0 },
+        ];
+        const milestoneItems = Array.isArray(data?.milestones)
+          ? data.milestones.map((item) => ({
+              label: item?.label || "Stage",
+              percent:
+                typeof item?.percent === "number"
+                  ? Math.round(Math.max(0, Math.min(100, item.percent)))
+                  : 0,
+              status: item?.status || "Pending",
+            }))
+          : dashboardMilestones.map((item) => ({ ...item }));
+        const upcoming = Array.isArray(data?.upcoming)
+          ? data.upcoming
+              .map((event) => ({
+                id: event?.id || event?.title || `${event?.type || "event"}-${event?.startAt || Math.random()}`,
+                title: event?.title || (event?.type === "defense" ? "Defense" : "Upcoming Event"),
+                type: event?.type || "event",
+                startAt: event?.startAt || null,
+                endAt: event?.endAt || null,
+                venue: event?.venue || "",
+                link: event?.link || "",
+                modality: event?.modality || "",
+                status: event?.status || "",
+              }))
+              .sort((a, b) => {
+                const aTime = a.startAt ? new Date(a.startAt).getTime() : Number.MAX_SAFE_INTEGER;
+                const bTime = b.startAt ? new Date(b.startAt).getTime() : Number.MAX_SAFE_INTEGER;
+                return aTime - bTime;
+              })
+          : [];
+        setKpiCards(nextKpis);
+        setMilestones(milestoneItems);
+        setUpcomingEvents(upcoming);
+      } catch (err) {
+        if (!cancelled) {
+          setDashboardError(err.message || 'Unable to load dashboard overview');
+          setKpiCards(dashboardKpiCards.map((item) => ({ ...item })));
+          setMilestones(dashboardMilestones.map((item) => ({ ...item })));
+          setUpcomingEvents([]);
+        }
+      } finally {
+        if (!cancelled) setDashboardLoading(false);
+      }
+    }
+    loadDashboardOverview();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -457,16 +528,18 @@ export default function ResearcherDashboard() {
   const workspaceProps = {
     user,
     isLoading: userLoading,
-    kpiCards: dashboardKpiCards,
+    kpiCards,
     quickActions: dashboardQuickActions,
-    milestones: dashboardMilestones,
+    milestones,
     chartLabels: dashboardChartLabels,
     chartSeries: dashboardChartSeries,
     messages: dashboardCopy.messages ?? [],
-    events: dashboardCopy.events ?? [],
+    events: upcomingEvents,
     welcomeMessage: dashboardCopy.welcomeMessage,
     loadingTitle: dashboardCopy.loadingTitle,
     fallbackName,
+    dashboardLoading,
+    dashboardError,
   };
 
   async function loadNotifications() {
@@ -504,6 +577,9 @@ export default function ResearcherDashboard() {
       break;
     case "My Research":
       content = <MyResearchWorkspace />;
+      break;
+    case "Schedule":
+      content = <ResearchScheduleWorkspace user={user} />;
       break;
     case "Message":
       content = (

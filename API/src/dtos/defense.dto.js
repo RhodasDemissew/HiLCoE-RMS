@@ -62,6 +62,11 @@ export const DefenseRespondDto = z.object({
   note: z.string().trim().max(1000).optional(),
 });
 
+export const DefenseRequestChangeDto = z.object({
+  reason: z.string().trim().min(3),
+  preferredSlots: z.array(z.string().trim()).optional(),
+});
+
 export const DefenseListQuery = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
