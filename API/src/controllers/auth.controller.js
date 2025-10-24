@@ -22,7 +22,15 @@ export const authController = {
   async me(req, res) {
     const { User } = await import('../models/User.js');
     const user = await User.findById(req.user.id).populate('role');
-    res.json({ id: user._id, email: user.email, name: user.name, role: user.role?.name });
+    res.json({ 
+      id: user._id, 
+      email: user.email, 
+      name: user.name, 
+      phone: user.phone,
+      department: user.department,
+      bio: user.bio,
+      role: user.role?.name 
+    });
   },
   async resetRequest(req, res) {
     try {
