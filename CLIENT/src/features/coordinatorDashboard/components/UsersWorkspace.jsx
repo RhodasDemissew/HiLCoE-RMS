@@ -11,6 +11,8 @@ import AddSupervisorModal from "./supervisors/AddSupervisorModal.jsx";
 import EditSupervisorModal from "./supervisors/EditSupervisorModal.jsx";
 import ImportSupervisorsModal from "./supervisors/ImportSupervisorsModal.jsx";
 import ConfirmDeleteModal from "./supervisors/ConfirmDeleteModal.jsx";
+import AddExaminerModal from "./examiners/AddExaminerModal.jsx";
+import ImportExaminersModal from "./examiners/ImportExaminersModal.jsx";
 
 function SupervisorsPlaceholder({ onGoToResearchers }) {
   return (
@@ -92,6 +94,8 @@ export default function UsersWorkspace() {
   const [examiners, setExaminers] = useState([]);
   const [examLoading, setExamLoading] = useState(false);
   const [examError, setExamError] = useState("");
+  const [isExamAddOpen, setIsExamAddOpen] = useState(false);
+  const [isExamImportOpen, setIsExamImportOpen] = useState(false);
 
   const fetchAvailableSupervisorIds = useCallback(async () => {
     try {
@@ -357,6 +361,20 @@ export default function UsersWorkspace() {
         )}
         {activeTab === "examiners" && (
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
+              onClick={() => setIsExamAddOpen(true)}
+            >
+              Add
+            </button>
+            <button
+              type="button"
+              className="rounded-xl border border-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-[color:var(--brand-600)] transition hover:bg-[color:var(--brand-600)] hover:text-white"
+              onClick={() => setIsExamImportOpen(true)}
+            >
+              Import
+            </button>
             <button
               type="button"
               className="rounded-xl border border-[color:var(--neutral-200)] px-5 py-2 text-sm font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-100)]"
@@ -659,6 +677,24 @@ export default function UsersWorkspace() {
         }}
         onConfirm={confirmDelete}
         loading={deleting}
+      />
+      <AddExaminerModal
+        open={isExamAddOpen}
+        onClose={() => setIsExamAddOpen(false)}
+        onSuccess={(examiner) => {
+          setExaminers((prev) => [examiner, ...prev]);
+          setIsExamAddOpen(false);
+        }}
+        onToast={showToast}
+      />
+      <ImportExaminersModal
+        open={isExamImportOpen}
+        onClose={() => setIsExamImportOpen(false)}
+        onSuccess={() => {
+          setIsExamImportOpen(false);
+          fetchExaminers();
+        }}
+        onToast={showToast}
       />
       <Toast toast={toast} onDismiss={() => setToast(null)} />
     </section>

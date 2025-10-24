@@ -2,14 +2,14 @@ const columns = [
   {
     key: "full_name",
     label: "Full Name",
-    format: (user) => [user.first_name, user.middle_name].filter(Boolean).join(" ") || user.last_name || "—",
+    format: (user) => [user.first_name, user.middle_name].filter(Boolean).join(" ") || user.last_name || "ï¿½",
   },
   { key: "student_id", label: "Researcher ID", format: (user) => user.student_id },
-  { key: "program", label: "Program", format: (user) => user.program || "—" },
+  { key: "program", label: "Program", format: (user) => user.program || "ï¿½" },
   {
     key: "created_at",
     label: "Queued On",
-    format: (user) => (user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"),
+    format: (user) => (user.created_at ? new Date(user.created_at).toLocaleDateString() : "ï¿½"),
   },
 ];
 
@@ -55,7 +55,7 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
             {loading ? (
               <tr>
                 <td className="px-6 py-6 text-center" colSpan={columns.length + 3}>
-                  Loading researchers…
+                  Loading researchersï¿½
                 </td>
               </tr>
             ) : users.length ? (
@@ -65,17 +65,17 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
                   <tr key={rowKey} className="group relative">
                     {columns.map((column) => (
                       <td key={column.key} className="px-6 py-4">
-                        <div className="transition-transform duration-200 group-hover:-translate-x-6">
+                        <div className="transition-transform duration-500 ease-out group-hover:-translate-x-6">
                           {column.format(user)}
                         </div>
                       </td>
                     ))}
                     <td className="px-6 py-4">
-                      <div className="flex flex-col items-start gap-2 transition-transform duration-200 group-hover:-translate-x-6">
+                      <div className="flex flex-col items-start gap-2 transition-transform duration-500 ease-out group-hover:-translate-x-6">
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="rounded-full bg-[color:var(--brand-600)] px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
+                            className="rounded-full bg-[color:var(--brand-600)] px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-200 ease-in-out hover:bg-[color:var(--brand-500)]"
                             onClick={() => onAssign?.(user)}
                           >
                             {user?.assigned_supervisor ? 'Reassign' : 'Assign'}
@@ -83,7 +83,7 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
                           {user?.assigned_supervisor && (
                             <button
                               type="button"
-                              className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-200"
+                              className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600 transition-all duration-200 ease-in-out hover:bg-red-200"
                               onClick={() => onUnassign?.(user)}
                             >
                               Remove
@@ -94,22 +94,22 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="transition-transform duration-200 group-hover:-translate-x-6">
+                      <div className="transition-transform duration-500 ease-out group-hover:-translate-x-6">
                         {renderStatus(user)}
                       </div>
                     </td>
                     <td className="px-2 py-4 w-0">
-                      <div className="flex items-center gap-2 translate-x-12 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+                      <div className="flex items-center gap-2 translate-x-12 opacity-0 transition-all duration-500 ease-out group-hover:translate-x-0 group-hover:opacity-100">
                         <button
                           type="button"
-                          className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-600)] hover:bg-[color:var(--brand-50)]"
+                          className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-600)] transition-all duration-200 ease-in-out hover:bg-[color:var(--brand-50)]"
                           onClick={() => onEdit?.(user)}
                         >
                           Edit
                         </button>
                         <button
                           type="button"
-                          className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-200"
+                          className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600 transition-all duration-200 ease-in-out hover:bg-red-200"
                           onClick={() => onDelete?.(user)}
                         >
                           Delete

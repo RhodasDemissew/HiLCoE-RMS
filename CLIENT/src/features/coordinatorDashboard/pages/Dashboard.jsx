@@ -14,9 +14,9 @@ import DefenseScheduleWorkspace from "../components/DefenseScheduleWorkspace.jsx
 import ActivityLogWorkspace from "../components/ActivityLogWorkspace.jsx";
 import CalendarWorkspace from "../components/CalendarWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
+import SettingsWorkspace from "../../../shared/components/SettingsWorkspace.jsx";
 import {
   coordinatorActivity,
-  coordinatorEvents,
   coordinatorMessages,
   coordinatorNav,
   coordinatorPerformance,
@@ -152,7 +152,7 @@ function Sidebar({ items, active, onSelect }) {
   );
 }
 
-function Topbar({ showSearch = true, user, notifications = [], onMarkAllRead, onClearAll }) {
+function Topbar({ user, notifications = [], onMarkAllRead, onClearAll }) {
   const navigate = useNavigate();
   const displayName = user?.name || "Coordinator";
   const displayRole = user?.role || "Coordinator";
@@ -257,27 +257,7 @@ function Topbar({ showSearch = true, user, notifications = [], onMarkAllRead, on
   return (
     <header className="border-b border-[color:var(--neutral-200)] bg-white/70 backdrop-blur">
       <div className="mr-10 flex h-20 items-center justify-between gap-6">
-        {showSearch ? (
-          <form className="relative w-full max-w-xl" onSubmit={(event) => event.preventDefault()}>
-            <label htmlFor="coordinator-search" className="sr-only">
-              Search submissions, research...
-            </label>
-            <input
-              id="coordinator-search"
-              name="query"
-              placeholder="Search submissions, research..."
-              className="w-full rounded-[14px] border border-[color:var(--neutral-200)] bg-white px-4 py-3 text-sm text-[color:var(--neutral-800)] shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[12px] bg-[color:var(--brand-600)] px-4 py-2 text-xs font-semibold text-white shadow-soft"
-            >
-              Search
-            </button>
-          </form>
-        ) : (
-          <div className="flex-1" />
-        )}
+        <div className="flex-1" />
 
         <div className="flex items-center gap-6">
           <div className="relative" ref={notificationRef}>
@@ -409,6 +389,9 @@ export default function CoordinatorDashboardPage() {
   const [notifications, setNotifications] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [submissionStats, setSubmissionStats] = useState(null);
+  const [recentMessages, setRecentMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -454,6 +437,50 @@ export default function CoordinatorDashboardPage() {
       mounted = false;
     };
   }, []);
+
+  // Load submission statistics by stage
+  useEffect(() => {
+    let mounted = true;
+    async function loadSubmissionStats() {
+      try {
+        const res = await api('/dashboard/submissions-by-stage');
+        const data = await res.json().catch(() => null);
+        if (mounted && res.ok && data) {
+          setSubmissionStats(data);
+        }
+      } catch (error) {
+        console.warn('Submission stats fetch failed', error);
+      }
+    }
+    loadSubmissionStats();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Load recent messages
+  useEffect(() => {
+    let mounted = true;
+    async function loadRecentMessages() {
+      try {
+        setMessagesLoading(true);
+        const res = await api('/dashboard/recent-messages');
+        const data = await res.json().catch(() => null);
+        if (mounted && res.ok && data) {
+          setRecentMessages(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.warn('Recent messages fetch failed', error);
+      } finally {
+        if (mounted) setMessagesLoading(false);
+      }
+    }
+    loadRecentMessages();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
 
   // Notifications: fetch on mount and subscribe via SSE (no polling)
   useEffect(() => {
@@ -512,8 +539,13 @@ export default function CoordinatorDashboardPage() {
   }
 
   const performanceData = useMemo(
-    () => coordinatorPerformance.map((item) => ({ label: item.label, value: item.value })),
-    []
+    () => {
+      if (submissionStats) {
+        return submissionStats.map((item) => ({ label: item.stage, value: item.count }));
+      }
+      return coordinatorPerformance.map((item) => ({ label: item.label, value: item.value }));
+    },
+    [submissionStats]
   );
 
   // Create dynamic summary data from API or fallback to mock data
@@ -538,16 +570,19 @@ export default function CoordinatorDashboardPage() {
     }
   ] : coordinatorSummary;
 
+  // Create dynamic messages data from API or fallback to mock data
+  const dynamicMessages = recentMessages.length > 0 ? recentMessages : coordinatorMessages;
+
   const workspaceProps = {
     summary: dynamicSummary,
     activity: dashboardStats?.recentActivity || coordinatorActivity,
-    events: coordinatorEvents,
-    messages: coordinatorMessages,
+    messages: dynamicMessages,
     performance: performanceData,
-    researchLabels: coordinatorResearchLabels,
-    researchSeries: coordinatorResearchSeries,
     user,
     statsLoading,
+    messagesLoading,
+    onNavigateToActivityLog: () => setActiveSection("Activity Log"),
+    onNavigateToMessages: () => setActiveSection("Message"),
   };
 
   let content;
@@ -585,6 +620,9 @@ export default function CoordinatorDashboardPage() {
     case "View Calendar":
       content = <CalendarWorkspace />;
       break;
+    case "Settings":
+      content = <SettingsWorkspace user={user} role="Coordinator" onUserUpdate={setUser} />;
+      break;
     default:
       content = <PlaceholderContent title={activeSection} />;
       break;
@@ -593,7 +631,7 @@ export default function CoordinatorDashboardPage() {
   return (
     <AppShell
       sidebar={<Sidebar items={coordinatorNav} active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar user={user} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} showSearch={activeSection === "Dashboard" && !userLoading} />}
+      topbar={<Topbar user={user} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} />}
     >
       {content}
     </AppShell>

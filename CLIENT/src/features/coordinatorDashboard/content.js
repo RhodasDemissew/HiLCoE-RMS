@@ -4,6 +4,7 @@ import statsIcon from "../../assets/icons/reports.png";
 import activityIcon from "../../assets/icons/submission.png";
 import calendarIcon from "../../assets/icons/caldash.png";
 import messageIcon from "../../assets/icons/chat.png";
+import settingsIcon from "../../assets/icons/settings.png";
 import ResearchersIcon from "../../assets/icons/submission.png";
 import supervisorsIcon from "../../assets/icons/dashboard.png";
 import activeResearchIcon from "../../assets/icons/research.png";
@@ -24,6 +25,7 @@ export const coordinatorNav = [
     ],
   },
   { label: "Message", icon: messageIcon },
+  { label: "Settings", icon: settingsIcon },
 ];
 
 export const coordinatorSummary = [
@@ -57,11 +59,14 @@ export const coordinatorNotifications = [
 ];
 
 export const coordinatorPerformance = [
-  { label: "Figma", value: 120 },
-  { label: "Sketch", value: 90 },
-  { label: "XD", value: 70 },
-  { label: "PS", value: 110 },
-  { label: "AI", value: 130 },
+  { label: "Synopsis", value: 45 },
+  { label: "Proposal", value: 38 },
+  { label: "Progress Report 1", value: 32 },
+  { label: "Progress Report 2", value: 28 },
+  { label: "Thesis Report", value: 25 },
+  { label: "Final Draft (Pre-Defense)", value: 20 },
+  { label: "Final Draft (Post-Defense)", value: 15 },
+  { label: "Journal Article", value: 12 },
 ];
 
 export const coordinatorResearchSeries = [
