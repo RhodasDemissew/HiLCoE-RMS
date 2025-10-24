@@ -216,7 +216,7 @@ UpcomingEventsCard.propTypes = {
   loading: PropTypes.bool,
 };
 
-function MessagesPanel({ messages = [] }) {
+function MessagesPanel({ messages = [], loading = false }) {
   const hasMessages = Array.isArray(messages) && messages.length > 0;
   return (
     <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
@@ -229,14 +229,22 @@ function MessagesPanel({ messages = [] }) {
           View inbox
         </button>
       </header>
-      {hasMessages ? (
+      {loading ? (
+        <div className="text-center py-4">
+          <div className="text-sm text-gray-500">Loading messages...</div>
+        </div>
+      ) : hasMessages ? (
         <ul className="space-y-3">
-          {messages.slice(0, 4).map((msg) => (
-            <li key={msg.id || msg.subject} className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-3">
-              <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{msg.subject || "New message"}</p>
-              {msg.preview ? (
-                <p className="mt-1 text-xs text-[color:var(--neutral-600)]">{msg.preview}</p>
-              ) : null}
+          {messages.slice(0, 4).map((message) => (
+            <li key={message.id} className="rounded-xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{message.author}</p>
+                  <p className="text-xs text-[color:var(--neutral-500)]">{message.role}</p>
+                </div>
+                <span className="text-xs text-[color:var(--neutral-400)]">{message.ago}</span>
+              </div>
+              <p className="mt-2 text-xs text-[color:var(--neutral-600)]">{message.body}</p>
             </li>
           ))}
         </ul>
@@ -339,6 +347,7 @@ export default function DashboardWorkspace({
   fallbackName = "Member",
   dashboardLoading = false,
   dashboardError = "",
+  messagesLoading = false,
 }) {
   const resolvedName = (user?.name || "").trim() || fallbackName;
   const headerTitle = welcomeTitle ?? `Welcome, ${resolvedName}`;
@@ -377,7 +386,7 @@ export default function DashboardWorkspace({
           <ProgressChart labels={chartLabels} series={chartSeries} />
         </div>
         <div className="space-y-5">
-          <MessagesPanel messages={messages} />
+          <MessagesPanel messages={messages} loading={messagesLoading} />
           <UpcomingEventsCard events={events} loading={dashboardLoading} />
           <MilestonesCard items={milestones} loading={dashboardLoading} />
         </div>
