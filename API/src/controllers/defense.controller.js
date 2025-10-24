@@ -69,6 +69,20 @@ export const defenseController = {
     }
   },
 
+  async requestChange(req, res) {
+    try {
+      const defense = await defenseService.requestChange({
+        defenseId: req.params.id,
+        userId: req.user.id,
+        reason: req.body?.reason,
+        preferredSlots: req.body?.preferredSlots,
+      });
+      res.json(defense);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
   async availability(req, res) {
     try {
       const { date, from, to, userIds } = req.query || {};

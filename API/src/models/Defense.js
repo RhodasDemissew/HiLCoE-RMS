@@ -33,6 +33,17 @@ const defenseSchema = new mongoose.Schema(
     created_at: { type: Date, default: () => new Date() },
     updated_at: { type: Date, default: () => new Date() },
     responses: { type: [responseSchema], default: [] },
+    change_requests: {
+      type: [
+        {
+          requested_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+          reason: { type: String, default: '' },
+          preferred_slots: { type: [String], default: [] },
+          requested_at: { type: Date, default: () => new Date() },
+        },
+      ],
+      default: [],
+    },
   },
   {
     collection: 'defenses',
@@ -46,4 +57,3 @@ defenseSchema.index({ supervisor: 1, start_at: 1 });
 defenseSchema.index({ start_at: 1, end_at: 1 });
 
 export const Defense = mongoose.models.Defense || mongoose.model('Defense', defenseSchema, 'defenses');
-

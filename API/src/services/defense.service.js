@@ -1,4 +1,5 @@
 import { Defense } from '../models/Defense.js';
+import { Role } from '../models/Role.js';
 import { User } from '../models/User.js';
 import { notify } from './notificationService.js';
 import {
@@ -72,6 +73,12 @@ function serialize(defense) {
       status: resp.status,
       note: resp.note,
       respondedAt: toIso(resp.responded_at),
+    })) || [],
+    changeRequests: defense.change_requests?.map((req) => ({
+      requestedBy: req.requested_by ? req.requested_by.toString() : null,
+      reason: req.reason,
+      preferredSlots: Array.isArray(req.preferred_slots) ? req.preferred_slots : [],
+      requestedAt: toIso(req.requested_at),
     })) || [],
   };
 }
@@ -251,6 +258,49 @@ export const defenseService = {
     response.note = note || '';
     response.responded_at = new Date();
     await defense.save();
+    return serialize(defense);
+  },
+
+  async requestChange({ defenseId, userId, reason, preferredSlots }) {
+    const defense = await Defense.findById(defenseId);
+    if (!defense) throw new Error('Defense not found');
+    if (String(defense.candidate) !== String(userId)) {
+      throw new Error('Only the researcher may request a schedule change');
+    }
+    const cleanReason = (reason || '').trim();
+    if (!cleanReason) throw new Error('Reason is required');
+    const slots = Array.isArray(preferredSlots)
+      ? preferredSlots.map((slot) => String(slot || '').trim()).filter(Boolean)
+      : [];
+    defense.change_requests = [
+      ...(defense.change_requests || []),
+      {
+        requested_by: userId,
+        reason: cleanReason,
+        preferred_slots: slots,
+        requested_at: new Date(),
+      },
+    ];
+    await defense.save();
+
+    try {
+      const coordinatorRole = await Role.findOne({ name: /coordinator/i });
+      if (coordinatorRole?._id) {
+        const coordinators = await User.find({ role: coordinatorRole._id }).select('_id');
+        const payload = {
+          defenseId: String(defense._id),
+          title: defense.title,
+          requestedBy: String(userId),
+          reason: cleanReason,
+          preferredSlots: slots,
+          startAt: toIso(defense.start_at),
+        };
+        for (const coordinator of coordinators) {
+          await notify(coordinator._id, 'defense_reschedule_requested', payload);
+        }
+      }
+    } catch {}
+
     return serialize(defense);
   },
 

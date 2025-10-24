@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.use(authRequired);
 
+router.get('/researchers/dashboard', researcherStagesController.dashboardOverview);
 router.get('/researchers/progress', researcherStagesController.progress);
 router.get('/templates/proposal', researcherStagesController.template);
 router.get('/submissions', researcherStagesController.listSubmissions);
