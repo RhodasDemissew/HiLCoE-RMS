@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     phone: { type: String, trim: true, default: '' },
+    department: { type: String, trim: true, default: '' },
+    bio: { type: String, trim: true, default: '' },
     role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role' },
     status: { type: String, enum: ['pending', 'active', 'inactive'], default: 'active' },
     student_id: { type: String, default: '', trim: true },
