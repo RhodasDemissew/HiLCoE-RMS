@@ -8,6 +8,7 @@ import SupervisorDashboardWorkspace from "../components/DashboardWorkspace.jsx";
 import SupervisorScheduleWorkspace from "../components/ScheduleWorkspace.jsx";
 import ReviewWorkspace from "../../coordinatorDashboard/components/ReviewWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
+import SettingsWorkspace from "../../../shared/components/SettingsWorkspace.jsx";
 import { supNav } from "../content.js";
 
 function AppShell({ sidebar, topbar, children }) {
@@ -320,6 +321,9 @@ export default function SupervisorDashboardPage() {
           emptyStateTitle="Collaborate with your researcher and coordinator."
         />
       );
+      break;
+    case "Settings":
+      content = <SettingsWorkspace user={user} role="Supervisor" onUserUpdate={setUser} />;
       break;
     default:
       content = (
