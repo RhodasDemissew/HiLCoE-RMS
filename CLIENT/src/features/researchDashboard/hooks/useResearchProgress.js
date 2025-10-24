@@ -4,6 +4,9 @@ import { api } from "../../../api/client.js";
 import { STAGE_ORDER } from "../constants/stages.js";
 
 function normalizeStages(progress, submissions = []) {
+  const currentIndex = Number.isInteger(progress?.currentStageIndex)
+    ? progress.currentStageIndex
+    : 0;
   const stages = progress?.stages || [];
   const lookup = new Map();
   stages.forEach((stage) => lookup.set(stage.name, stage));
@@ -19,9 +22,9 @@ function normalizeStages(progress, submissions = []) {
 
   return STAGE_ORDER.map((name, index) => {
     const info = lookup.get(name) || {};
-    let status = info.status || (index < progress.currentStageIndex ? 'completed' : index === progress.currentStageIndex ? 'current' : 'locked');
+    let status = info.status || (index < currentIndex ? 'completed' : index === currentIndex ? 'current' : 'locked');
     // If current stage has a latest submission in Needs Changes, reflect that visually
-    if (index === progress.currentStageIndex) {
+    if (index === currentIndex) {
       const latest = latestByIndex.get(index);
       if (latest?.status === 'needs_changes') status = 'needs_changes';
       // If rejected + synopsis and resubmitUntil active, API already marks 'resubmit'
@@ -40,7 +43,6 @@ function normalizeStages(progress, submissions = []) {
 
 export function useResearchProgress() {
   const [progress, setProgress] = useState(null);
-  const [stages, setStages] = useState([]);
   const [templateUrls, setTemplateUrls] = useState({});
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,6 @@ export function useResearchProgress() {
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error || "Failed to load progress");
       setProgress(data);
-      setStages(normalizeStages(data, submissions));
       setTemplateUrls(data.templateUrls || {});
     } catch (err) {
       setError(err.message || "Failed to load progress");
@@ -74,8 +75,6 @@ export function useResearchProgress() {
       if (!res.ok) throw new Error(data?.error || "Failed to load submissions");
       const list = Array.isArray(data?.items) ? data.items : [];
       setSubmissions(list);
-      // If we already have progress, re-derive stages to show needs_changes marker immediately
-      setStages((prev) => normalizeStages(progress || {}, list));
     } catch (err) {
       setSubmissionsError(err.message || "Failed to load submissions");
     } finally {
@@ -118,6 +117,11 @@ export function useResearchProgress() {
     }, 8000);
     return () => clearInterval(id);
   }, [submissions, loadProgress, loadSubmissions]);
+
+  const stages = useMemo(
+    () => normalizeStages(progress || {}, submissions),
+    [progress, submissions],
+  );
 
   const currentStage = useMemo(() => {
     if (!progress) return null;

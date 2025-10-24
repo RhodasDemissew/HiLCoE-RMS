@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 
@@ -10,7 +10,9 @@ import CoordinatorUsersWorkspace from "../components/UsersWorkspace.jsx";
 import ReviewWorkspace from "../components/ReviewWorkspace.jsx";
 import TemplatesWorkspace from "../components/TemplatesWorkspace.jsx";
 import ScheduleSynopsis from "../components/ScheduleSynopsis.jsx";
+import DefenseScheduleWorkspace from "../components/DefenseScheduleWorkspace.jsx";
 import ActivityLogWorkspace from "../components/ActivityLogWorkspace.jsx";
+import CalendarWorkspace from "../components/CalendarWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
 import {
   coordinatorActivity,
@@ -578,10 +580,10 @@ export default function CoordinatorDashboardPage() {
       content = <ScheduleSynopsis />;
       break;
     case "Defense Scheduling":
-      content = <PlaceholderContent title={activeSection} />;
+      content = <DefenseScheduleWorkspace />;
       break;
     case "View Calendar":
-      content = <PlaceholderContent title={activeSection} />;
+      content = <CalendarWorkspace />;
       break;
     default:
       content = <PlaceholderContent title={activeSection} />;
@@ -597,6 +599,7 @@ export default function CoordinatorDashboardPage() {
     </AppShell>
   );
 }
+
 
 
 

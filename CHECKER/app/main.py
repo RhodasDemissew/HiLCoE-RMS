@@ -8,8 +8,10 @@ import os, io, json, re
 
 try:
     from docx import Document  # python-docx
+    from docx.enum.text import WD_LINE_SPACING  # type: ignore
 except Exception:  # pragma: no cover
     Document = None  # type: ignore
+    WD_LINE_SPACING = None  # type: ignore
 
 try:
     import PyPDF2  # type: ignore
@@ -138,11 +140,74 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
     total = max(1, len(paragraphs))
 
     # Font/size checks
-    non_font = 0
-    non_size = 0
-    non_spacing = 0
+    font_fail = 0
+    font_total = 0
+    size_fail = 0
+    size_total = 0
+    spacing_fail = 0
+    spacing_total = 0
     heading_ok = True
     refs_present = False
+
+    def _resolve_font_name(paragraph, run) -> str:
+        # Prefer explicit run font, then paragraph style, then document default
+        candidates = [
+            getattr(run.font, "name", None),
+            getattr(getattr(paragraph.style, "font", None), "name", None),
+        ]
+        try:
+            candidates.append(getattr(doc.styles["Normal"].font, "name", None))
+        except Exception:
+            pass
+        for candidate in candidates:
+            if isinstance(candidate, str) and candidate.strip():
+                return candidate.strip()
+        return ""
+
+    def _resolve_font_size(paragraph, run):
+        candidates = [
+            getattr(run.font, "size", None),
+            getattr(getattr(paragraph.style, "font", None), "size", None),
+        ]
+        try:
+            candidates.append(getattr(doc.styles["Normal"].font, "size", None))
+        except Exception:
+            pass
+        for candidate in candidates:
+            if candidate is None:
+                continue
+            if hasattr(candidate, "pt"):
+                return float(candidate.pt)
+            try:
+                return float(candidate) / 2.0
+            except Exception:
+                continue
+        return None
+
+    def _paragraph_spacing(paragraph):
+        spacing = paragraph.paragraph_format.line_spacing
+        if spacing is None:
+            try:
+                spacing = paragraph.style.paragraph_format.line_spacing
+            except Exception:
+                spacing = None
+        if spacing is None and WD_LINE_SPACING is not None:
+            rule = getattr(paragraph.paragraph_format, "line_spacing_rule", None)
+            if rule is None:
+                try:
+                    rule = paragraph.style.paragraph_format.line_spacing_rule
+                except Exception:
+                    rule = None
+            if rule == getattr(WD_LINE_SPACING, "ONE_POINT_FIVE", None):
+                return target_spacing
+        if spacing is None:
+            return None
+        if hasattr(spacing, "pt"):
+            return float(spacing.pt)
+        try:
+            return float(spacing)
+        except Exception:
+            return None
 
     for p in paragraphs:
         txt = p.text or ""
@@ -154,45 +219,41 @@ def _eval_docx(buf: bytes, policy: Dict[str, Any]) -> List[Dict[str, Any]]:
         if NUM_RE.search(txt):
             refs_present = True
         # Paragraph spacing
+        spacing_total += 1
         try:
-            ls = p.paragraph_format.line_spacing
-            if ls is None:
-                non_spacing += 1
-            else:
-                val = float(ls)
-                if abs(val - target_spacing) > 0.2:
-                    non_spacing += 1
+            ls = _paragraph_spacing(p)
+            if ls is None or abs(ls - target_spacing) > 0.25:
+                spacing_fail += 1
         except Exception:
-            non_spacing += 1
+            spacing_fail += 1
         # Runs: font + size
         ran_any = False
         for r in p.runs:
             ran_any = True
+            font_total += 1
+            size_total += 1
             try:
-                fname = getattr(getattr(r.font, 'name', None), 'strip', lambda: r.font.name)()
+                fname = _resolve_font_name(p, r)
             except Exception:
-                fname = r.font.name
-            if (not fname) or (fname != target_font):
-                non_font += 1
+                fname = ""
+            if not fname or fname.lower() != target_font.lower():
+                font_fail += 1
             try:
-                size = getattr(r.font, 'size', None)
-                if size is None:
-                    non_size += 1
-                else:
-                    # size in half-points in python-docx, 12pt -> 24
-                    pt = float(size.pt) if hasattr(size, 'pt') else float(size)/2.0
-                    if abs(pt - target_size_pt) > 0.6:
-                        non_size += 1
+                size_pt = _resolve_font_size(p, r)
+                if size_pt is None or abs(size_pt - target_size_pt) > 0.6:
+                    size_fail += 1
             except Exception:
-                non_spacing += 1
+                size_fail += 1
         if not ran_any:
-            non_font += 1
-            non_size += 1
+            font_total += 1
+            size_total += 1
+            font_fail += 1
+            size_fail += 1
 
     # Convert non-conformance counts to ratios
-    font_pass = (non_font / total) <= tol_ratio
-    size_pass = (non_size / total) <= tol_ratio
-    spacing_pass = (non_spacing / total) <= tol_ratio
+    font_pass = (font_fail / max(1, font_total)) <= tol_ratio
+    size_pass = (size_fail / max(1, size_total)) <= tol_ratio
+    spacing_pass = (spacing_fail / max(1, spacing_total)) <= tol_ratio
     findings.append({"rule": "font_family", "pass": font_pass, "details": f"Required: {target_font}"})
     findings.append({"rule": "font_size", "pass": size_pass, "details": f"Required: {target_size_pt} pt"})
     findings.append({"rule": "line_spacing", "pass": spacing_pass, "details": f"Required: {target_spacing}"})

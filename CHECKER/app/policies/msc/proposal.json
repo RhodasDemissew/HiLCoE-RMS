@@ -1,6 +1,6 @@
 {
   "version": "v1.0",
-  "max_nonconforming_paragraph_ratio": 0.1,
+  "max_nonconforming_paragraph_ratio": 0.5,
   "pass_threshold" : 0.7,
   "weights": {
     "margins": 1.0,

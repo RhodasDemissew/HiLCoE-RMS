@@ -34,6 +34,15 @@ router.get('/specializations', async (_req, res) => {
   }
 });
 
+router.get('/dashboard/overview', async (req, res) => {
+  try {
+    const overview = await supervisorsService.dashboardOverview(req.user.id);
+    res.json(overview);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.post('/add', async (req, res) => {
   try {
     const supervisor = await supervisorsService.createSupervisor(req.body || {});
