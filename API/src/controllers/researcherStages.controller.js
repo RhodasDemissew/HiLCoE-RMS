@@ -51,6 +51,64 @@ function serializeSubmission(doc) {
   };
 }
 
+async function generateChartData(researcherId) {
+  try {
+    // Get submissions from the last 6 months
+    const sixMonthsAgo = dayjs().subtract(6, 'month').toDate();
+    
+    const submissions = await StageSubmission.find({
+      researcher: researcherId,
+      submitted_at: { $gte: sixMonthsAgo }
+    }).sort({ submitted_at: 1 });
+
+    // Group by month
+    const monthlyData = {};
+    const months = [];
+    
+    // Generate last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const month = dayjs().subtract(i, 'month');
+      const monthKey = month.format('MMM YYYY');
+      months.push(monthKey);
+      monthlyData[monthKey] = { submissions: 0, approvals: 0 };
+    }
+
+    // Count submissions and approvals by month
+    submissions.forEach(submission => {
+      const month = dayjs(submission.submitted_at).format('MMM YYYY');
+      if (monthlyData[month]) {
+        monthlyData[month].submissions++;
+        if (submission.status === SUBMISSION_STATUSES.APPROVED) {
+          monthlyData[month].approvals++;
+        }
+      }
+    });
+
+    return {
+      labels: months,
+      series: [
+        {
+          name: 'Submissions',
+          data: months.map(month => monthlyData[month]?.submissions || 0)
+        },
+        {
+          name: 'Approvals', 
+          data: months.map(month => monthlyData[month]?.approvals || 0)
+        }
+      ]
+    };
+  } catch (error) {
+    console.error('Error generating chart data:', error);
+    return {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      series: [
+        { name: 'Submissions', data: [0, 0, 0, 0, 0, 0] },
+        { name: 'Approvals', data: [0, 0, 0, 0, 0, 0] }
+      ]
+    };
+  }
+}
+
 export const researcherStagesController = {
   dashboardOverview: async (req, res) => {
     try {
@@ -191,10 +249,15 @@ export const researcherStagesController = {
         return aTime - bTime;
       });
 
+      // Generate chart data for submissions and approvals over time
+      const chartData = await generateChartData(objectId);
+      
       res.json({
         kpis,
         milestones,
         upcoming,
+        chartLabels: chartData.labels,
+        chartSeries: chartData.series,
       });
     } catch (err) {
       res.status(400).json({ error: err.message });
