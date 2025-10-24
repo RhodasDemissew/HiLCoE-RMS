@@ -2,12 +2,14 @@ import dashboardIcon from "../../assets/icons/dashboard.png";
 import reportsIcon from "../../assets/icons/reports.png";
 import calendarIcon from "../../assets/icons/caldash.png";
 import messageIcon from "../../assets/icons/message.png";
+import settingsIcon from "../../assets/icons/settings.png";
 
 export const supNav = [
   { label: "Dashboard", icon: dashboardIcon },
   { label: "My Reviews", icon: reportsIcon },
   { label: "Schedule", icon: calendarIcon },
   { label: "Message", icon: messageIcon },
+  { label: "Settings", icon: settingsIcon },
 ];
 
 export const supKpis = [

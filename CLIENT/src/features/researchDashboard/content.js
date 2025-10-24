@@ -6,16 +6,17 @@ import reportsIcon from "../../assets/icons/reports.png";
 import wordIcon from "../../assets/icons/word.png";
 import dashboardIcon from "../../assets/icons/dashboard.png";
 import submissionIcon from "../../assets/icons/submission.png";
-import researchIcon from "../../assets/icons/research.png";
 import calendarSidebarIcon from "../../assets/icons/caldash.png";
 import messageIcon from "../../assets/icons/message.png";
+import settingsIcon from "../../assets/icons/settings.png";
 
 export const dashboardNavItems = [
   { label: "Dashboard", icon: dashboardIcon },
   { label: "Submission", icon: submissionIcon },
-  { label: "My Research", icon: researchIcon },
+  { label: "Templates", icon: wordIcon },
   { label: "Schedule", icon: calendarSidebarIcon },
   { label: "Message", icon: messageIcon },
+  { label: "Settings", icon: settingsIcon },
 ];
 
 export const dashboardKpiCards = [
@@ -27,11 +28,9 @@ export const dashboardKpiCards = [
 
 export const dashboardQuickActions = [
   { icon: uploadIcon, label: "New Submission", sublabel: "Submit research documents" },
-  { icon: calendarActionIcon, label: "Schedule Meeting", sublabel: "Book supervisor meeting" },
   { icon: wordIcon, label: "View Templates", sublabel: "Browse document templates" },
+  { icon: messageIcon, label: "Messages", sublabel: "Chat with supervisors" },
   { icon: chatActionIcon, label: "Contact Support", sublabel: "Get help and guidance" },
-  { icon: reportsIcon, label: "Progress Report", sublabel: "Generate progress insight" },
-  { icon: downloadIcon, label: "Export Data", sublabel: "Download your data" },
 ];
 
 export const dashboardMilestones = [
@@ -47,12 +46,19 @@ export const dashboardChartSeries = [
   { name: "Approvals", data: [0, 0, 0, 0, 0] },
 ];
 
+export const researcherMessages = [
+  { id: 1, author: "Dr. Johnson", role: "Supervisor", ago: "2h", body: "Great progress on the literature review. Please revise the methodology section." },
+  { id: 2, author: "Prof. Smith", role: "Supervisor", ago: "4h", body: "Your proposal looks good. Let's schedule a meeting to discuss the next steps." },
+  { id: 3, author: "Dr. Brown", role: "Coordinator", ago: "1d", body: "Please submit your progress report by the end of the week." },
+];
+
 export const dashboardNotifications = [];
 
 export const dashboardCopy = {
   fallbackName: "Researcher",
   loadingTitle: "Loading profile?",
   welcomeMessage: "Here's what's happening with your research today.",
+  messages: researcherMessages,
 };
 
 

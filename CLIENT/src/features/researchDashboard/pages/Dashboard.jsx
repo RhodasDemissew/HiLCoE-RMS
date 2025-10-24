@@ -6,10 +6,11 @@ import settingsIcon from "../../../assets/icons/settings.png";
 import notificationIcon from "../../../assets/icons/notification.png";
 import logoImage from "../../../assets/images/logo.png";
 import SubmissionWorkspace from "../components/SubmissionWorkspace.jsx";
-import MyResearchWorkspace from "../components/MyResearchWorkspace.jsx";
 import DashboardWorkspace from "../components/DashboardWorkspace.jsx";
 import ResearchScheduleWorkspace from "../components/ScheduleWorkspace.jsx";
 import MessagingWorkspace from "../../../shared/components/MessagingWorkspace.jsx";
+import SettingsWorkspace from "../../../shared/components/SettingsWorkspace.jsx";
+import TemplatesWorkspace from "../components/TemplatesWorkspace.jsx";
 import {
   dashboardNavItems,
   dashboardKpiCards,
@@ -403,6 +404,10 @@ export default function ResearcherDashboard() {
   const [kpiCards, setKpiCards] = useState(dashboardKpiCards);
   const [milestones, setMilestones] = useState(dashboardMilestones);
   const [upcomingEvents, setUpcomingEvents] = useState(dashboardCopy.events ?? []);
+  const [chartLabels, setChartLabels] = useState(dashboardChartLabels);
+  const [chartSeries, setChartSeries] = useState(dashboardChartSeries);
+  const [messages, setMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState("");
 
@@ -469,9 +474,15 @@ export default function ResearcherDashboard() {
                 return aTime - bTime;
               })
           : [];
+        // Load chart data
+        const chartLabels = Array.isArray(data?.chartLabels) ? data.chartLabels : dashboardChartLabels;
+        const chartSeries = Array.isArray(data?.chartSeries) ? data.chartSeries : dashboardChartSeries;
+        
         setKpiCards(nextKpis);
         setMilestones(milestoneItems);
         setUpcomingEvents(upcoming);
+        setChartLabels(chartLabels);
+        setChartSeries(chartSeries);
       } catch (err) {
         if (!cancelled) {
           setDashboardError(err.message || 'Unable to load dashboard overview');
@@ -486,6 +497,30 @@ export default function ResearcherDashboard() {
     loadDashboardOverview();
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  // Load recent messages (same as coordinator)
+  useEffect(() => {
+    let mounted = true;
+    async function loadRecentMessages() {
+      try {
+        setMessagesLoading(true);
+        const res = await api('/dashboard/recent-messages');
+        const data = await res.json().catch(() => null);
+        
+        if (mounted && res.ok && data) {
+          setMessages(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.warn('Recent messages fetch failed', error);
+      } finally {
+        if (mounted) setMessagesLoading(false);
+      }
+    }
+    loadRecentMessages();
+    return () => {
+      mounted = false;
     };
   }, []);
 
@@ -525,21 +560,43 @@ export default function ResearcherDashboard() {
   }, []);
 
   const fallbackName = dashboardCopy.fallbackName || (user?.role ?? "Member");
+  
+  // Create dynamic messages data from API or fallback to mock data (same as coordinator)
+  const dynamicMessages = messages.length > 0 ? messages : (dashboardCopy.messages ?? []);
+  
+  // Enhanced quick actions with proper navigation
+  const enhancedQuickActions = dashboardQuickActions.map(action => ({
+    ...action,
+    onClick: action.onClick || (() => {
+      if (action.label === "New Submission") {
+        setActiveSection("Submission");
+      } else if (action.label === "View Templates") {
+        setActiveSection("Templates");
+      } else if (action.label === "Messages") {
+        setActiveSection("Message");
+      } else if (action.label === "Contact Support") {
+        // Navigate to external contact page like landing page
+        window.location.href = "/contact";
+      }
+    })
+  }));
+
   const workspaceProps = {
     user,
     isLoading: userLoading,
     kpiCards,
-    quickActions: dashboardQuickActions,
+    quickActions: enhancedQuickActions,
     milestones,
-    chartLabels: dashboardChartLabels,
-    chartSeries: dashboardChartSeries,
-    messages: dashboardCopy.messages ?? [],
+    chartLabels: chartLabels,
+    chartSeries: chartSeries,
+    messages: dynamicMessages,
     events: upcomingEvents,
     welcomeMessage: dashboardCopy.welcomeMessage,
     loadingTitle: dashboardCopy.loadingTitle,
     fallbackName,
     dashboardLoading,
     dashboardError,
+    messagesLoading,
   };
 
   async function loadNotifications() {
@@ -575,8 +632,8 @@ export default function ResearcherDashboard() {
     case "Submission":
       content = <SubmissionWorkspace />;
       break;
-    case "My Research":
-      content = <MyResearchWorkspace />;
+    case "Templates":
+      content = <TemplatesWorkspace />;
       break;
     case "Schedule":
       content = <ResearchScheduleWorkspace user={user} />;
@@ -591,8 +648,10 @@ export default function ResearcherDashboard() {
       );
       break;
     case "Calendar":
-    case "Settings":
       content = <PlaceholderContent title={activeSection} />;
+      break;
+    case "Settings":
+      content = <SettingsWorkspace user={user} role="Researcher" onUserUpdate={setUser} />;
       break;
     default:
       content = (
