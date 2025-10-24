@@ -212,16 +212,32 @@ export default function TemplatesWorkspace() {
                     <td className="px-6 py-4">{tpl.version ?? '-'}</td>
                     <td className="px-6 py-4">
                       {tpl.url ? (
-                        <a href={tpl.url} target="_blank" rel="noreferrer" className="text-[color:var(--brand-600)] hover:underline break-all">
-                          {tpl.url}
-                        </a>
+                        <div className="space-y-2">
+                          <a 
+                            href={tpl.url} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="inline-flex items-center gap-2 text-[color:var(--brand-600)] hover:underline font-medium"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            View {tpl.type} Template
+                          </a>
+                          <div className="flex gap-2 text-xs">
+                            <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => startEdit(tpl)}>Edit</button>
+                            <button type="button" className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-600 hover:bg-red-100" onClick={() => handleDelete(tpl._id)}>Delete</button>
+                          </div>
+                        </div>
                       ) : (
-                        '-'
+                        <div className="space-y-2">
+                          <span className="text-[color:var(--neutral-400)]">No URL</span>
+                          <div className="flex gap-2 text-xs">
+                            <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => startEdit(tpl)}>Edit</button>
+                            <button type="button" className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-600 hover:bg-red-100" onClick={() => handleDelete(tpl._id)}>Delete</button>
+                          </div>
+                        </div>
                       )}
-                      <div className="mt-2 flex gap-2 text-xs">
-                        <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => startEdit(tpl)}>Edit</button>
-                        <button type="button" className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-600 hover:bg-red-100" onClick={() => handleDelete(tpl._id)}>Delete</button>
-                      </div>
                     </td>
                   </tr>
                 ))

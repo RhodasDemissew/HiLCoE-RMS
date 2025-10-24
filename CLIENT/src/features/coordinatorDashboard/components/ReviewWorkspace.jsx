@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { api } from "../../../api/client.js";
+import DecisionModal from "./DecisionModal.jsx";
 
 function StatusBadge({ status }) {
   const meta = {
@@ -15,13 +16,24 @@ function StatusBadge({ status }) {
   );
 }
 
-function RowActions({ submission, onOpenDecision, downloadingId, onDownload }) {
+function RowActions({ submission, onOpenDecision, downloadingId, onDownload, modalOpen, modalSubmission, modalDecision, onModalClose, onModalSubmit }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2 relative">
       <button type="button" className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100" onClick={() => onOpenDecision(submission, "approve")}>Approve</button>
       <button type="button" className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100" onClick={() => onOpenDecision(submission, "needs_changes")}>Needs Changes</button>
       <button type="button" className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-100" onClick={() => onOpenDecision(submission, "reject")}>Reject</button>
       <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => onDownload(submission)} disabled={downloadingId === submission.id}>{downloadingId === submission.id ? "Downloading." : "Download"}</button>
+      
+      {/* Inline Decision Modal */}
+      {modalOpen && modalSubmission?.id === submission?.id && (
+        <DecisionModal
+          isOpen={modalOpen}
+          onClose={onModalClose}
+          onSubmit={onModalSubmit}
+          decision={modalDecision}
+          submission={modalSubmission}
+        />
+      )}
     </div>
   );
 }
@@ -34,6 +46,9 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState({});
   const [downloadingId, setDownloadingId] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSubmission, setModalSubmission] = useState(null);
+  const [modalDecision, setModalDecision] = useState(null);
   const API_BASE = import.meta?.env?.VITE_API_BASE || "http://localhost:4000";
 
   const stages = useMemo(() => {
@@ -100,13 +115,21 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
 
   function openDecisionDialog(submission, decision) {
     if (!submission || !decision) return;
-    const pretty = String(decision).replace(/_/g, ' ');
-    let promptLabel = `Confirm ${pretty}`;
-    if (decision === 'needs_changes') promptLabel = 'Describe required changes (optional)';
-    const notes = window.prompt(`${promptLabel}:`, '');
-    if (notes === null) return; // user cancelled
-    handleDecision(submission, decision, notes || '');
+    setModalSubmission(submission);
+    setModalDecision(decision);
+    setModalOpen(true);
   }
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setModalSubmission(null);
+    setModalDecision(null);
+  };
+
+  const handleModalSubmit = async (submission, decision, notes) => {
+    await handleDecision(submission, decision, notes);
+    handleModalClose();
+  };
 
   async function handleDecision(submission, decision, notes = "") {
     if (!submission) return;
@@ -257,7 +280,17 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
                                   ) : null}
                                   <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 text-xs font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => handleFormatCheck(sub.id)}>Re-run Format</button>
                                   <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => handleDownloadReport(sub.id)}>Download JSON</button>
-                                  <RowActions submission={sub} onOpenDecision={openDecisionDialog} downloadingId={downloadingId} onDownload={handleDownload} />
+                                  <RowActions 
+                                    submission={sub} 
+                                    onOpenDecision={openDecisionDialog} 
+                                    downloadingId={downloadingId} 
+                                    onDownload={handleDownload}
+                                    modalOpen={modalOpen}
+                                    modalSubmission={modalSubmission}
+                                    modalDecision={modalDecision}
+                                    onModalClose={handleModalClose}
+                                    onModalSubmit={handleModalSubmit}
+                                  />
                                 </div>
                               </div>
                             ))}
