@@ -1,15 +1,10 @@
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
+﻿import {
   Legend,
   Pie,
   PieChart,
   Cell,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from "recharts";
 
 function SummaryCard({ label, value, trend, icon, loading = false }) {
@@ -35,7 +30,7 @@ function SummaryCard({ label, value, trend, icon, loading = false }) {
   );
 }
 
-function ActivityLog({ items }) {
+function ActivityLog({ items, onViewAll }) {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -65,7 +60,13 @@ function ActivityLog({ items }) {
           <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Activity Log</h2>
           <p className="text-xs text-[color:var(--neutral-500)]">Latest researcher activity</p>
         </div>
-        <button type="button" className="text-xs font-semibold text-[color:var(--brand-600)]">View all</button>
+        <button 
+          type="button" 
+          className="text-xs font-semibold text-[color:var(--brand-600)] hover:text-[color:var(--brand-700)]"
+          onClick={onViewAll}
+        >
+          View all
+        </button>
       </header>
       <div className="overflow-hidden rounded-xl border border-[color:var(--neutral-200)]">
         <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-sm">
@@ -115,152 +116,116 @@ function ActivityLog({ items }) {
   );
 }
 
-function EventsPanel({ events }) {
-  return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
-      <header>
-        <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Events and Deadlines</h2>
-        <p className="mt-1 text-xs text-[color:var(--neutral-500)]">Keep track of upcoming milestones</p>
-      </header>
-      <ul className="mt-4 space-y-4">
-        {events.map((event, idx) => (
-          <li key={idx} className="flex items-start gap-3 rounded-xl bg-[color:var(--neutral-50)] px-4 py-3">
-            <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--brand-600)]/10 text-[color:var(--brand-600)]">�</span>
-            <div>
-              <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{event.title}</p>
-              <p className="text-xs text-[color:var(--neutral-500)]">{event.date}</p>
-              {event.owner ? <p className="text-xs text-[color:var(--neutral-400)]">{event.owner}</p> : null}
-            </div>
-          </li>
-        ))}
-      </ul>
-      <button type="button" className="btn-ghost mt-4 w-full rounded-xl py-3 text-sm font-semibold">
-        View Full Calendar
-      </button>
-    </article>
-  );
-}
 
-function MessagesPanel({ messages }) {
+function MessagesPanel({ messages, loading = false, onViewAll }) {
   return (
     <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
       <header className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Message</h2>
-        <button type="button" className="text-xs font-semibold text-[color:var(--brand-600)]">View All</button>
+        <button 
+          type="button" 
+          className="text-xs font-semibold text-[color:var(--brand-600)] hover:text-[color:var(--brand-700)]"
+          onClick={onViewAll}
+        >
+          View All
+        </button>
       </header>
-      <ul className="mt-4 space-y-3">
-        {messages.map((message) => (
-          <li key={message.id} className="rounded-xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{message.author}</p>
-                <p className="text-xs text-[color:var(--neutral-500)]">{message.role}</p>
+      {loading ? (
+        <div className="mt-4 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-4 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="h-4 w-20 animate-pulse rounded bg-[color:var(--neutral-200)]"></div>
+                <div className="h-3 w-12 animate-pulse rounded bg-[color:var(--neutral-200)]"></div>
               </div>
-              <span className="text-xs text-[color:var(--neutral-400)]">{message.ago}</span>
+              <div className="h-3 w-16 animate-pulse rounded bg-[color:var(--neutral-200)] mb-2"></div>
+              <div className="h-3 w-full animate-pulse rounded bg-[color:var(--neutral-200)]"></div>
             </div>
-            <p className="mt-2 text-xs text-[color:var(--neutral-600)]">{message.body}</p>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {messages && messages.length > 0 ? messages.map((message) => (
+            <li key={message.id} className="rounded-xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-[color:var(--neutral-900)]">{message.author}</p>
+                  <p className="text-xs text-[color:var(--neutral-500)]">{message.role}</p>
+                </div>
+                <span className="text-xs text-[color:var(--neutral-400)]">{message.ago}</span>
+              </div>
+              <p className="mt-2 text-xs text-[color:var(--neutral-600)]">{message.body}</p>
+            </li>
+          )) : (
+            <div className="mt-4 rounded-xl border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-4 py-6 text-center">
+              <p className="text-sm font-semibold text-[color:var(--neutral-800)]">No recent messages</p>
+              <p className="mt-1 text-xs text-[color:var(--neutral-500)]">Start a conversation to see messages here.</p>
+            </div>
+          )}
+        </ul>
+      )}
     </article>
   );
 }
 
 function PerformanceChart({ data }) {
-  const COLORS = ["#3B82F6", "#6366F1", "#F97316", "#0EA5E9", "#22C55E"];
+  const COLORS = ["#3B82F6", "#6366F1", "#F97316", "#0EA5E9", "#22C55E", "#EF4444", "#10B981", "#F59E0B"];
   return (
     <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
       <header className="mb-4">
-        <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Server/AI Performance</h2>
-        <p className="text-xs text-[color:var(--neutral-500)]">System utilisation overview</p>
+        <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Submissions by Stage</h2>
+        <p className="text-xs text-[color:var(--neutral-500)]">Number of submissions for each research stage</p>
       </header>
-      <div className="mx-auto h-60 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Tooltip />
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="label"
-              outerRadius={100}
-              innerRadius={60}
-              paddingAngle={2}
-              strokeWidth={0}
-            >
-              {data.map((entry, index) => (
-                <Cell key={`slice-${entry.label}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="mx-auto w-full overflow-hidden">
+        <div className="h-56 sm:h-64 md:h-72 lg:h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Tooltip />
+              <Legend 
+                verticalAlign="bottom" 
+                height={50}
+                wrapperStyle={{ 
+                  paddingTop: '8px',
+                  fontSize: '9px',
+                  fontFamily: 'inherit',
+                  lineHeight: '1.1',
+                  maxWidth: '100%'
+                }}
+                iconType="circle"
+                layout="horizontal"
+              />
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="label"
+                outerRadius={70}
+                innerRadius={35}
+                paddingAngle={2}
+                strokeWidth={0}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`slice-${entry.label}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </article>
   );
 }
 
-function ResearchStats({ labels, series }) {
-  const chartData = labels.map((label, idx) => {
-    const row = { name: label };
-    series.forEach((item) => {
-      row[item.year] = item.values[idx];
-    });
-    return row;
-  });
-  return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
-      <header className="mb-4">
-        <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Research stats</h2>
-        <p className="text-xs text-[color:var(--neutral-500)]">Year over year comparison</p>
-      </header>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-            <defs>
-              <linearGradient id="coordColorA" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="coordColorB" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="coordColorC" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#A855F7" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="#A855F7" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.08)" />
-            <XAxis dataKey="name" stroke="rgba(15,23,42,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="rgba(15,23,42,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip />
-            <Legend />
-            {series.map((item, idx) => (
-              <Area
-                key={item.year}
-                type="monotone"
-                dataKey={item.year}
-                stroke={idx === 0 ? "#3B82F6" : idx === 1 ? "#0EA5E9" : "#A855F7"}
-                fill={idx === 0 ? "url(#coordColorA)" : idx === 1 ? "url(#coordColorB)" : "url(#coordColorC)"}
-                strokeWidth={2}
-              />
-            ))}
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </article>
-  );
-}
 
 export default function CoordinatorDashboardWorkspace({
   summary,
   activity,
-  events,
   messages,
   performance,
-  researchLabels,
-  researchSeries,
   user,
   statsLoading = false,
+  messagesLoading = false,
+  onNavigateToActivityLog,
+  onNavigateToMessages,
 }) {
   return (
     <section className="rounded-3xl bg-white px-8 py-8 shadow-sm">
@@ -275,22 +240,15 @@ export default function CoordinatorDashboardWorkspace({
         ))}
       </div>
 
-      <div className="mt-8 grid gap-5 xl:grid-cols-[2fr_1fr]">
-        <div className="space-y-5">
-          <ActivityLog items={activity} />
-          <div className="grid gap-5 lg:grid-cols-2">
-            <PerformanceChart data={performance} />
-            <EventsPanel events={events} />
-          </div>
-        </div>
-        <div className="space-y-5">
-          <MessagesPanel messages={messages} />
-        </div>
-        <div className="xl:col-span-2">
-          <ResearchStats labels={researchLabels} series={researchSeries} />
-        </div>
-        
+      <div className="mt-8 grid gap-5 grid-cols-1 lg:grid-cols-2">
+        <PerformanceChart data={performance} />
+        <MessagesPanel messages={messages} loading={messagesLoading} onViewAll={onNavigateToMessages} />
+      </div>
+      
+      <div className="mt-8">
+        <ActivityLog items={activity} onViewAll={onNavigateToActivityLog} />
       </div>
     </section>
   );
 }
+
