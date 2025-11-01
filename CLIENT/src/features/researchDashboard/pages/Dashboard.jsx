@@ -555,9 +555,6 @@ export default function ResearcherDashboard() {
         setActiveSection("Templates");
       } else if (action.label === "Messages") {
         setActiveSection("Message");
-      } else if (action.label === "Contact Support") {
-        // Navigate to external contact page like landing page
-        window.location.href = "/contact";
       }
     })
   }));

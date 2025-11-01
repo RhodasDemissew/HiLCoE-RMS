@@ -1,6 +1,5 @@
 import uploadIcon from "../../assets/icons/upload.png";
 import calendarActionIcon from "../../assets/icons/calendar.png";
-import chatActionIcon from "../../assets/icons/chat.png";
 import downloadIcon from "../../assets/icons/download.png";
 import reportsIcon from "../../assets/icons/reports.png";
 import wordIcon from "../../assets/icons/word.png";
@@ -29,7 +28,6 @@ export const dashboardQuickActions = [
   { icon: uploadIcon, label: "New Submission", sublabel: "Submit research documents" },
   { icon: wordIcon, label: "View Templates", sublabel: "Browse document templates" },
   { icon: messageIcon, label: "Messages", sublabel: "Chat with supervisors" },
-  { icon: chatActionIcon, label: "Contact Support", sublabel: "Get help and guidance" },
 ];
 
 export const dashboardMilestones = [
