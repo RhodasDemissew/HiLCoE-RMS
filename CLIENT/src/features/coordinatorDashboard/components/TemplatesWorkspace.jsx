@@ -15,9 +15,24 @@ export default function TemplatesWorkspace() {
   const [saveError, setSaveError] = useState("");
   const [toast, setToast] = useState(null);
 
-  const sorted = useMemo(() => {
-    return templates.slice().sort((a, b) => (b.version || 0) - (a.version || 0));
+  // Remove duplicate Thesis templates, keeping only the first one
+  const uniqueTemplates = useMemo(() => {
+    const seenThesis = new Set();
+    return templates.filter((template) => {
+      const type = (template.type || '').toLowerCase().trim();
+      if (type === 'thesis') {
+        if (seenThesis.has('thesis')) {
+          return false; // Skip duplicate thesis
+        }
+        seenThesis.add('thesis');
+      }
+      return true;
+    });
   }, [templates]);
+
+  const sorted = useMemo(() => {
+    return uniqueTemplates.slice().sort((a, b) => (b.version || 0) - (a.version || 0));
+  }, [uniqueTemplates]);
 
   const fetchTemplates = useCallback(async () => {
     setLoading(true);

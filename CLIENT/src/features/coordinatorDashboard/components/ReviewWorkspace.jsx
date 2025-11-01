@@ -17,6 +17,29 @@ function StatusBadge({ status }) {
 }
 
 function RowActions({ submission, onOpenDecision, downloadingId, onDownload, modalOpen, modalSubmission, modalDecision, onModalClose, onModalSubmit }) {
+  const status = submission?.status || '';
+  const isApproved = status === 'approved';
+  const isRejected = status === 'rejected';
+  
+  // If approved or rejected, don't allow status changes
+  if (isApproved) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 relative">
+        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Already Approved</span>
+        <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => onDownload(submission)} disabled={downloadingId === submission.id}>{downloadingId === submission.id ? "Downloading." : "Download"}</button>
+      </div>
+    );
+  }
+  
+  if (isRejected) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 relative">
+        <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600">Rejected</span>
+        <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => onDownload(submission)} disabled={downloadingId === submission.id}>{downloadingId === submission.id ? "Downloading." : "Download"}</button>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-wrap items-center gap-2 relative">
       <button type="button" className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100" onClick={() => onOpenDecision(submission, "approve")}>Approve</button>
@@ -260,40 +283,55 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
                       <tr>
                         <td colSpan={7} className="bg-[color:var(--neutral-50)] px-6 py-4">
                           <div className="space-y-3">
-                            {group.submissions.map((sub) => (
-                              <div key={sub.id} className="flex flex-col gap-1 rounded-xl border border-[color:var(--neutral-200)] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="min-w-0">
-                                  <div className="text-sm font-semibold text-[color:var(--neutral-900)]">{sub.stage}</div>
-                                  <div className="text-xs text-[color:var(--neutral-600)]">{sub.title}</div>
-                                  <div className="text-xs text-[color:var(--neutral-500)]">Submitted {dayjs(sub.submittedAt || sub.created_at).format('MMM D, YYYY')}</div>
+                            {group.submissions.map((sub) => {
+                              const isApproved = (sub.status || '').toLowerCase() === 'approved';
+                              const approvedDate = sub.reviewed_at || sub.updated_at || sub.submittedAt || sub.created_at;
+                              return (
+                                <div key={sub.id} className="flex flex-col gap-1 rounded-xl border border-[color:var(--neutral-200)] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-semibold text-[color:var(--neutral-900)]">{sub.stage}</div>
+                                    <div className="text-xs text-[color:var(--neutral-600)]">{sub.title}</div>
+                                    <div className="text-xs text-[color:var(--neutral-500)]">
+                                      {isApproved && approvedDate 
+                                        ? `This ${sub.stage?.toLowerCase() || 'submission'} has been approved on ${dayjs(approvedDate).format('MMM D, YYYY')}`
+                                        : `Submitted ${dayjs(sub.submittedAt || sub.created_at).format('MMM D, YYYY')}`
+                                      }
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    {isApproved ? (
+                                      <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => handleDownload(sub)} disabled={downloadingId === sub.id}>{downloadingId === sub.id ? "Downloading." : "Download"}</button>
+                                    ) : (
+                                      <>
+                                        {sub?.analysis?.status === 'completed' ? (
+                                          <span className="inline-flex rounded-full bg-[color:var(--brand-600)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)]">{`${Math.round(sub?.analysis?.score ?? sub?.analysis?.progress ?? 0)}%`}</span>
+                                        ) : (
+                                          <button type="button" className="rounded-full bg-[color:var(--brand-600)] px-3 py-1 text-xs font-semibold text-white hover:bg-[color:var(--brand-500)]" onClick={async () => { try { const res = await api(`/stages/submissions/${sub.id}/analyze`, { method: 'POST' }); const data = await res.json().catch(() => ({})); if (!res.ok) throw new Error(data?.error || 'Analyze failed'); fetchList(); } catch (err) { alert(err.message || 'Analyze failed'); } }}>Run AI/NLP</button>
+                                        )}
+                                        {sub?.format ? (
+                                          <span className={"inline-flex rounded-full px-3 py-1 text-xs font-semibold " + (sub.format.status === 'pass' ? 'bg-emerald-50 text-emerald-700' : sub.format.status === 'issues' ? 'bg-amber-50 text-amber-700' : 'bg-[color:var(--neutral-100)] text-[color:var(--neutral-700)]')}>
+                                            {sub.format.status === 'pass' ? 'Format OK' : sub.format.status === 'issues' ? 'Format Issues' : 'Format Unknown'}
+                                          </span>
+                                        ) : null}
+                                        <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 text-xs font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => handleFormatCheck(sub.id)}>Re-run Format</button>
+                                        <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => handleDownloadReport(sub.id)}>Download JSON</button>
+                                        <RowActions 
+                                          submission={sub} 
+                                          onOpenDecision={openDecisionDialog} 
+                                          downloadingId={downloadingId} 
+                                          onDownload={handleDownload}
+                                          modalOpen={modalOpen}
+                                          modalSubmission={modalSubmission}
+                                          modalDecision={modalDecision}
+                                          onModalClose={handleModalClose}
+                                          onModalSubmit={handleModalSubmit}
+                                        />
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  {sub?.analysis?.status === 'completed' ? (
-                                    <span className="inline-flex rounded-full bg-[color:var(--brand-600)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)]">{`${Math.round(sub?.analysis?.score ?? sub?.analysis?.progress ?? 0)}%`}</span>
-                                  ) : (
-                                    <button type="button" className="rounded-full bg-[color:var(--brand-600)] px-3 py-1 text-xs font-semibold text-white hover:bg-[color:var(--brand-500)]" onClick={async () => { try { const res = await api(`/stages/submissions/${sub.id}/analyze`, { method: 'POST' }); const data = await res.json().catch(() => ({})); if (!res.ok) throw new Error(data?.error || 'Analyze failed'); fetchList(); } catch (err) { alert(err.message || 'Analyze failed'); } }}>Run AI/NLP</button>
-                                  )}
-                                  {sub?.format ? (
-                                    <span className={"inline-flex rounded-full px-3 py-1 text-xs font-semibold " + (sub.format.status === 'pass' ? 'bg-emerald-50 text-emerald-700' : sub.format.status === 'issues' ? 'bg-amber-50 text-amber-700' : 'bg-[color:var(--neutral-100)] text-[color:var(--neutral-700)]')}>
-                                      {sub.format.status === 'pass' ? 'Format OK' : sub.format.status === 'issues' ? 'Format Issues' : 'Format Unknown'}
-                                    </span>
-                                  ) : null}
-                                  <button type="button" className="rounded-full bg-[color:var(--neutral-100)] px-3 py-1 text-xs font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-200)]" onClick={() => handleFormatCheck(sub.id)}>Re-run Format</button>
-                                  <button type="button" className="rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)] hover:bg-[color:var(--brand-100)]" onClick={() => handleDownloadReport(sub.id)}>Download JSON</button>
-                                  <RowActions 
-                                    submission={sub} 
-                                    onOpenDecision={openDecisionDialog} 
-                                    downloadingId={downloadingId} 
-                                    onDownload={handleDownload}
-                                    modalOpen={modalOpen}
-                                    modalSubmission={modalSubmission}
-                                    modalDecision={modalDecision}
-                                    onModalClose={handleModalClose}
-                                    onModalSubmit={handleModalSubmit}
-                                  />
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </td>
                       </tr>

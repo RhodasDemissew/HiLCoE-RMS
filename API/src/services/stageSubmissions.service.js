@@ -130,6 +130,14 @@ export async function reviewSubmission({ submissionId, reviewerId, reviewerRole,
   const submission = await StageSubmission.findById(submissionId);
   if (!submission) throw new Error('Submission not found');
 
+  // Prevent status changes for already approved or rejected submissions
+  if (submission.status === SUBMISSION_STATUSES.APPROVED) {
+    throw new Error('Cannot change status of an already approved submission');
+  }
+  if (submission.status === SUBMISSION_STATUSES.REJECTED) {
+    throw new Error('Cannot change status of a rejected submission');
+  }
+
   const progress = await getOrCreateProgress(submission.researcher);
   const stageName = STAGE_ORDER[submission.stage_index];
   const roleName = String(reviewerRole || '').toLowerCase();
@@ -191,24 +199,92 @@ export async function reviewSubmission({ submissionId, reviewerId, reviewerRole,
       submission.decision_notes = notes || '';
       await submission.save();
       try { await notify(submission.researcher, 'submission_changes_requested', { submissionId: String(submission._id), stage: stageName, actor_id: reviewerId, actor_name: actorName }); } catch {}
-      try {
-        const project = await Project.findOne({ researcher: submission.researcher }).select('_id title researcher advisor');
-        if (project) {
-          const body = notes ? `Feedback for ${stageName}: ${notes}` : `Your ${stageName} submission needs changes.`;
-          await messagingService.emitSystemMessageForProject(project._id, {
-            body,
-            meta: {
-              submissionId: String(submission._id),
-              stage: stageName,
-              decision: 'needs_changes',
-              reviewerId: String(reviewerId),
-            },
-            kind: 'feedback',
-            actorId: reviewerId,
-          });
+      
+      // Send feedback message to researcher - try project conversation first, fallback to direct message
+      if (notes && notes.trim()) {
+        try {
+          const project = await Project.findOne({ researcher: submission.researcher }).select('_id title researcher advisor');
+          if (project) {
+            // Try project conversation first
+            const body = `Feedback for ${stageName}: ${notes.trim()}`;
+            await messagingService.emitSystemMessageForProject(project._id, {
+              body,
+              meta: {
+                submissionId: String(submission._id),
+                stage: stageName,
+                decision: 'needs_changes',
+                reviewerId: String(reviewerId),
+              },
+              kind: 'feedback',
+              actorId: reviewerId,
+            });
+          } else {
+            // Fallback: send direct message if no project exists
+            const body = `Your ${stageName} submission needs changes:\n\n${notes.trim()}`;
+            const directConversation = await messagingService.ensureDirectConversation(submission.researcher, reviewerId);
+            await messagingService.sendMessage(directConversation._id, reviewerId, {
+              body,
+              attachments: [],
+              kind: 'feedback',
+              meta: {
+                submissionId: String(submission._id),
+                stage: stageName,
+                decision: 'needs_changes',
+              },
+            });
+          }
+        } catch (err) {
+          console.error('Failed to send feedback message:', err?.message || err);
+          // Try direct message as final fallback
+          try {
+            const body = `Your ${stageName} submission needs changes:\n\n${notes.trim()}`;
+            const directConversation = await messagingService.ensureDirectConversation(submission.researcher, reviewerId);
+            await messagingService.sendMessage(directConversation._id, reviewerId, {
+              body,
+              attachments: [],
+              kind: 'feedback',
+              meta: {
+                submissionId: String(submission._id),
+                stage: stageName,
+                decision: 'needs_changes',
+              },
+            });
+          } catch (fallbackErr) {
+            console.error('Failed to send direct feedback message:', fallbackErr?.message || fallbackErr);
+          }
         }
-      } catch (err) {
-        console.warn('messaging emit failed', err?.message || err);
+      } else {
+        // Even without notes, send a basic notification message
+        try {
+          const project = await Project.findOne({ researcher: submission.researcher }).select('_id title researcher advisor');
+          if (project) {
+            await messagingService.emitSystemMessageForProject(project._id, {
+              body: `Your ${stageName} submission needs changes.`,
+              meta: {
+                submissionId: String(submission._id),
+                stage: stageName,
+                decision: 'needs_changes',
+                reviewerId: String(reviewerId),
+              },
+              kind: 'feedback',
+              actorId: reviewerId,
+            });
+          } else {
+            const directConversation = await messagingService.ensureDirectConversation(submission.researcher, reviewerId);
+            await messagingService.sendMessage(directConversation._id, reviewerId, {
+              body: `Your ${stageName} submission needs changes.`,
+              attachments: [],
+              kind: 'feedback',
+              meta: {
+                submissionId: String(submission._id),
+                stage: stageName,
+                decision: 'needs_changes',
+              },
+            });
+          }
+        } catch (err) {
+          console.error('Failed to send feedback notification:', err?.message || err);
+        }
       }
       break;
     default:
@@ -217,13 +293,51 @@ export async function reviewSubmission({ submissionId, reviewerId, reviewerRole,
   return submission;
 }
 
-export async function getSubmissionById(id, userId) {
+export async function getSubmissionById(id, userId, requesterRole = null) {
   const submission = await StageSubmission.findById(id);
   if (!submission) throw new Error('Submission not found');
-  if (userId && String(submission.researcher) !== String(userId)) {
-    throw new Error('Not authorized');
+  
+  // If userId is null (coordinator), allow access
+  if (!userId) return submission;
+  
+  // If requester is the researcher, allow access
+  if (String(submission.researcher) === String(userId)) {
+    return submission;
   }
-  return submission;
+  
+  // If requester is an advisor/supervisor, check if they're assigned to this researcher
+  if (requesterRole) {
+    const roleName = String(requesterRole || '').toLowerCase();
+    const isCoordinator = roleName.includes('coordinator');
+    const isSupervisorOrAdvisor = roleName.includes('supervisor') || roleName.includes('advisor');
+    
+    if (isSupervisorOrAdvisor || isCoordinator) {
+      // Check if supervisor/advisor is assigned to this researcher via StudentVerification
+      const researcherUser = await User.findById(submission.researcher).select('student_verification');
+      if (researcherUser?.student_verification) {
+        const svRec = await StudentVerification.findById(researcherUser.student_verification).select('assigned_supervisor');
+        if (svRec?.assigned_supervisor?.supervisor_id) {
+          const assignedSupervisorId = String(svRec.assigned_supervisor.supervisor_id);
+          if (assignedSupervisorId === String(userId)) {
+            return submission;
+          }
+        }
+      }
+      
+      // Also check if advisor is assigned via Project
+      const project = await Project.findOne({ researcher: submission.researcher }).select('advisor');
+      if (project?.advisor && String(project.advisor) === String(userId)) {
+        return submission;
+      }
+      
+      // If coordinator, allow access
+      if (isCoordinator) {
+        return submission;
+      }
+    }
+  }
+  
+  throw new Error('Not authorized');
 }
 
 

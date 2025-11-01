@@ -390,8 +390,17 @@ export const researcherStagesController = {
 
   download: async (req, res) => {
     try {
-      const isCoordinator = req.user?.role && req.user.role.toLowerCase().includes('coordinator');
-      const submission = await getSubmissionById(req.params.id, isCoordinator ? null : req.user.id);
+      const roleName = (req.user?.role || '').toLowerCase();
+      const isCoordinator = roleName.includes('coordinator');
+      
+      // Allow coordinators to download without userId check (pass null)
+      // For advisors/supervisors and researchers, pass their userId and role for authorization check
+      const submission = await getSubmissionById(
+        req.params.id, 
+        isCoordinator ? null : req.user.id,
+        req.user?.role || null
+      );
+      
       res.setHeader('Content-Type', submission.file?.mimetype || 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${submission.file?.filename || 'submission'}"`);
       const stream = getFileStream(submission.file.path);

@@ -23,12 +23,22 @@ function normalizeStages(progress, submissions = []) {
   return STAGE_ORDER.map((name, index) => {
     const info = lookup.get(name) || {};
     let status = info.status || (index < currentIndex ? 'completed' : index === currentIndex ? 'current' : 'locked');
-    // If current stage has a latest submission in Needs Changes, reflect that visually
-    if (index === currentIndex) {
-      const latest = latestByIndex.get(index);
-      if (latest?.status === 'needs_changes') status = 'needs_changes';
+    const latest = latestByIndex.get(index);
+    
+    // Check latest submission status to override stage status
+    if (latest) {
+      const submissionStatus = latest.status;
+      if (submissionStatus === 'needs_changes') {
+        status = 'needs_changes';
+      } else if (submissionStatus === 'under_review' || submissionStatus === 'awaiting_coordinator') {
+        // If there's a submission under review, show that status even if stage is marked as 'current'
+        status = 'under_review';
+      } else if (submissionStatus === 'approved' && index < currentIndex) {
+        status = 'completed';
+      }
       // If rejected + synopsis and resubmitUntil active, API already marks 'resubmit'
     }
+    
     const baseUnlocked = Boolean(info.unlocked);
     const submitUnlocked = baseUnlocked && (status === 'current' || status === 'resubmit' || status === 'needs_changes');
     return {
@@ -37,6 +47,7 @@ function normalizeStages(progress, submissions = []) {
       unlocked: submitUnlocked,
       status,
       daysLeft: info.daysLeft ?? null,
+      latestSubmission: latest || null, // Include latest submission for tooltip
     };
   });
 }

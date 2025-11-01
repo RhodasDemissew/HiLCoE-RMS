@@ -4,6 +4,8 @@ import { messageRepo } from '../repositories/message.repository.js';
 import { projectRepo } from '../repositories/project.repository.js';
 import { userRepo } from '../repositories/user.repository.js';
 import { notify } from './notificationService.js';
+import { StudentVerification } from '../models/StudentVerification.js';
+import { User } from '../models/User.js';
 
 const MAX_BODY_LENGTH = 4000;
 
@@ -142,22 +144,61 @@ export const messagingService = {
     if (String(targetUser._id) === String(actorUser._id)) throw new Error('cannot start a conversation with yourself');
     if (targetUser.status && targetUser.status !== 'active') throw new Error('user is not active');
 
-    // Role-based messaging rules
+    // Role-based messaging rules - must match listResearcherTargets permissions
     const actorRole = (actorUser.role?.name || '').toLowerCase();
     const targetRole = (targetUser.role?.name || '').toLowerCase();
     
-    // Researchers can only talk to supervisors/advisors
     if (actorRole === 'researcher') {
-      if (targetRole !== 'supervisor' && targetRole !== 'advisor') {
-        throw new Error('Researchers can only message their supervisors');
+      // Researchers can message their assigned supervisor + all coordinators
+      const isCoordinator = targetRole === 'coordinator';
+      const isSupervisor = targetRole === 'supervisor' || targetRole === 'advisor';
+      
+      if (isCoordinator) {
+        // Always allow coordinators
+      } else if (isSupervisor) {
+        // Check if this supervisor is assigned to the researcher
+        if (actorUser.student_verification) {
+          const studentVerification = await StudentVerification.findById(actorUser.student_verification).select('assigned_supervisor');
+          const assignedSupervisorId = studentVerification?.assigned_supervisor?.supervisor_id ? String(studentVerification.assigned_supervisor.supervisor_id) : '';
+          const targetUserIdStr = String(targetUser._id);
+          if (assignedSupervisorId !== targetUserIdStr) {
+            throw new Error('You can only message your assigned supervisor');
+          }
+        } else {
+          throw new Error('No supervisor assigned to your account');
+        }
+      } else {
+        throw new Error('You can only message your assigned supervisor or coordinators');
       }
-    }
-    
-    // Coordinators and Supervisors can talk to each other and researchers
-    if (actorRole === 'coordinator' || actorRole === 'supervisor' || actorRole === 'advisor') {
-      if (targetRole !== 'researcher' && targetRole !== 'coordinator' && targetRole !== 'supervisor' && targetRole !== 'advisor') {
-        throw new Error('Invalid messaging target for your role');
+    } else if (actorRole === 'supervisor' || actorRole === 'advisor') {
+      // Supervisors/Advisors can message their assigned students + all coordinators
+      const isCoordinator = targetRole === 'coordinator';
+      const isResearcher = targetRole === 'researcher';
+      
+      if (isCoordinator) {
+        // Always allow coordinators
+      } else if (isResearcher) {
+        // Check if this researcher is assigned to the supervisor
+        const assignedStudents = await StudentVerification.find({ 'assigned_supervisor.supervisor_id': actorId }).select('_id');
+        const studentVerificationIds = assignedStudents.map((sv) => sv._id);
+        if (studentVerificationIds.length > 0) {
+          const assignedResearcherUsers = await User.find({ student_verification: { $in: studentVerificationIds }, status: 'active' }).select('_id');
+          const assignedResearcherIds = assignedResearcherUsers.map((u) => String(u._id));
+          const targetUserIdStr = String(targetUser._id);
+          if (!assignedResearcherIds.includes(targetUserIdStr)) {
+            throw new Error('You can only message your assigned students');
+          }
+        } else {
+          throw new Error('No students assigned to your account');
+        }
+      } else {
+        throw new Error('You can only message your assigned students or coordinators');
       }
+    } else if (actorRole === 'coordinator') {
+      // Coordinators can message everyone (researchers, supervisors, advisors, coordinators)
+      // No restrictions needed
+    } else {
+      throw new Error('Invalid user role for messaging');
     }
 
     // Build participants for direct conversation only
@@ -215,20 +256,39 @@ export const messagingService = {
     const actorIdStr = actorId ? String(actorId) : '';
     
     let targetUsers = [];
+    const coordinatorUsers = await userRepo.findActiveByRoleName('Coordinator');
     
     // Role-based target selection
     if (actorRole === 'researcher') {
-      // Researchers can only see supervisors/advisors
-      const supervisors = await userRepo.findActiveByRoleName('Supervisor');
-      const advisors = await userRepo.findActiveByRoleName('Advisor');
-      targetUsers = [...supervisors, ...advisors];
-    } else if (actorRole === 'coordinator' || actorRole === 'supervisor' || actorRole === 'advisor') {
-      // Coordinators and supervisors can see researchers and other coordinators/supervisors
+      // Researchers see their assigned supervisor + all coordinators
+      const researcherUser = actorUser;
+      if (researcherUser.student_verification) {
+        const studentVerification = await StudentVerification.findById(researcherUser.student_verification).select('assigned_supervisor');
+        if (studentVerification?.assigned_supervisor?.supervisor_id) {
+          const supervisorUser = await userRepo.findById(studentVerification.assigned_supervisor.supervisor_id);
+          if (supervisorUser) {
+            targetUsers.push(supervisorUser);
+          }
+        }
+      }
+      // Always include coordinators
+      targetUsers = [...targetUsers, ...coordinatorUsers];
+    } else if (actorRole === 'supervisor' || actorRole === 'advisor') {
+      // Supervisors/Advisors see their assigned students + all coordinators
+      const assignedStudents = await StudentVerification.find({ 'assigned_supervisor.supervisor_id': actorId }).select('_id');
+      const studentVerificationIds = assignedStudents.map((sv) => sv._id);
+      if (studentVerificationIds.length > 0) {
+        const assignedResearcherUsers = await User.find({ student_verification: { $in: studentVerificationIds }, status: 'active' }).populate('role');
+        targetUsers = [...assignedResearcherUsers];
+      }
+      // Always include coordinators
+      targetUsers = [...targetUsers, ...coordinatorUsers];
+    } else if (actorRole === 'coordinator') {
+      // Coordinators see ALL users
       const researchers = await userRepo.findActiveByRoleName('Researcher');
       const supervisors = await userRepo.findActiveByRoleName('Supervisor');
       const advisors = await userRepo.findActiveByRoleName('Advisor');
-      const coordinators = await userRepo.findActiveByRoleName('Coordinator');
-      targetUsers = [...researchers, ...supervisors, ...advisors, ...coordinators];
+      targetUsers = [...researchers, ...supervisors, ...advisors, ...coordinatorUsers];
     } else {
       // Default to researchers for unknown roles
       targetUsers = await userRepo.findActiveByRoleName('Researcher');

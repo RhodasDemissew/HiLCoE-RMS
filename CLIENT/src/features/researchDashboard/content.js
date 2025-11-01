@@ -16,7 +16,6 @@ export const dashboardNavItems = [
   { label: "Templates", icon: wordIcon },
   { label: "Schedule", icon: calendarSidebarIcon },
   { label: "Message", icon: messageIcon },
-  { label: "Settings", icon: settingsIcon },
 ];
 
 export const dashboardKpiCards = [

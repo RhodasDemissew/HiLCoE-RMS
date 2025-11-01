@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import messageIcon from "../../../assets/icons/message.png";
-import { Pie, PieChart, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { Pie, PieChart, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 const PERFORMANCE_COLORS = ["#3B82F6", "#6366F1", "#F97316", "#22C55E", "#A855F7"];
 
@@ -217,10 +217,23 @@ function PerformanceChart({ data, loading }) {
         <p className="text-xs text-[color:var(--neutral-500)]">Distribution by review status for your assigned researchers</p>
       </header>
       {hasData ? (
-        <div className="mx-auto h-60 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="mx-auto w-full">
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Tooltip />
+              <Legend 
+                verticalAlign="bottom" 
+                height={60}
+                wrapperStyle={{ 
+                  paddingTop: '12px',
+                  fontSize: '11px',
+                  fontFamily: 'inherit',
+                  lineHeight: '1.3',
+                  maxWidth: '100%'
+                }}
+                iconType="circle"
+                layout="horizontal"
+              />
               <Pie data={data} dataKey="value" nameKey="label" outerRadius={110} innerRadius={70} paddingAngle={2} strokeWidth={0}>
                 {data.map((entry, index) => (
                   <Cell key={entry.key || entry.label} fill={PERFORMANCE_COLORS[index % PERFORMANCE_COLORS.length]} />

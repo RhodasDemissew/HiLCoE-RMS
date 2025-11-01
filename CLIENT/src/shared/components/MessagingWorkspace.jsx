@@ -149,16 +149,38 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     return map;
   }, [computedConversations, currentUserId]);
 
+  // When search term is empty, show all researchers; when searching, API returns filtered results
+  // Sort by last message timestamp (most recent first)
   const filteredResearchers = useMemo(() => {
-    if (!searchTerm.trim()) return researchers;
-    const q = searchTerm.trim().toLowerCase();
-    return researchers.filter((researcher) => {
-      const name = (researcher.name || "").toLowerCase();
-      const email = (researcher.email || "").toLowerCase();
-      const studentId = (researcher.studentId || "").toLowerCase();
-      return name.includes(q) || email.includes(q) || studentId.includes(q);
+    return [...researchers].sort((a, b) => {
+      const convA = conversationByUserId.get(a.id);
+      const convB = conversationByUserId.get(b.id);
+      
+      const timestampA = convA?.lastTimestamp || 
+                         convA?.last_message?.created_at || 
+                         convA?.last_message_at || 
+                         null;
+      const timestampB = convB?.lastTimestamp || 
+                         convB?.last_message?.created_at || 
+                         convB?.last_message_at || 
+                         null;
+      
+      // Both have conversations - sort by timestamp (newest first)
+      if (timestampA && timestampB) {
+        return new Date(timestampB) - new Date(timestampA);
+      }
+      // Only A has a conversation - A comes first
+      if (timestampA && !timestampB) {
+        return -1;
+      }
+      // Only B has a conversation - B comes first
+      if (!timestampA && timestampB) {
+        return 1;
+      }
+      // Neither has a conversation - maintain original order
+      return 0;
     });
-  }, [researchers, searchTerm]);
+  }, [researchers, conversationByUserId]);
   const uniqueActiveParticipants = useMemo(
     () => dedupeParticipants(activeConversation?.participants || [], currentUserId),
     [activeConversation, currentUserId]
@@ -222,14 +244,17 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
     };
   }, [activeConversationId]);
 
+
+  // Load filtered users when search term changes (debounced)
   useEffect(() => {
     if (!currentUserId) return undefined;
     let ignore = false;
-    async function loadResearchers(initial = false) {
+    async function loadSearchResults() {
       try {
-        if (initial) setIsLoadingResearchers(true);
-        const res = await api("/conversations/researchers", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load researchers");
+        setIsLoadingResearchers(true);
+        const searchQuery = searchTerm.trim();
+        const res = await api(`/conversations/researchers?q=${encodeURIComponent(searchQuery)}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load users");
         const data = await res.json().catch(() => ({ items: [] }));
         if (ignore) return;
         const items = Array.isArray(data?.items) ? data.items : [];
@@ -244,18 +269,18 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
           .filter((item) => item.id);
         setResearchers(normalized);
       } catch (err) {
-        console.error("Researcher load failed", err);
+        console.error("User load failed", err);
       } finally {
         if (!ignore) setIsLoadingResearchers(false);
       }
     }
-    loadResearchers(true);
-    const interval = setInterval(() => loadResearchers(false), POLL_INTERVAL);
+    // Debounce search - wait 300ms after user stops typing
+    const timeoutId = setTimeout(() => loadSearchResults(), 300);
     return () => {
       ignore = true;
-      clearInterval(interval);
+      clearTimeout(timeoutId);
     };
-  }, [currentUserId]);
+  }, [searchTerm, currentUserId]);
 
   useEffect(() => {
     const conversationId = activeConversation?.id;
@@ -352,7 +377,10 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
       const res = await api(`/conversations/users/${id}/ensure`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Unable to open conversation");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Unable to open conversation" }));
+        throw new Error(errorData.error || "Unable to open conversation");
+      }
       const conversation = await res.json().catch(() => null);
       if (conversation) {
         const conversationId = String(conversation.id || conversation._id);
@@ -365,9 +393,11 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
           return [conversation, ...prev];
         });
         setActiveConversationId(conversationId);
+        setError(null); // Clear any previous errors on success
       }
     } catch (err) {
       setError(err.message || "Unable to start conversation");
+      setSelectedResearcherId(""); // Clear selection on error
     } finally {
       setCreatingConversation(false);
     }
@@ -391,19 +421,6 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
       }
     } catch (err) {
       setError(err.message || "Unable to send message");
-    }
-  }
-
-  async function handleCleanupConversations() {
-    try {
-      const res = await api("/conversations/cleanup", {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Failed to cleanup conversations");
-      // Reload conversations after cleanup
-      window.location.reload();
-    } catch (err) {
-      setError(err.message || "Unable to cleanup conversations");
     }
   }
 
@@ -447,9 +464,9 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
   }, [participantNames, lastSeen]);
 
   return (
-    <div className="flex h-full min-h-[600px] w-full overflow-hidden rounded-[32px] bg-[#f4f6fb]">
-      <aside className="hidden w-[320px] flex-col border-r border-[#e0e7ff] bg-white/90 md:flex">
-         <div className="px-6 pb-4 pt-6">
+    <div className="flex h-[calc(100vh-200px)] max-h-[calc(100vh-200px)] min-h-[600px] w-full overflow-hidden rounded-[32px] bg-[#f4f6fb]">
+      <aside className="hidden w-[320px] h-full max-h-full flex flex-col border-r border-[#e0e7ff] bg-white/90 md:flex overflow-hidden">
+         <div className="px-6 pb-4 pt-6 flex-shrink-0">
            <div className="relative">
              <input
                type="search"
@@ -460,24 +477,10 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
              />
              <span className="pointer-events-none absolute right-4 top-1/2 block -translate-y-1/2 text-xs text-[#9aa3ba]">?</span>
            </div>
-           <div className="mt-2 space-y-1">
-             <button
-               onClick={handleCleanupConversations}
-               className="w-full rounded-[12px] bg-[#f0f4ff] px-3 py-1 text-xs font-medium text-[#2f5eff] hover:bg-[#e6edff] transition"
-             >
-               Fix Group Conversations
-             </button>
-             <button
-               onClick={handleDeleteAllMessages}
-               className="w-full rounded-[12px] bg-[#fee2e2] px-3 py-1 text-xs font-medium text-[#dc2626] hover:bg-[#fecaca] transition"
-             >
-               Delete All Messages
-             </button>
-           </div>
          </div>
 
         {spotlightParticipants.length > 0 && (
-          <div className="flex items-center gap-4 px-6 pb-4">
+          <div className="flex items-center gap-4 px-6 pb-4 flex-shrink-0">
             {spotlightParticipants.map((participant, index) => {
               const name = participant?.user?.name || participant?.user?.email || participant?.role || "Contact";
               return (
@@ -492,21 +495,21 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-2 pb-6">
-          {searchTerm.trim() ? (
-            <>
-              <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3ba]">Search Results</p>
-              <div className="space-y-1">
-                {isLoadingResearchers ? (
-                  <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
-                    Searching...
-                  </div>
-                ) : filteredResearchers.length === 0 ? (
-                  <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
-                    No matches found
-                  </div>
-                ) : (
-                   filteredResearchers.map((researcher) => {
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-6 min-h-0 max-h-full">
+          <p className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-[#9aa3ba] sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+            {searchTerm.trim() ? "Search Results" : "All Users"}
+          </p>
+          <div className="space-y-1">
+            {isLoadingResearchers ? (
+              <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
+                {searchTerm.trim() ? "Searching..." : "Loading users..."}
+              </div>
+            ) : filteredResearchers.length === 0 ? (
+              <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-4 text-sm text-[#687193]">
+                {searchTerm.trim() ? "No matches found" : "No users available"}
+              </div>
+            ) : (
+              filteredResearchers.map((researcher) => {
                      const conversation = conversationByUserId.get(researcher.id);
                     const isActive = selectedResearcherId === researcher.id;
                     const lastTimestamp =
@@ -552,15 +555,17 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
                       </button>
                     );
                   })
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="mx-4 rounded-[18px] border border-dashed border-[#d7def3] bg-[#f7f9ff] p-8 text-center text-sm text-[#687193]">
-              <p className="mb-2 font-medium">Search to find contacts</p>
-              <p className="text-xs">Type a name, email, or ID to search for people you can message</p>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
+        
+        <div className="border-t border-[#e0e7ff] px-6 pt-4 pb-4 flex-shrink-0">
+          <button
+            onClick={handleDeleteAllMessages}
+            className="w-full rounded-[12px] border border-[#fee2e2] bg-white px-3 py-2 text-xs font-medium text-[#dc2626] hover:bg-[#fef2f2] transition"
+          >
+            Clear All Conversations
+          </button>
         </div>
       </aside>
 

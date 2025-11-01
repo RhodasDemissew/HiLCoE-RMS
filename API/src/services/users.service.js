@@ -59,6 +59,73 @@ export const usersService = {
     const user = await userRepo.updateById(userId, updateData);
     if (!user) throw new Error('User not found');
     
+    // Sync name changes to related StudentVerification records
+    const hasNameUpdate = updateData.name || updateData.first_name || updateData.middle_name || updateData.last_name;
+    if (hasNameUpdate) {
+      const { StudentVerification } = await import('../models/StudentVerification.js');
+      
+      // Update by student_verification reference if it exists
+      if (user.student_verification) {
+        await StudentVerification.findByIdAndUpdate(
+          user.student_verification,
+          { 
+            first_name: user.first_name || '',
+            middle_name: user.middle_name || '',
+            last_name: user.last_name || ''
+          }
+        ).catch(() => {}); // Ignore errors if record doesn't exist
+      }
+      
+      // Also update by student_id if it matches (in case reference is missing)
+      if (user.student_id) {
+        await StudentVerification.updateMany(
+          { student_id: { $regex: `^${user.student_id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } },
+          { 
+            first_name: user.first_name || '',
+            middle_name: user.middle_name || '',
+            last_name: user.last_name || ''
+          }
+        ).catch(() => {}); // Ignore errors
+      }
+    }
+
+    // Sync name changes to Supervisor records and update assigned_supervisor names
+    const { Supervisor } = await import('../models/Supervisor.js');
+    const { StudentVerification } = await import('../models/StudentVerification.js');
+    const supervisor = await Supervisor.findOne({ user: userId });
+    if (supervisor && hasNameUpdate) {
+      supervisor.first_name = user.first_name || '';
+      supervisor.middle_name = user.middle_name || '';
+      supervisor.last_name = user.last_name || '';
+      await supervisor.save();
+    }
+
+    // Update all StudentVerification records that have this supervisor assigned
+    // (supervisor_id can be either User ID or Supervisor document ID)
+    if (hasNameUpdate) {
+      const supervisorDocId = supervisor ? String(supervisor._id) : null;
+      
+      // Update where supervisor_id is the User ID
+      await StudentVerification.updateMany(
+        { 'assigned_supervisor.supervisor_id': userId },
+        { 
+          'assigned_supervisor.supervisor_name': user.name,
+          'assigned_supervisor.supervisor_email': user.email || ''
+        }
+      ).catch(() => {}); // Ignore errors
+      
+      // Also update where supervisor_id is the Supervisor document ID
+      if (supervisorDocId) {
+        await StudentVerification.updateMany(
+          { 'assigned_supervisor.supervisor_id': supervisorDocId },
+          { 
+            'assigned_supervisor.supervisor_name': user.name,
+            'assigned_supervisor.supervisor_email': user.email || supervisor.email || ''
+          }
+        ).catch(() => {}); // Ignore errors
+      }
+    }
+    
     return {
       id: user._id,
       name: user.name,

@@ -2,14 +2,24 @@ const columns = [
   {
     key: "full_name",
     label: "Full Name",
-    format: (user) => [user.first_name, user.middle_name].filter(Boolean).join(" ") || user.last_name || "�",
+    format: (user) => {
+      // Prioritize display_name (from User.name field) if available, otherwise combine first/middle/last
+      if (user.display_name) {
+        return user.display_name;
+      }
+      if (user.user?.name) {
+        return user.user.name;
+      }
+      const parts = [user.first_name, user.middle_name, user.last_name].filter(Boolean);
+      return parts.length > 0 ? parts.join(" ") : "—";
+    },
   },
   { key: "student_id", label: "Researcher ID", format: (user) => user.student_id },
-  { key: "program", label: "Program", format: (user) => user.program || "�" },
+  { key: "program", label: "Program", format: (user) => user.program || "—" },
   {
     key: "created_at",
     label: "Queued On",
-    format: (user) => (user.created_at ? new Date(user.created_at).toLocaleDateString() : "�"),
+    format: (user) => (user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"),
   },
 ];
 
@@ -55,7 +65,7 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
             {loading ? (
               <tr>
                 <td className="px-6 py-6 text-center" colSpan={columns.length + 3}>
-                  Loading researchers�
+                  Loading researchers…
                 </td>
               </tr>
             ) : users.length ? (
@@ -132,6 +142,4 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
     </div>
   );
 }
-
-
 

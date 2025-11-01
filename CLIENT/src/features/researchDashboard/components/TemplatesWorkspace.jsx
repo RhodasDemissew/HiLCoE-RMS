@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api } from '../../../api/client.js';
 
 export default function TemplatesWorkspace() {
@@ -27,31 +27,21 @@ export default function TemplatesWorkspace() {
     }
   };
 
-  const handleDownload = async (template) => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/templates/${template.id}/download`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+  // Remove duplicate Thesis templates, keeping only the first one
+  const uniqueTemplates = useMemo(() => {
+    const seenThesis = new Set();
+    return templates.filter((template) => {
+      const type = (template.type || '').toLowerCase().trim();
+      if (type === 'thesis') {
+        if (seenThesis.has('thesis')) {
+          return false; // Skip duplicate thesis
         }
-      });
-      
-      if (!res.ok) {
-        throw new Error('Download failed');
+        seenThesis.add('thesis');
       }
-      
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = template.filename || `${template.type}_template.docx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      alert(err.message || 'Download failed');
-    }
-  };
+      return true;
+    });
+  }, [templates]);
+
 
   if (loading) {
     return (
@@ -84,18 +74,18 @@ export default function TemplatesWorkspace() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Document Templates</h1>
-          <p className="text-sm text-gray-600">Browse and download document templates for your research</p>
+          <p className="text-sm text-gray-600">Browse and open document templates for your research</p>
         </div>
       </div>
 
-      {templates.length === 0 ? (
+      {uniqueTemplates.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-500">No templates available</div>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {templates.map((template) => (
-            <div key={template.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          {uniqueTemplates.map((template) => (
+            <div key={template._id || template.id || `${template.type}-${template.version}`} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="font-medium text-gray-900 capitalize">
@@ -112,7 +102,11 @@ export default function TemplatesWorkspace() {
               
               <div className="mb-4">
                 <p className="text-sm text-gray-600">
-                  Download this template to use as a starting point for your {template.type?.toLowerCase() || 'document'}.
+                  {template.url ? (
+                    <>Open this template to use as a starting point for your {template.type?.toLowerCase() || 'document'}.</>
+                  ) : (
+                    <>Template link not available.</>
+                  )}
                 </p>
               </div>
 
@@ -120,15 +114,21 @@ export default function TemplatesWorkspace() {
                 <div className="text-xs text-gray-500">
                   {template.created_at ? new Date(template.created_at).toLocaleDateString() : 'Unknown date'}
                 </div>
-                <button
-                  onClick={() => handleDownload(template)}
-                  className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
-                >
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Download
-                </button>
+                {template.url ? (
+                  <a
+                    href={template.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-sm font-medium text-[color:var(--brand-600)] hover:text-[color:var(--brand-700)] hover:underline transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Open Template
+                  </a>
+                ) : (
+                  <span className="text-xs text-gray-400">No link available</span>
+                )}
               </div>
             </div>
           ))}

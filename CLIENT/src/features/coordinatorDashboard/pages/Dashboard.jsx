@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 
 import settingsIcon from "../../../assets/icons/settings.png";
@@ -383,7 +383,9 @@ function PlaceholderContent({ title }) {
 }
 
 export default function CoordinatorDashboardPage() {
-  const [activeSection, setActiveSection] = useState("Dashboard");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sectionFromUrl = searchParams.get('section') || 'Dashboard';
+  const [activeSection, setActiveSection] = useState(sectionFromUrl);
   const [user, setUser] = useState({ name: "Dr Mesfin", role: "Coordinator" });
   const [userLoading, setUserLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -573,6 +575,13 @@ export default function CoordinatorDashboardPage() {
   // Create dynamic messages data from API or fallback to mock data
   const dynamicMessages = recentMessages.length > 0 ? recentMessages : coordinatorMessages;
 
+  // Update URL when activeSection changes
+  useEffect(() => {
+    if (activeSection && activeSection !== sectionFromUrl) {
+      setSearchParams({ section: activeSection }, { replace: true });
+    }
+  }, [activeSection, sectionFromUrl, setSearchParams]);
+
   const workspaceProps = {
     summary: dynamicSummary,
     activity: dashboardStats?.recentActivity || coordinatorActivity,
@@ -581,8 +590,14 @@ export default function CoordinatorDashboardPage() {
     user,
     statsLoading,
     messagesLoading,
-    onNavigateToActivityLog: () => setActiveSection("Activity Log"),
-    onNavigateToMessages: () => setActiveSection("Message"),
+    onNavigateToActivityLog: () => {
+      setActiveSection("Activity Log");
+      setSearchParams({ section: "Activity Log" }, { replace: true });
+    },
+    onNavigateToMessages: () => {
+      setActiveSection("Message");
+      setSearchParams({ section: "Message" }, { replace: true });
+    },
   };
 
   let content;

@@ -216,8 +216,13 @@ UpcomingEventsCard.propTypes = {
   loading: PropTypes.bool,
 };
 
-function MessagesPanel({ messages = [], loading = false }) {
+function MessagesPanel({ messages = [], loading = false, onViewAll }) {
   const hasMessages = Array.isArray(messages) && messages.length > 0;
+  const handleViewAll = () => {
+    if (typeof onViewAll === "function") {
+      onViewAll();
+    }
+  };
   return (
     <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
       <header className="mb-4 flex items-center justify-between">
@@ -225,7 +230,11 @@ function MessagesPanel({ messages = [], loading = false }) {
           <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Messages</h2>
           <p className="text-xs text-[color:var(--neutral-500)]">Latest conversations with your supervisors</p>
         </div>
-        <button type="button" className="text-xs font-semibold text-[color:var(--brand-600)] hover:underline">
+        <button 
+          type="button" 
+          className="text-xs font-semibold text-[color:var(--brand-600)] hover:text-[color:var(--brand-700)] hover:underline"
+          onClick={handleViewAll}
+        >
           View inbox
         </button>
       </header>
@@ -264,11 +273,15 @@ function MessagesPanel({ messages = [], loading = false }) {
 MessagesPanel.propTypes = {
   messages: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string,
-      subject: PropTypes.string,
-      preview: PropTypes.string,
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      author: PropTypes.string,
+      role: PropTypes.string,
+      ago: PropTypes.string,
+      body: PropTypes.string,
     })
   ),
+  loading: PropTypes.bool,
+  onViewAll: PropTypes.func,
 };
 
 function ProgressChart({ labels = [], series = [] }) {
@@ -348,6 +361,7 @@ export default function DashboardWorkspace({
   dashboardLoading = false,
   dashboardError = "",
   messagesLoading = false,
+  onNavigateToMessages,
 }) {
   const resolvedName = (user?.name || "").trim() || fallbackName;
   const headerTitle = welcomeTitle ?? `Welcome, ${resolvedName}`;
@@ -386,7 +400,7 @@ export default function DashboardWorkspace({
           <ProgressChart labels={chartLabels} series={chartSeries} />
         </div>
         <div className="space-y-5">
-          <MessagesPanel messages={messages} loading={messagesLoading} />
+          <MessagesPanel messages={messages} loading={messagesLoading} onViewAll={onNavigateToMessages} />
           <UpcomingEventsCard events={events} loading={dashboardLoading} />
           <MilestonesCard items={milestones} loading={dashboardLoading} />
         </div>
@@ -411,4 +425,6 @@ DashboardWorkspace.propTypes = {
   fallbackName: PropTypes.string,
   dashboardLoading: PropTypes.bool,
   dashboardError: PropTypes.string,
+  messagesLoading: PropTypes.bool,
+  onNavigateToMessages: PropTypes.func,
 };

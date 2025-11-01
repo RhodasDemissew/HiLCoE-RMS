@@ -4,6 +4,9 @@ function dotStyles(stage) {
   switch (stage.status) {
     case 'completed':
       return 'bg-[color:var(--brand-700)] ring-2 ring-[color:var(--brand-200)] text-white';
+    case 'under_review':
+      // Show under review with a distinct color (e.g., blue)
+      return 'bg-blue-600 ring-2 ring-blue-200 text-white';
     case 'current':
       return 'bg-[color:var(--brand-600)] ring-2 ring-[color:var(--brand-200)] text-white';
     case 'resubmit':
@@ -23,11 +26,24 @@ export default function StageTimeline({ stages, resubmitCountdown }) {
   const progressPercent = Math.round((completedSegments / totalSegments) * 100);
 
   function statusText(stage) {
+    // Check if there's a submission with status that should override the stage status
+    const submissionStatus = stage.latestSubmission?.status;
+    
+    if (submissionStatus === 'under_review' || submissionStatus === 'awaiting_coordinator') {
+      return 'Under Review';
+    }
+    
     switch (stage.status) {
       case 'completed':
         return 'Approved';
+      case 'under_review':
+        return 'Under Review';
       case 'current':
-        return 'Waiting for submission';
+        // Only show "Waiting for submission" if there's no active submission
+        if (!submissionStatus || (submissionStatus !== 'under_review' && submissionStatus !== 'awaiting_coordinator')) {
+          return 'Waiting for submission';
+        }
+        return 'Under Review';
       case 'needs_changes':
         return 'Needs changes — re-submit same stage';
       case 'resubmit': {

@@ -25,7 +25,6 @@ export const coordinatorNav = [
     ],
   },
   { label: "Message", icon: messageIcon },
-  { label: "Settings", icon: settingsIcon },
 ];
 
 export const coordinatorSummary = [

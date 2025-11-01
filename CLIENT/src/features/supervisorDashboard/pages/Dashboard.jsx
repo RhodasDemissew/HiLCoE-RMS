@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 import logoImage from "../../../assets/images/logo.png";
 import settingsIcon from "../../../assets/icons/settings.png";
@@ -192,7 +192,9 @@ function PlaceholderContent({ title }) {
 }
 
 export default function SupervisorDashboardPage() {
-  const [activeSection, setActiveSection] = useState("Dashboard");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sectionFromUrl = searchParams.get('section') || 'Dashboard';
+  const [activeSection, setActiveSection] = useState(sectionFromUrl);
   const [user, setUser] = useState({ name: "Dr. Supervisor", role: "Supervisor" });
   const [notifications, setNotifications] = useState([]);
   const [overview, setOverview] = useState(null);
@@ -293,6 +295,13 @@ export default function SupervisorDashboardPage() {
     loadNotifications();
   }
 
+  // Update URL when activeSection changes
+  useEffect(() => {
+    if (activeSection && activeSection !== sectionFromUrl) {
+      setSearchParams({ section: activeSection }, { replace: true });
+    }
+  }, [activeSection, sectionFromUrl, setSearchParams]);
+
   let content;
   switch (activeSection) {
     case "Dashboard":
@@ -303,7 +312,10 @@ export default function SupervisorDashboardPage() {
           loading={overviewLoading}
           error={overviewError}
           onRefresh={loadOverview}
-          onOpenMessages={() => setActiveSection("Message")}
+          onOpenMessages={() => {
+            setActiveSection("Message");
+            setSearchParams({ section: "Message" }, { replace: true });
+          }}
         />
       );
       break;
@@ -333,7 +345,10 @@ export default function SupervisorDashboardPage() {
           loading={overviewLoading}
           error={overviewError}
           onRefresh={loadOverview}
-          onOpenMessages={() => setActiveSection("Message")}
+          onOpenMessages={() => {
+            setActiveSection("Message");
+            setSearchParams({ section: "Message" }, { replace: true });
+          }}
         />
       );
       break;

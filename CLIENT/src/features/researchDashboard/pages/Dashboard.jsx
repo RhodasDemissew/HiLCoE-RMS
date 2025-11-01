@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, setToken, API_BASE, getToken } from "../../../api/client.js";
 
 import settingsIcon from "../../../assets/icons/settings.png";
@@ -72,7 +72,6 @@ function Sidebar({ active, onSelect }) {
                     : "text-white/80 hover:bg-white/10",
                 ].join(" ")}
                 onClick={() => {
-                  console.log("Navigate to", item.label);
                   onSelect?.(item.label);
                 }}
               >
@@ -95,7 +94,6 @@ function Sidebar({ active, onSelect }) {
             type="button"
             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
             onClick={() => {
-              console.log("Navigate to Settings");
               onSelect?.("Settings");
             }}
           >
@@ -116,7 +114,7 @@ function Sidebar({ active, onSelect }) {
   );
 }
 
-function Topbar({ showSearch = false, user, loading = false, fallbackName = "Member", notifications = [], onMarkAllRead, onClearAll }) {
+function Topbar({ user, loading = false, fallbackName = "Member", notifications = [], onMarkAllRead, onClearAll }) {
   const navigate = useNavigate();
   const safeFallback = fallbackName || 'Member';
   const displayName = user?.name || safeFallback;
@@ -211,12 +209,6 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
     };
   }, [isProfileOpen]);
 
-  function handleSearch(event) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    console.log("Search query", formData.get("query"));
-  }
-
   function handleNotificationToggle() {
     setIsProfileOpen(false);
     setIsNotificationOpen((prev) => !prev);
@@ -241,27 +233,7 @@ function Topbar({ showSearch = false, user, loading = false, fallbackName = "Mem
   return (
     <header className="border-b border-muted bg-white/70 backdrop-blur">
       <div className="mr-10 flex h-20 items-center justify-end gap-6">
-        {showSearch ? (
-          <form className="relative w-full max-w-xl" onSubmit={handleSearch}>
-            <label htmlFor="global-search" className="sr-only">
-              Search submissions, research...
-            </label>
-            <input
-              id="global-search"
-              name="query"
-              placeholder="Search submissions, research..."
-              className="w-full rounded-[14px] border border-[color:var(--neutral-200)] bg-white px-4 py-3 text-sm text-[color:var(--neutral-800)] shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:shadow-[0_0_0_3px_rgba(5,136,240,0.18)]"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[12px] bg-[color:var(--brand-600)] px-4 py-2 text-xs font-semibold text-white shadow-soft"
-            >
-              Search
-            </button>
-          </form>
-        ) : (
-          <div className="flex-1" />
-        )}
+        <div className="flex-1" />
 
         <div className="flex items-center gap-6">
           <div className="relative" ref={notificationRef}>
@@ -397,7 +369,9 @@ function PlaceholderContent({ title }) {
 }
 
 export default function ResearcherDashboard() {
-  const [activeSection, setActiveSection] = useState("Dashboard");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sectionFromUrl = searchParams.get('section') || 'Dashboard';
+  const [activeSection, setActiveSection] = useState(sectionFromUrl);
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
@@ -564,6 +538,13 @@ export default function ResearcherDashboard() {
   // Create dynamic messages data from API or fallback to mock data (same as coordinator)
   const dynamicMessages = messages.length > 0 ? messages : (dashboardCopy.messages ?? []);
   
+  // Update URL when activeSection changes
+  useEffect(() => {
+    if (activeSection && activeSection !== sectionFromUrl) {
+      setSearchParams({ section: activeSection }, { replace: true });
+    }
+  }, [activeSection, sectionFromUrl, setSearchParams]);
+
   // Enhanced quick actions with proper navigation
   const enhancedQuickActions = dashboardQuickActions.map(action => ({
     ...action,
@@ -597,6 +578,10 @@ export default function ResearcherDashboard() {
     dashboardLoading,
     dashboardError,
     messagesLoading,
+    onNavigateToMessages: () => {
+      setActiveSection("Message");
+      setSearchParams({ section: "Message" }, { replace: true });
+    },
   };
 
   async function loadNotifications() {
@@ -666,7 +651,7 @@ export default function ResearcherDashboard() {
   return (
     <AppShell
       sidebar={<Sidebar active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar showSearch={activeSection === "Submission"} user={user} loading={userLoading} fallbackName={fallbackName} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} />}
+      topbar={<Topbar user={user} loading={userLoading} fallbackName={fallbackName} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} />}
     >
       {content}
     </AppShell>
