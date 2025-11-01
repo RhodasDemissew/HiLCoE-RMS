@@ -3,7 +3,7 @@
 export const authController = {
   async login(req, res) {
     try {
-      const result = await authService.login(req.body.email, req.body.password);
+      const result = await authService.login(req.body.email, req.body.password, req.body.rememberMe || false);
       res.json(result);
     } catch (e) { res.status(400).json({ error: e.message }); }
   },

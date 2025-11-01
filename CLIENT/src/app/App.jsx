@@ -4,6 +4,7 @@ import Landing from "../features/landing/pages/Landing.jsx";
 import Verify from "../features/auth/pages/Verify.jsx";
 import SignUp from "../features/auth/pages/SignUp.jsx";
 import Login from "../features/auth/pages/Login.jsx";
+import ForgotPassword from "../features/auth/pages/ForgotPassword.jsx";
 import Reset from "../features/auth/pages/Reset.jsx";
 import Faq from "../features/site/pages/Faq.jsx";
 import Contact from "../features/site/pages/Contact.jsx";
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/verify" element={<Verify />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset" element={<Reset />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/contact" element={<Contact />} />

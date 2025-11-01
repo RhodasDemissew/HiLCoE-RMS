@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import Header from "../../../shared/components/layout/Header.jsx";
 import Footer from "../../../shared/components/layout/Footer.jsx";
 import Container from "../../../shared/components/ui/Container.jsx";
@@ -27,7 +27,44 @@ export default function Login() {
     if (rememberFlag) {
       setRemember(true);
     }
-  }, []);
+    
+    // Check if user is already logged in (has valid token)
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Verify token is still valid by checking /auth/me
+      api("/auth/me")
+        .then(res => {
+          if (res.ok) {
+            // User is logged in, redirect to appropriate dashboard
+            return res.json();
+          } else {
+            // Invalid token, clear it
+            localStorage.removeItem("token");
+            localStorage.removeItem("userRole");
+            localStorage.removeItem("rememberMe");
+          }
+        })
+        .then(data => {
+          if (data?.role) {
+            localStorage.setItem('userRole', data.role);
+            const role = String(data.role).toLowerCase();
+            let redirect = '/researcher';
+            if (role.includes('coordinator')) {
+              redirect = '/coordinator';
+            } else if (role.includes('supervisor') || role.includes('advisor')) {
+              redirect = '/supervisor';
+            }
+            navigate(redirect, { replace: true });
+          }
+        })
+        .catch(() => {
+          // Token invalid or error, clear it
+          localStorage.removeItem("token");
+          localStorage.removeItem("userRole");
+          localStorage.removeItem("rememberMe");
+        });
+    }
+  }, [navigate]);
 
   function handleEmailChange(event) {
     const value = event.target.value;
@@ -93,7 +130,7 @@ export default function Login() {
     try {
       const res = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe: remember }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -204,12 +241,12 @@ export default function Login() {
                     Remember me
                   </label>
                   
-                  <a
-                    href="/forgot-password"
+                  <Link
+                    to="/forgot-password"
                     className="text-sm font-semibold text-[color:var(--brand-600)] hover:underline"
                   >
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
                 
                 {errors.general && <p className="text-sm font-medium text-red-500">{errors.general}</p>}

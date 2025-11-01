@@ -21,13 +21,15 @@ function namesMatch(record, payload) {
 }
 
 export const authService = {
-  async login(email, password) {
+  async login(email, password, rememberMe = false) {
     const user = await userRepo.findByEmail(String(email).toLowerCase());
     if (!user || !user.password) throw new Error('Invalid credentials');
     const ok = verifyPassword(password, user.password);
     if (!ok) throw new Error('Invalid credentials');
     if (user.status !== 'active') throw new Error('Account inactive');
-    const token = signJWT({ sub: String(user._id), role: user.role?.name }, config.jwtSecret, 60 * 60 * 8);
+    // If remember me is checked, extend token to 30 days (2592000 seconds), otherwise 8 hours (28800 seconds)
+    const expiresIn = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 8;
+    const token = signJWT({ sub: String(user._id), role: user.role?.name }, config.jwtSecret, expiresIn);
     return { token, user: { id: user._id, email: user.email, name: user.name, role: user.role?.name } };
   },
 
