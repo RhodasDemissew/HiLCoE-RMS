@@ -10,4 +10,10 @@ const router = express.Router();
 router.get('/', authRequired, requireRole('Admin','Coordinator'), usersController.list);
 router.post('/', authRequired, requireRole('Admin'), validate({ body: CreateUserDto }), usersController.create);
 
+// User profile and preferences endpoints
+router.patch('/profile', authRequired, usersController.updateProfile);
+router.patch('/preferences', authRequired, usersController.updatePreferences);
+router.get('/preferences', authRequired, usersController.getPreferences);
+router.patch('/change-password', authRequired, usersController.changePassword);
+
 export default router;

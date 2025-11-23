@@ -3,7 +3,7 @@
 export const authController = {
   async login(req, res) {
     try {
-      const result = await authService.login(req.body.email, req.body.password);
+      const result = await authService.login(req.body.email, req.body.password, req.body.rememberMe || false);
       res.json(result);
     } catch (e) { res.status(400).json({ error: e.message }); }
   },
@@ -22,7 +22,15 @@ export const authController = {
   async me(req, res) {
     const { User } = await import('../models/User.js');
     const user = await User.findById(req.user.id).populate('role');
-    res.json({ id: user._id, email: user.email, name: user.name, role: user.role?.name });
+    res.json({ 
+      id: user._id, 
+      email: user.email, 
+      name: user.name, 
+      phone: user.phone,
+      department: user.department,
+      bio: user.bio,
+      role: user.role?.name 
+    });
   },
   async resetRequest(req, res) {
     try {

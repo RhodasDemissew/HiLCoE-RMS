@@ -1,8 +1,10 @@
 import mongoose from 'mongoose';
 import { milestoneRepo } from '../repositories/milestone.repository.js';
 import { projectRepo } from '../repositories/project.repository.js';
+import { User } from '../models/User.js';
 import { canTransition } from '../utils/state.js';
 import { notify } from '../services/notificationService.js';
+import { messagingService } from './messaging.service.js';
 import {
   DEFAULT_SEQUENCES,
   getPreviousRequirement,
@@ -103,27 +105,75 @@ export const milestonesService = {
       if (!proj) return ms;
 
       if (to === 'submitted' && proj?.advisor) {
+        let actorName = '';
+        try {
+          if (proj?.researcher) {
+            const u = await User.findById(proj.researcher).select('name');
+            actorName = u?.name || '';
+          }
+        } catch {}
         await notify(proj.advisor, 'milestone_submitted', {
           milestoneId: String(ms._id),
           projectId: String(proj._id),
           type: ms.type,
+          actor_id: proj?.researcher ? String(proj.researcher) : undefined,
+          actor_name: actorName,
         });
       }
 
       if ((to === 'approved' || to === 'changes_requested') && proj?.researcher) {
+        let actorName = '';
+        try {
+          if (actor?.id || actor?._id) {
+            const u = await User.findById(actor.id || actor._id).select('name');
+            actorName = u?.name || '';
+          }
+        } catch {}
         await notify(proj.researcher, 'milestone_reviewed', {
           milestoneId: String(ms._id),
           status: to,
           type: ms.type,
+          actor_id: actor?.id || actor?._id,
+          actor_name: actorName,
         });
+        if (to === 'changes_requested') {
+          try {
+            const body = ms.coordinator_notes
+              ? `Milestone ${ms.type} needs changes: ${ms.coordinator_notes}`
+              : `Milestone ${ms.type} needs changes.`;
+            await messagingService.emitSystemMessageForProject(proj._id, {
+              body,
+              meta: {
+                milestoneId: String(ms._id),
+                type: ms.type,
+                status: to,
+                actorId: actor?.id || actor?._id ? String(actor?.id || actor?._id) : undefined,
+              },
+              kind: 'feedback',
+              actorId: actor?.id || actor?._id,
+            });
+          } catch (err) {
+            console.warn('[messaging] milestone feedback emit failed', err?.message || err);
+          }
+        }
       }
-
       if (to === 'scheduled') {
-        const targets = [proj.researcher, proj.advisor].filter(Boolean);
+        // Notify the Researcher for scheduling and include actor details when available
+        let actorName = '';
+        try {
+          if (actor?.id || actor?._id) {
+            const u = await User.findById(actor.id || actor._id).select('name');
+            actorName = u?.name || '';
+          }
+        } catch {}
+        const targets = [proj.researcher].filter(Boolean);
         for (const userId of targets) {
           await notify(userId, 'milestone_scheduled', {
             milestoneId: String(ms._id),
             projectId: String(proj._id),
+            type: ms.type,
+            actor_id: actor?.id || actor?._id,
+            actor_name: actorName,
           });
         }
       }
@@ -140,3 +190,6 @@ export const milestonesService = {
     return ms;
   },
 };
+
+
+

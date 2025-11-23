@@ -1,0 +1,33 @@
+{
+  "version": "v1.0",
+  "max_nonconforming_paragraph_ratio": 0.1,
+  "pass_threshold" : 0.7,
+  "weights": {
+    "margins": 1.0,
+    "font_family": 1.0,
+    "font_size": 1.0,
+    "line_spacing": 1.0,
+    "heading_numbering": 1.0,
+    "ieee_references_block": 1.0,
+    "required_headings": 1.5,
+    "title_page_keywords": 1.0
+  },
+  "required_headings": [
+    "Title",
+    "Background",
+    "Problem Statement",
+    "Objectives",
+    "Research Questions/Hypotheses",
+    "Methodology",
+    "Expected Outcomes",
+    "References"
+  ],
+  "title_page_keywords": [
+    "HiLCoE School of Computer Science and Technology",
+    "Master of Science in Computer Science",
+    "Prepared by",
+    "ID No",
+    "Advisor",
+    "Date of Submission"
+  ]
+}

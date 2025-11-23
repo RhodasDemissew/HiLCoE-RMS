@@ -1,8 +1,9 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App.jsx";
+import App from "./app/App.jsx";
 import "./styles/index.css";
+import "./styles/themes.css";
 
 const el = document.getElementById("root");
 createRoot(el).render(

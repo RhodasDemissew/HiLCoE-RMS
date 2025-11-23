@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { config } from './config/env.js';
@@ -17,14 +17,20 @@ import './models/Milestone.js';
 import './models/Submission.js';
 import './models/Review.js';
 import './models/StudentVerification.js';
+import './models/ResearchProgress.js';
+import './models/StageSubmission.js';
+import './models/Supervisor.js';
 import './models/ExaminerAssignment.js';
 import './models/Schedule.js';
 import './models/Grade.js';
 import './models/DocumentTemplate.js';
 import './models/Notification.js';
+import './models/Conversation.js';
+import './models/Message.js';
 import './models/ExtensionRequest.js';
 import './models/VerificationJob.js';
 import './models/AuditLog.js';
+import './models/Defense.js';
 
 // Routers
 import authRouter from './routes/auth.js';
@@ -37,11 +43,24 @@ import defenseRouter from './routes/defense.js';
 import extensionsRouter from './routes/extensions.js';
 import templatesRouter from './routes/templates.js';
 import notificationsRouter from './routes/notifications.js';
+import conversationsRouter from './routes/conversations.js';
 import reportsRouter from './routes/reports.js';
 import verificationsRouter from './routes/verifications.js';
+import stageSubmissionsRouter from './routes/stageSubmissions.js';
+import studentVerificationsRouter from './routes/studentVerifications.js';
+import supervisorsRouter from './routes/supervisors.js';
+import studentsRouter from './routes/students.js';
+import dashboardRouter from './routes/dashboard.js';
+import activityLogRouter from './routes/activityLog.js';
+import calendarRouter from './routes/calendar.js';
+import availabilityRouter from './routes/availability.js';
 
 const app = express();
-app.use(cors({ origin: config.corsOrigin }));
+app.use(cors({
+  origin: config.corsOrigin,
+  methods: ['GET','POST','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Authorization','Content-Type'],
+}));
 app.use(express.json({ limit: '5mb' }));
 app.use(morgan('dev'));
 app.use(authOptional);
@@ -69,8 +88,18 @@ app.use('/defense', defenseRouter);
 app.use('/extensions', extensionsRouter);
 app.use('/templates', templatesRouter);
 app.use('/notifications', notificationsRouter);
+app.use('/conversations', conversationsRouter);
 app.use('/reports', reportsRouter);
 app.use('/verifications', verificationsRouter);
+app.use('/student-verifications', studentVerificationsRouter);
+app.use('/supervisors', supervisorsRouter);
+app.use('/students', studentsRouter);
+app.use('/dashboard', dashboardRouter);
+app.use('/activity-log', activityLogRouter);
+app.use('/calendar', calendarRouter);
+app.use('/availability', availabilityRouter);
+// Stage-gated researcher submissions (mounted under /stages to avoid conflicts with legacy /submissions)
+app.use('/stages', stageSubmissionsRouter);
 
 // Global error safeguard
 // eslint-disable-next-line no-unused-vars
@@ -80,6 +109,19 @@ app.use((err, _req, res, _next) => {
 });
 
 connectMongo().then(() => {
+  if (!config.storageDir) {
+    throw new Error('Storage directory is not defined in the configuration.');
+  }
   ensureStorage();
   app.listen(config.port, () => console.log(`Server running on http://localhost:${config.port}`));
 });
+
+
+
+
+
+
+
+
+
+

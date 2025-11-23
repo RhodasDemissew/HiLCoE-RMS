@@ -1,0 +1,16 @@
+*** Begin Patch
+*** Update File: CLIENT/src/shared/components/calendar/CalendarView.jsx
+@@
+ const venues = useMemo(() => {
+   const out = new Set();
+   eventData.forEach((event) => {
+     const venue = event.venue;
+     if (venue) out.add(venue);
+   });
+   return Array.from(out);
+ }, [eventData]);
+ 
+  
+ 
+ const handleRangeChange = useCallback(
+*** End Patch
