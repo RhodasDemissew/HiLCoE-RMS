@@ -38,7 +38,7 @@ export const config = {
   smtpPass: process.env.SMTP_PASS || '',
   smtpSecure: String(process.env.SMTP_SECURE || '').toLowerCase() === 'true',
   supervisorMaxStudents: parseInt(process.env.SUPERVISOR_MAX_STUDENTS || '10', 10),
-  formatCheckerUrl: process.env.FORMAT_CHECKER_URL || '',
+  formatCheckerUrl: process.env.FORMAT_CHECKER_URL || 'http://localhost:8001',
   formatPoliciesDir: process.env.FORMAT_POLICIES_DIR || '',
 };
 

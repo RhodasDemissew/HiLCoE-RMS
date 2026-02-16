@@ -2,7 +2,7 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from datetime import datetime, timezone
 import os, io, json, re
 
@@ -94,14 +94,7 @@ def _score_findings(findings: List[Dict[str, Any]], weights: Dict[str, float]) -
 def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").strip().lower())
 
-def _contains_all(text: str, keywords: list[str] | list) -> tuple[bool, list[str]]:
-    t = _norm(text)
-    missing = [k for k in keywords if _norm(k) not in t]
-    return (len(missing) == 0, missing)
-def _norm(s: str) -> str:
-    return re.sub(r"\s+", " ", (s or "").strip().lower())
-
-def _contains_all(text: str, keywords: List[str]):
+def _contains_all(text: str, keywords: List[str]) -> Tuple[bool, List[str]]:
     t = _norm(text)
     missing = [k for k in keywords if _norm(k) not in t]
     return (len(missing) == 0, missing)

@@ -70,30 +70,125 @@ function loadPolicy(policyName, version) {
   }
 }
 
-async function callExternalChecker({ policyName, policyVersion, filePath, mimetype }) {
-  const checkerUrl = config?.formatCheckerUrl || '';
-  if (!checkerUrl) return null;
-  if (typeof fetch !== 'function' || typeof FormData === 'undefined' || typeof Blob === 'undefined') return null;
+async function checkCheckerHealth(checkerUrl) {
   try {
-    const fd = new FormData();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    try {
+      const res = await fetch(`${checkerUrl}/health`, { 
+        method: 'GET',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return res.ok;
+    } catch (e) {
+      clearTimeout(timeoutId);
+      return false;
+    }
+  } catch {
+    return false;
+  }
+}
+
+async function callExternalChecker({ policyName, policyVersion, filePath, mimetype }) {
+  // Default checker URL for local development
+  const checkerUrl = config?.formatCheckerUrl || 'http://localhost:8001';
+  if (!checkerUrl) {
+    console.warn('[format-check] checker URL not configured');
+    return null;
+  }
+  
+  // Check if fetch is available (Node.js 18+ has built-in fetch, otherwise need node-fetch)
+  if (typeof fetch !== 'function') {
+    console.warn('[format-check] fetch API not available. Please use Node.js 18+ or install node-fetch');
+    return null;
+  }
+
+  // Check if checker service is running
+  const isHealthy = await checkCheckerHealth(checkerUrl);
+  if (!isHealthy) {
+    console.warn('[format-check] checker service not available at', checkerUrl);
+    return null;
+  }
+
+  // Use form-data library for FormData if native FormData is not available
+  let FormDataClass = FormData;
+  let useFormDataPackage = false;
+  if (typeof FormData === 'undefined') {
+    try {
+      const formDataModule = await import('form-data');
+      FormDataClass = formDataModule.default || formDataModule;
+      useFormDataPackage = true;
+    } catch (e) {
+      console.warn('[format-check] FormData not available and form-data package not installed');
+      return null;
+    }
+  }
+
+  try {
+    const fd = new FormDataClass();
     const buf = await fs.promises.readFile(filePath);
-    const blob = new Blob([buf], { type: mimetype || 'application/octet-stream' });
-    fd.append('file', blob, path.basename(filePath));
+    const filename = path.basename(filePath);
+    
+    // Handle both native FormData (Browser/Node 18+) and form-data package
+    if (!useFormDataPackage && typeof Blob !== 'undefined') {
+      const blob = new Blob([buf], { type: mimetype || 'application/octet-stream' });
+      fd.append('file', blob, filename);
+    } else {
+      // form-data package expects Buffer or Stream, and native FormData in Node.js can also take Buffer
+      fd.append('file', buf, { 
+        filename: filename,
+        contentType: mimetype || 'application/octet-stream'
+      });
+    }
+    
     fd.append('policyName', policyName);
     fd.append('policyVersion', policyVersion);
-    const res = await fetch(`${checkerUrl}/check`, { method: 'POST', body: fd });
-    if (!res.ok) throw new Error(`checker status ${res.status}`);
-    return await res.json();
+    
+    console.log('[format-check] calling checker', { url: checkerUrl, policyName, policyVersion, filename });
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    
+    try {
+      const res = await fetch(`${checkerUrl}/check`, { 
+        method: 'POST', 
+        body: fd,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => '');
+        throw new Error(`checker status ${res.status}: ${errorText}`);
+      }
+      
+      const result = await res.json();
+      console.log('[format-check] checker response', { policyName, score: result?.score, overall_pass: result?.overall_pass });
+      return result;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   } catch (e) {
-    console.warn('[format-check] external error', { url: checkerUrl, err: String(e && e.message || e) });
+    if (e.name === 'AbortError') {
+      console.warn('[format-check] checker request timeout', { url: checkerUrl });
+    } else {
+      console.warn('[format-check] external error', { 
+        url: checkerUrl, 
+        err: String(e && e.message || e),
+        stack: e?.stack 
+      });
+    }
     return null;
   }
 }
 
 function naiveEvaluate({ policyName, policyVersion, file, policy }) {
   // Lightweight fallback when external checker is unavailable
-  const isDocx = /vnd.openxmlformats-officedocument.wordprocessingml.document|\.docx$/i.test(file.mimetype || file.filename);
-  const isPdf = /pdf|\.pdf$/i.test(file.mimetype || file.filename);
+  const fileStr = (file.mimetype || file.filename || '').toString();
+  const isDocx = /vnd.openxmlformats-officedocument.wordprocessingml.document|\.docx$/i.test(fileStr);
+  const isPdf = /pdf|\.pdf$/i.test(fileStr);
   const findings = [
     { rule: "margins", pass: isDocx, details: '1" on all sides' },
     { rule: "font_family", pass: isDocx, details: "Times New Roman required" },
