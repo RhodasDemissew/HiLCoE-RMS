@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { api } from "../../../api/client.js";
+import { api, API_BASE } from "../../../api/client.js";
 import DecisionModal from "./DecisionModal.jsx";
 
 function StatusBadge({ status }) {
@@ -72,7 +72,6 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSubmission, setModalSubmission] = useState(null);
   const [modalDecision, setModalDecision] = useState(null);
-  const API_BASE = import.meta?.env?.VITE_API_BASE || "http://localhost:4000";
 
   const stages = useMemo(() => {
     const list = [

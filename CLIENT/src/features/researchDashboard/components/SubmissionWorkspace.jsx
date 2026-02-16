@@ -4,9 +4,7 @@ import { useResearchProgress } from "../hooks/useResearchProgress.js";
 import StageTimeline from "./submissions/StageTimeline.jsx";
 import StageSubmissionTable from "./submissions/StageSubmissionTable.jsx";
 import StageSubmissionModal from "./submissions/StageSubmissionModal.jsx";
-import { getToken } from "../../../api/client.js";
-
-const API_BASE = import.meta?.env?.VITE_API_BASE || "http://localhost:4000";
+import { getToken, API_BASE } from "../../../api/client.js";
 
 export default function SubmissionWorkspace() {
   const {

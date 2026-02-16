@@ -2,9 +2,7 @@
 import dayjs from "dayjs";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import DocumentTypeSelect from "./DocumentTypeSelect.jsx";
-import { getToken } from "../../../../api/client.js";
-
-const API_BASE = import.meta?.env?.VITE_API_BASE || "http://localhost:4000";
+import { getToken, API_BASE } from "../../../../api/client.js";
 // 10 MB max upload size
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
