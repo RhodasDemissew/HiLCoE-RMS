@@ -1,4 +1,25 @@
-const BASE = import.meta?.env?.VITE_API_BASE || 'http://localhost:4000';
+// Detect production environment and set API base URL
+function getApiBase() {
+  // Use environment variable if set (for Vercel)
+  if (import.meta?.env?.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE;
+  }
+  
+  // Check if we're in production (deployed on Vercel)
+  const isProduction = window.location.hostname.includes('vercel.app') || 
+                       window.location.hostname.includes('vercel.com') ||
+                       import.meta.env.MODE === 'production';
+  
+  if (isProduction) {
+    // Production backend URL on Render
+    return 'https://hilcoe-rms.onrender.com';
+  }
+  
+  // Development fallback
+  return 'http://localhost:4000';
+}
+
+const BASE = getApiBase();
 export const API_BASE = BASE;
 
 export function getToken() {
