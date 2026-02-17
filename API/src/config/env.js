@@ -27,7 +27,7 @@ function parseCorsOrigin(input) {
 export const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   mongoUri: requireEnv('MONGO_URI'),
-  jwtSecret: requireEnv('JWT_SECRET', 'dev_secret_change_me'),
+  jwtSecret: requireEnv('JWT_SECRET', process.env.NODE_ENV === 'production' ? undefined : 'dev_secret_change_me'),
   storageDir: requireEnv('STORAGE_DIR', './storage'),
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigin: parseCorsOrigin(process.env.CORS_ORIGIN || '*'),

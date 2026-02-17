@@ -9,17 +9,14 @@ import { AuditLog } from '../models/AuditLog.js';
 export const activityLogService = {
   async getActivityLog({ limit = 50, page = 1, type = 'all' } = {}) {
     try {
-      const skip = (page - 1) * limit;
       const activities = [];
 
-      // Get stage submissions activities (Researcher and Supervisor activities)
+      // Fetch ALL stage submissions (no pagination at DB level since each can generate multiple activities)
       if (type === 'all' || type === 'researcher' || type === 'supervisor') {
         const stageSubmissions = await StageSubmission.find({})
           .populate('researcher', 'name email')
           .populate('reviewer', 'name email')
-          .sort({ created_at: -1 })
-          .limit(limit)
-          .skip(skip);
+          .sort({ created_at: -1 });
 
         for (const submission of stageSubmissions) {
           const researcherName = submission.researcher?.name || 'Unknown Researcher';
@@ -65,15 +62,13 @@ export const activityLogService = {
         }
       }
 
-      // Get milestone activities with better data
+      // Fetch ALL milestones (no pagination at DB level)
       if (type === 'all' || type === 'milestone') {
         const milestones = await Milestone.find({})
           .populate('project', 'title researcher')
           .populate('approved_by', 'name email')
           .populate('project.researcher', 'name email')
-          .sort({ created_at: -1 })
-          .limit(limit)
-          .skip(skip);
+          .sort({ created_at: -1 });
 
         for (const milestone of milestones) {
           const projectTitle = milestone.project?.title || 'Unknown Project';
@@ -108,19 +103,18 @@ export const activityLogService = {
         }
       }
 
-
       // Sort all activities by date (most recent first)
       activities.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      // Get total counts for pagination
-      const totalCounts = await Promise.all([
-        StageSubmission.countDocuments(),
-        Milestone.countDocuments()
-      ]);
-      const total = totalCounts.reduce((sum, count) => sum + count, 0);
+      // Calculate total based on actual activities count
+      const total = activities.length;
+      const skip = (page - 1) * limit;
+
+      // Apply pagination AFTER sorting
+      const paginatedActivities = activities.slice(skip, skip + limit);
 
       return {
-        activities: activities.slice(0, limit),
+        activities: paginatedActivities,
         pagination: {
           page,
           limit,

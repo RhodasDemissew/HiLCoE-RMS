@@ -20,17 +20,24 @@ export const authController = {
     } catch (e) { res.status(400).json({ error: e.message }); }
   },
   async me(req, res) {
-    const { User } = await import('../models/User.js');
-    const user = await User.findById(req.user.id).populate('role');
-    res.json({ 
-      id: user._id, 
-      email: user.email, 
-      name: user.name, 
-      phone: user.phone,
-      department: user.department,
-      bio: user.bio,
-      role: user.role?.name 
-    });
+    try {
+      const { User } = await import('../models/User.js');
+      const user = await User.findById(req.user.id).populate('role');
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json({ 
+        id: user._id, 
+        email: user.email, 
+        name: user.name, 
+        phone: user.phone,
+        department: user.department,
+        bio: user.bio,
+        role: user.role?.name 
+      });
+    } catch (e) {
+      res.status(500).json({ error: e.message || 'Failed to fetch user profile' });
+    }
   },
   async resetRequest(req, res) {
     try {
