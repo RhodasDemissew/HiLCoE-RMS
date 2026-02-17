@@ -7,13 +7,13 @@ export default function About() {
       <Container>
         <div className="grid gap-8 md:gap-12 lg:gap-16 lg:grid-cols-2 lg:items-center">
           <div className="order-2 lg:order-1 space-y-6 text-center lg:text-left">
-            <div className="flex items-center justify-center lg:justify-start gap-4">
-              <div className="w-16 h-1 bg-blue-500"/>
+            <div className="flex items-center justify-center gap-4 md:gap-6">
+              <span className="h-[3px] w-8 md:w-12 rounded-full bg-[color:var(--brand-600)]" />
               <span className="text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-black">
                 {about.title}
               </span>
+              <span className="h-[3px] w-8 md:w-12 rounded-full bg-[color:var(--brand-600)]" />
             </div>
-            <div className="w-20 h-1 bg-blue-500 mx-auto lg:mx-0"/>
             <div className="space-y-3 sm:space-y-4 md:space-y-5 text-base sm:text-lg md:text-xl text-[color:var(--neutral-700)] max-w-2xl mx-auto lg:mx-0">
               {about.paragraphs.map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>

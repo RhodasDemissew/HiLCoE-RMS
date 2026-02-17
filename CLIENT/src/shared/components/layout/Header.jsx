@@ -216,7 +216,7 @@ export default function Header({ onSignUp }) {
                     setIsMobileMenuOpen(false);
                     onSignUp();
                   }}
-                  className="block w-full text-left px-4 py-3 text-sm font-semibold text-white bg-[color:var(--brand-600)] hover:bg-[color:var(--brand-500)] transition-colors"
+                  className="block w-full text-left px-4 py-3 text-sm font-semibold text-[color:var(--brand-600)] hover:bg-[color:var(--neutral-50)] transition-colors"
                 >
                   Sign Up
                 </button>
@@ -224,7 +224,7 @@ export default function Header({ onSignUp }) {
                 <Link
                   to="/signup"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-3 text-sm font-semibold text-white bg-[color:var(--brand-600)] hover:bg-[color:var(--brand-500)] transition-colors text-center"
+                  className="block px-4 py-3 text-sm font-semibold text-[color:var(--brand-600)] hover:bg-[color:var(--neutral-50)] transition-colors"
                 >
                   Sign Up
                 </Link>
