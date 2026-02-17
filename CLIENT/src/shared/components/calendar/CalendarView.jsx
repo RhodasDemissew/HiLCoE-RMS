@@ -349,8 +349,8 @@ export default function CalendarView({ role, currentUserId, onEventsLoaded }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl bg-white p-6 shadow-soft">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-soft">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[color:var(--neutral-600)]">
             Date from
             <input
@@ -405,7 +405,7 @@ export default function CalendarView({ role, currentUserId, onEventsLoaded }) {
           </label>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-4">
+        <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4">
           {[
             { key: "synopsis", label: "Synopsis" },
             { key: "defense", label: "Defense" },
@@ -519,13 +519,13 @@ export default function CalendarView({ role, currentUserId, onEventsLoaded }) {
         </div>
       </div>
 
-      <div className="rounded-3xl bg-white p-2 shadow-soft">
+      <div className="rounded-2xl sm:rounded-3xl bg-white p-2 shadow-soft">
         <Calendar
           localizer={localizer}
           events={calendarEvents}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: "70vh" }}
+          style={{ height: "60vh", minHeight: "400px" }}
           views={[Views.MONTH, Views.WEEK, Views.DAY]}
           step={30}
           popup
@@ -554,13 +554,13 @@ export default function CalendarView({ role, currentUserId, onEventsLoaded }) {
 
       {selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/40 backdrop-blur-sm">
-          <div className="h-full w-full max-w-md overflow-y-auto bg-white p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
+          <div className="h-full w-full max-w-md overflow-y-auto bg-white p-4 sm:p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-3 sm:gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
+                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
                   {selectedEvent.typeKey || "event"}
                 </p>
-                <h2 className="mt-1 text-xl font-semibold text-[color:var(--neutral-900)]">
+                <h2 className="mt-1 text-lg sm:text-xl font-semibold text-[color:var(--neutral-900)]">
                   {selectedEvent.title}
                 </h2>
                 <p className="mt-2 text-sm text-[color:var(--neutral-600)]">

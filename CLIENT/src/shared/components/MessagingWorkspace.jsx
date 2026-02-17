@@ -464,23 +464,23 @@ export default function MessagingWorkspace({ currentUser = null, emptyStateTitle
   }, [participantNames, lastSeen]);
 
   return (
-    <div className="flex h-[calc(100vh-200px)] max-h-[calc(100vh-200px)] min-h-[600px] w-full overflow-hidden rounded-[32px] bg-[#f4f6fb]">
-      <aside className="hidden w-[320px] h-full max-h-full flex flex-col border-r border-[#e0e7ff] bg-white/90 md:flex overflow-hidden">
-         <div className="px-6 pb-4 pt-6 flex-shrink-0">
+    <div className="flex h-[calc(100vh-200px)] max-h-[calc(100vh-200px)] min-h-[400px] sm:min-h-[600px] w-full overflow-hidden rounded-2xl lg:rounded-[32px] bg-[#f4f6fb]">
+      <aside className="hidden w-full sm:w-[280px] lg:w-[320px] h-full max-h-full flex flex-col border-r border-[#e0e7ff] bg-white/90 sm:flex overflow-hidden">
+         <div className="px-3 sm:px-6 pb-3 sm:pb-4 pt-4 sm:pt-6 flex-shrink-0">
            <div className="relative">
              <input
                type="search"
                value={searchTerm}
                onChange={(event) => setSearchTerm(event.target.value)}
                placeholder="Search by name, email, or ID..."
-               className="w-full rounded-[18px] border border-[#e3e8f6] bg-[#f7f9ff] px-4 py-2 text-sm text-[#0a1f44] placeholder:text-[#9aa3ba] focus:border-[#2f5eff] focus:outline-none focus:ring-2 focus:ring-[#dbe4ff]"
+               className="w-full rounded-xl sm:rounded-[18px] border border-[#e3e8f6] bg-[#f7f9ff] px-3 sm:px-4 py-2 text-xs sm:text-sm text-[#0a1f44] placeholder:text-[#9aa3ba] focus:border-[#2f5eff] focus:outline-none focus:ring-2 focus:ring-[#dbe4ff]"
              />
              <span className="pointer-events-none absolute right-4 top-1/2 block -translate-y-1/2 text-xs text-[#9aa3ba]">?</span>
            </div>
          </div>
 
         {spotlightParticipants.length > 0 && (
-          <div className="flex items-center gap-4 px-6 pb-4 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 pb-3 sm:pb-4 flex-shrink-0 overflow-x-auto">
             {spotlightParticipants.map((participant, index) => {
               const name = participant?.user?.name || participant?.user?.email || participant?.role || "Contact";
               return (

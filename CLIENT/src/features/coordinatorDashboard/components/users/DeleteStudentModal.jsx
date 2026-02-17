@@ -22,7 +22,7 @@ export default function DeleteStudentModal({ open, student, onCancel, onConfirm,
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center px-4 py-10">
+          <div className="flex min-h-full items-center justify-center px-2 sm:px-4 py-4 sm:py-10">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-200"
@@ -55,7 +55,7 @@ export default function DeleteStudentModal({ open, student, onCancel, onConfirm,
                     className="rounded-xl bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
                     onClick={onConfirm}
                   >
-                    {loading ? "Deleting…" : "Delete"}
+                    {loading ? "Deletingï¿½" : "Delete"}
                   </button>
                 </div>
               </Dialog.Panel>

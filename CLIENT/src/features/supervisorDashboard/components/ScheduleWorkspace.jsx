@@ -63,16 +63,16 @@ export default function SupervisorScheduleWorkspace({ user }) {
   );
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold text-[color:var(--neutral-900)]">Schedule</h1>
-        <p className="text-sm text-[color:var(--neutral-600)]">
+        <h1 className="text-xl sm:text-2xl font-semibold text-[color:var(--neutral-900)]">Schedule</h1>
+        <p className="text-xs sm:text-sm text-[color:var(--neutral-600)]">
           Review defenses you are assigned to and respond when required.
         </p>
       </header>
 
       {conflicts.length > 0 && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-amber-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-amber-700">
           You have overlapping defenses. Please review your calendar.
         </div>
       )}

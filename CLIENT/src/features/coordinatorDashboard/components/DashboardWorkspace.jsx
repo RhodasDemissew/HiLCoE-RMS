@@ -9,14 +9,14 @@
 
 function SummaryCard({ label, value, trend, icon, loading = false }) {
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm transition hover:shadow-md">
+    <article className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 shadow-sm transition hover:shadow-md">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--neutral-500)]">{label}</p>
+          <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-[color:var(--neutral-500)]">{label}</p>
           {loading ? (
-            <div className="mt-3 h-8 w-16 animate-pulse rounded bg-[color:var(--neutral-200)]"></div>
+            <div className="mt-2 sm:mt-3 h-6 sm:h-8 w-12 sm:w-16 animate-pulse rounded bg-[color:var(--neutral-200)]"></div>
           ) : (
-            <p className="mt-3 text-3xl font-semibold text-[color:var(--neutral-900)]">{value}</p>
+            <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold text-[color:var(--neutral-900)]">{value}</p>
           )}
           {loading ? (
             <div className="mt-1 h-4 w-20 animate-pulse rounded bg-[color:var(--neutral-200)]"></div>
@@ -54,8 +54,8 @@ function ActivityLog({ items, onViewAll }) {
   };
 
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
-      <header className="mb-4 flex items-center justify-between">
+    <article className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 shadow-sm">
+      <header className="mb-3 sm:mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Activity Log</h2>
           <p className="text-xs text-[color:var(--neutral-500)]">Latest researcher activity</p>
@@ -104,7 +104,7 @@ function ActivityLog({ items, onViewAll }) {
               </tr>
             )) : (
               <tr>
-                <td colSpan="4" className="px-4 py-8 text-center text-sm text-[color:var(--neutral-500)]">
+                <td colSpan="4" className="px-3 sm:px-4 py-6 sm:py-8 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">
                   No recent activity
                 </td>
               </tr>
@@ -119,7 +119,7 @@ function ActivityLog({ items, onViewAll }) {
 
 function MessagesPanel({ messages, loading = false, onViewAll }) {
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
+    <article className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 shadow-sm">
       <header className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Message</h2>
         <button 
@@ -157,8 +157,8 @@ function MessagesPanel({ messages, loading = false, onViewAll }) {
               <p className="mt-2 text-xs text-[color:var(--neutral-600)]">{message.body}</p>
             </li>
           )) : (
-            <div className="mt-4 rounded-xl border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-4 py-6 text-center">
-              <p className="text-sm font-semibold text-[color:var(--neutral-800)]">No recent messages</p>
+            <div className="mt-3 sm:mt-4 rounded-lg sm:rounded-xl border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-3 sm:px-4 py-4 sm:py-6 text-center">
+              <p className="text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">No recent messages</p>
               <p className="mt-1 text-xs text-[color:var(--neutral-500)]">Start a conversation to see messages here.</p>
             </div>
           )}

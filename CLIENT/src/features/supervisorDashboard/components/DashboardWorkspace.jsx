@@ -41,12 +41,12 @@ function formatRelative(value) {
 
 function SummaryCard({ label, value, subtitle, loading = false }) {
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--neutral-500)]">{label}</p>
+    <article className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 shadow-sm">
+      <p className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-[color:var(--neutral-500)]">{label}</p>
       {loading ? (
-        <div className="mt-3 h-8 w-16 animate-pulse rounded bg-[color:var(--neutral-200)]" />
+        <div className="mt-2 sm:mt-3 h-6 sm:h-8 w-12 sm:w-16 animate-pulse rounded bg-[color:var(--neutral-200)]" />
       ) : (
-        <p className="mt-3 text-3xl font-semibold text-[color:var(--neutral-900)]">{value ?? 0}</p>
+        <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold text-[color:var(--neutral-900)]">{value ?? 0}</p>
       )}
       {subtitle ? (
         loading ? (
@@ -72,22 +72,22 @@ function ReviewCard({ stats, latest, loading }) {
   ];
 
   return (
-    <article className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
-      <header className="flex items-center justify-between gap-4">
+    <article className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 shadow-sm">
+      <header className="flex items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Paper Review</h2>
-          <p className="text-xs text-[color:var(--neutral-500)]">Track submissions that need your attention</p>
+          <h2 className="text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">Paper Review</h2>
+          <p className="text-[10px] sm:text-xs text-[color:var(--neutral-500)]">Track submissions that need your attention</p>
         </div>
       </header>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+      <div className="mt-4 sm:mt-5 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
         {blocks.map((item) => (
-          <div key={item.label} className="rounded-xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-4 py-3 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">{item.label}</p>
+          <div key={item.label} className="rounded-lg sm:rounded-xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-3 sm:px-4 py-2 sm:py-3 text-center">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">{item.label}</p>
             {loading ? (
-              <div className="mx-auto mt-2 h-6 w-10 animate-pulse rounded bg-[color:var(--neutral-200)]" />
+              <div className="mx-auto mt-2 h-5 sm:h-6 w-8 sm:w-10 animate-pulse rounded bg-[color:var(--neutral-200)]" />
             ) : (
-              <p className="mt-2 text-2xl font-semibold text-[color:var(--neutral-900)]">{item.value}</p>
+              <p className="mt-2 text-xl sm:text-2xl font-semibold text-[color:var(--neutral-900)]">{item.value}</p>
             )}
           </div>
         ))}

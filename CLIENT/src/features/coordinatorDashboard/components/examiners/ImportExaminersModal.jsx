@@ -5,38 +5,38 @@ import { api } from "../../../../api/client.js";
 function PreviewTable({ entries, errors }) {
   if (!entries.length) {
     return (
-      <div className="rounded-2xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-5 py-8 text-center text-sm text-[color:var(--neutral-500)]">
+      <div className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-3 sm:px-4 lg:px-5 py-6 sm:py-8 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">
         {errors.length ? 'Fix the issues below and re-import.' : 'Upload a file to preview records.'}
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[color:var(--neutral-200)]">
+    <div className="overflow-hidden rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)]">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left">
-          <thead className="bg-[color:var(--neutral-50)] text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
+          <thead className="bg-[color:var(--neutral-50)] text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
             <tr>
-              <th className="px-4 py-3">Full Name</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Examiner ID</th>
-              <th className="px-4 py-3">Specializations</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">Full Name</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 hidden sm:table-cell">Email</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">Examiner ID</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 hidden lg:table-cell">Specializations</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[color:var(--neutral-100)] text-sm text-[color:var(--neutral-700)]">
+          <tbody className="divide-y divide-[color:var(--neutral-100)] text-xs sm:text-sm text-[color:var(--neutral-700)]">
             {entries.slice(0, 10).map((entry, index) => (
               <tr key={`${entry.email}-${entry.examinerId}-${index}`}>
-                <td className="px-4 py-3">{[entry.firstName, entry.middleName, entry.lastName].filter(Boolean).join(' ')}</td>
-                <td className="px-4 py-3 text-[color:var(--brand-600)]">{entry.email}</td>
-                <td className="px-4 py-3 font-semibold">{entry.examinerId || '-'}</td>
-                <td className="px-4 py-3">{entry.specializations || '-'}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{[entry.firstName, entry.middleName, entry.lastName].filter(Boolean).join(' ')}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-[color:var(--brand-600)] hidden sm:table-cell">{entry.email}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">{entry.examinerId || '-'}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 hidden lg:table-cell">{entry.specializations || '-'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {entries.length > 10 && (
-        <div className="px-4 py-2 text-xs text-[color:var(--neutral-500)]">
+        <div className="px-3 sm:px-4 py-2 text-[10px] sm:text-xs text-[color:var(--neutral-500)]">
           Showing first 10 of {entries.length} rows.
         </div>
       )}
@@ -209,7 +209,7 @@ export default function ImportExaminersModal({ open, onClose, onSuccess, onToast
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center px-2 sm:px-4 py-4 sm:py-10 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -219,33 +219,33 @@ export default function ImportExaminersModal({ open, onClose, onSuccess, onToast
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title as="h3" className="text-lg font-semibold text-[color:var(--neutral-900)]">
+              <Dialog.Panel className="w-full max-w-2xl sm:max-w-4xl transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 lg:p-8 text-left align-middle shadow-xl transition-all mx-2 sm:mx-0">
+                <Dialog.Title as="h3" className="text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">
                   Import Examiners
                 </Dialog.Title>
-                <p className="mt-1 text-sm text-[color:var(--neutral-500)]">
+                <p className="mt-1 text-xs sm:text-sm text-[color:var(--neutral-500)]">
                   Upload a CSV or Excel file with examiner details.
                 </p>
 
-                <div className="mt-6 space-y-4">
+                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                    <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                       Upload file
                     </label>
                     <input
                       type="file"
                       accept=".csv,.xlsx,.xls"
                       onChange={handleFileChange}
-                      className="mt-1 block w-full text-sm text-[color:var(--neutral-500)] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[color:var(--brand-50)] file:text-[color:var(--brand-700)] hover:file:bg-[color:var(--brand-100)]"
+                      className="mt-1 block w-full text-xs sm:text-sm text-[color:var(--neutral-500)] file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-xl file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-[color:var(--brand-50)] file:text-[color:var(--brand-700)] hover:file:bg-[color:var(--brand-100)]"
                     />
                     {fileName && (
-                      <p className="mt-1 text-xs text-[color:var(--neutral-500)]">
+                      <p className="mt-1 text-[10px] sm:text-xs text-[color:var(--neutral-500)]">
                         Selected: {fileName}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                     <span className="font-semibold text-[color:var(--brand-600)]">
                       Valid rows: {validEntries.length}
                     </span>
@@ -254,13 +254,13 @@ export default function ImportExaminersModal({ open, onClose, onSuccess, onToast
                     </span>
                   </div>
 
-                  <div className="text-xs text-[color:var(--neutral-500)]">
+                  <div className="text-[10px] sm:text-xs text-[color:var(--neutral-500)]">
                     <p className="font-semibold">CSV headers:</p>
                     <p>FirstName, MiddleName, LastName, Email, ExaminerID, Specializations</p>
                   </div>
 
                   {errors.length > 0 && (
-                    <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                    <div className="rounded-xl bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-red-600">
                       <ul className="list-disc list-inside space-y-1">
                         {errors.map((error, index) => (
                           <li key={index}>{error}</li>
@@ -272,10 +272,10 @@ export default function ImportExaminersModal({ open, onClose, onSuccess, onToast
                   <PreviewTable entries={entries} errors={errors} />
                 </div>
 
-                <div className="mt-6 flex items-center justify-end gap-3">
+                <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3">
                   <button
                     type="button"
-                    className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-100)]"
+                    className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-xs sm:text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-100)] w-full sm:w-auto"
                     onClick={handleClose}
                     disabled={importing}
                   >
@@ -283,7 +283,7 @@ export default function ImportExaminersModal({ open, onClose, onSuccess, onToast
                   </button>
                   <button
                     type="button"
-                    className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-xl bg-[color:var(--brand-600)] px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto"
                     onClick={handleImport}
                     disabled={importing || validEntries.length === 0}
                   >

@@ -46,25 +46,25 @@ function SupervisorBadge({ user }) {
 
 export default function UsersTable({ users = [], loading = false, onEdit, onDelete, onAssign, onUnassign }) {
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-[color:var(--neutral-200)] bg-white shadow-soft">
+    <div className="mt-4 sm:mt-6 overflow-hidden rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white shadow-soft">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left">
-          <thead className="bg-[color:var(--neutral-50)] text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
+          <thead className="bg-[color:var(--neutral-50)] text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
             <tr>
               {columns.map((column) => (
-                <th key={column.key} className="px-6 py-3">
+                <th key={column.key} className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">
                   {column.label}
                 </th>
               ))}
-              <th className="px-6 py-3">Assign</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-2 py-3" aria-label="Actions" />
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Assign</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Status</th>
+              <th className="px-2 sm:px-3 py-2 sm:py-3" aria-label="Actions" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-[color:var(--neutral-100)] text-sm text-[color:var(--neutral-800)]">
+          <tbody className="divide-y divide-[color:var(--neutral-100)] text-xs sm:text-sm text-[color:var(--neutral-800)]">
             {loading ? (
               <tr>
-                <td className="px-6 py-6 text-center" colSpan={columns.length + 3}>
+                <td className="px-3 sm:px-6 py-4 sm:py-6 text-center text-xs sm:text-sm" colSpan={columns.length + 3}>
                   Loading researchers…
                 </td>
               </tr>
@@ -74,18 +74,18 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
                 return (
                   <tr key={rowKey} className="group relative">
                     {columns.map((column) => (
-                      <td key={column.key} className="px-6 py-4">
+                      <td key={column.key} className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
                         <div className="transition-transform duration-500 ease-out group-hover:-translate-x-6">
                           {column.format(user)}
                         </div>
                       </td>
                     ))}
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col items-start gap-2 transition-transform duration-500 ease-out group-hover:-translate-x-6">
-                        <div className="flex items-center gap-2">
+                    <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+                      <div className="flex flex-col items-start gap-1.5 sm:gap-2 transition-transform duration-500 ease-out group-hover:-translate-x-6">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <button
                             type="button"
-                            className="rounded-full bg-[color:var(--brand-600)] px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all duration-200 ease-in-out hover:bg-[color:var(--brand-500)]"
+                            className="rounded-full bg-[color:var(--brand-600)] px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-white shadow-sm transition-all duration-200 ease-in-out hover:bg-[color:var(--brand-500)]"
                             onClick={() => onAssign?.(user)}
                           >
                             {user?.assigned_supervisor ? 'Reassign' : 'Assign'}
@@ -93,7 +93,7 @@ export default function UsersTable({ users = [], loading = false, onEdit, onDele
                           {user?.assigned_supervisor && (
                             <button
                               type="button"
-                              className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600 transition-all duration-200 ease-in-out hover:bg-red-200"
+                              className="rounded-full bg-red-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-red-600 transition-all duration-200 ease-in-out hover:bg-red-200"
                               onClick={() => onUnassign?.(user)}
                             >
                               Remove

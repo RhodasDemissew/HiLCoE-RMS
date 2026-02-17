@@ -26,12 +26,12 @@ function ActivityLogTable({ activities, loading }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
+      <div className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 shadow-sm">
         <div className="animate-pulse">
-          <div className="h-4 bg-[color:var(--neutral-200)] rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
+          <div className="h-4 bg-[color:var(--neutral-200)] rounded w-1/4 mb-3 sm:mb-4"></div>
+          <div className="space-y-2 sm:space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex space-x-4">
+              <div key={i} className="flex space-x-2 sm:space-x-4">
                 <div className="h-4 bg-[color:var(--neutral-200)] rounded w-1/6"></div>
                 <div className="h-4 bg-[color:var(--neutral-200)] rounded w-1/6"></div>
                 <div className="h-4 bg-[color:var(--neutral-200)] rounded w-1/6"></div>
@@ -45,34 +45,34 @@ function ActivityLogTable({ activities, loading }) {
   }
 
   return (
-    <div className="rounded-2xl border border-[color:var(--neutral-200)] bg-white px-6 py-5 shadow-sm">
-      <header className="mb-4">
-        <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Activity Log</h2>
-        <p className="text-xs text-[color:var(--neutral-500)]">Research system activity history</p>
+    <div className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 shadow-sm">
+      <header className="mb-3 sm:mb-4">
+        <h2 className="text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">Activity Log</h2>
+        <p className="text-[10px] sm:text-xs text-[color:var(--neutral-500)]">Research system activity history</p>
       </header>
-      <div className="overflow-hidden rounded-xl border border-[color:var(--neutral-200)]">
-        <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-sm">
+      <div className="overflow-x-auto overflow-hidden rounded-lg sm:rounded-xl border border-[color:var(--neutral-200)]">
+        <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-xs sm:text-sm">
           <thead className="bg-[color:var(--neutral-50)]">
             <tr className="text-[color:var(--neutral-600)]">
-              <th className="px-4 py-3 font-medium">Date</th>
-              <th className="px-4 py-3 font-medium">Author</th>
-              <th className="px-4 py-3 font-medium">Action</th>
-              <th className="px-4 py-3 font-medium">Description</th>
-              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium">Date</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium hidden sm:table-cell">Author</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium">Action</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium hidden lg:table-cell">Description</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[color:var(--neutral-200)]">
             {activities && activities.length > 0 ? activities.map((row, idx) => (
               <tr key={`${row.id || row.date}-${idx}`} className="text-[color:var(--neutral-700)]">
-                <td className="px-4 py-3 text-sm font-medium">
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium">
                   <div>{formatDate(row.date)}</div>
-                  <div className="text-xs text-[color:var(--neutral-400)]">{formatTimeAgo(row.date)}</div>
+                  <div className="text-[10px] sm:text-xs text-[color:var(--neutral-400)]">{formatTimeAgo(row.date)}</div>
                 </td>
-                <td className="px-4 py-3 text-sm">{row.author}</td>
-                <td className="px-4 py-3 text-sm">{row.action}</td>
-                <td className="px-4 py-3 text-sm text-[color:var(--neutral-500)]">{row.description}</td>
-                <td className="px-4 py-3 text-sm">
-                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm hidden sm:table-cell">{row.author}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm">{row.action}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[color:var(--neutral-500)] hidden lg:table-cell">{row.description}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                  <span className={`inline-flex rounded-full px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium ${
                     row.status === 'approved' ? 'bg-green-100 text-green-800' :
                     row.status === 'rejected' ? 'bg-red-100 text-red-800' :
                     row.status === 'under_review' ? 'bg-yellow-100 text-yellow-800' :
@@ -88,7 +88,7 @@ function ActivityLogTable({ activities, loading }) {
               </tr>
             )) : (
               <tr>
-                <td colSpan="5" className="px-4 py-8 text-center text-sm text-[color:var(--neutral-500)]">
+                <td colSpan="5" className="px-3 sm:px-4 py-6 sm:py-8 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">
                   No activity found
                 </td>
               </tr>

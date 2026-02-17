@@ -640,17 +640,17 @@ function SettingsWorkspace({ user, role = "Researcher", onUserUpdate }) {
   return (
     <div className="grid grid-cols-12 gap-5">
       <div className="col-span-12">
-        <section className="card rounded-card border border-muted bg-white px-8 py-12 shadow-soft">
-          <div className="mb-8">
-            <h1 className="h2 text-[color:var(--neutral-900)] mb-2">Settings</h1>
-            <p className="text-[color:var(--neutral-600)]">Manage your account settings and preferences</p>
+        <section className="card rounded-card border border-muted bg-white px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 shadow-soft">
+          <div className="mb-4 sm:mb-6 lg:mb-8">
+            <h1 className="text-xl sm:text-2xl lg:h2 text-[color:var(--neutral-900)] mb-2">Settings</h1>
+            <p className="text-xs sm:text-sm text-[color:var(--neutral-600)]">Manage your account settings and preferences</p>
           </div>
 
           {message.text && (
-            <div className={`mb-6 p-4 rounded-md ${
+            <div className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-md ${
               message.type === "success" ? "bg-green-50 text-green-800 border border-green-200" : "bg-red-50 text-red-800 border border-red-200"
             }`}>
-              <div className="flex items-center">
+              <div className="flex items-center text-sm sm:text-base">
                 <span className="mr-2">{message.type === "success" ? "✅" : "❌"}</span>
                 {message.text}
               </div>
@@ -658,15 +658,15 @@ function SettingsWorkspace({ user, role = "Researcher", onUserUpdate }) {
           )}
 
           {loading && (
-            <div className="mb-6 p-4 bg-blue-50 text-blue-800 border border-blue-200 rounded-md">
-              <div className="flex items-center">
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 text-blue-800 border border-blue-200 rounded-md">
+              <div className="flex items-center text-sm sm:text-base">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
                 Loading preferences...
               </div>
             </div>
           )}
 
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
             {/* Sidebar Navigation */}
             <div className="lg:w-64">
               <nav className="space-y-2">

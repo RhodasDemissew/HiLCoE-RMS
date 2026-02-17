@@ -120,14 +120,14 @@ export default function TemplatesWorkspace() {
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[color:var(--neutral-900)]">Document Templates</h1>
-          <p className="text-sm text-[color:var(--neutral-500)]">Manage stage templates like Proposal.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[color:var(--neutral-900)]">Document Templates</h1>
+          <p className="text-xs sm:text-sm text-[color:var(--neutral-500)]">Manage stage templates like Proposal.</p>
         </div>
         <button
           type="button"
-          className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
+          className="rounded-xl bg-[color:var(--brand-600)] px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] w-full sm:w-auto"
           onClick={startAdd}
         >
           {isAdding && editingId ? 'Add New' : 'Add Template'}
@@ -135,8 +135,8 @@ export default function TemplatesWorkspace() {
       </header>
 
       {isAdding && (
-        <form onSubmit={handleSave} className="rounded-3xl bg-white p-6 shadow-soft">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <form onSubmit={handleSave} className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-soft">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3">
             <div>
               <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">Type</label>
               <select
@@ -201,31 +201,31 @@ export default function TemplatesWorkspace() {
         </form>
       )}
 
-      <div className="rounded-3xl bg-white p-6 shadow-soft">
+      <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-soft">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left">
-            <thead className="bg-[color:var(--neutral-50)] text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
+            <thead className="bg-[color:var(--neutral-50)] text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
               <tr>
-                <th className="px-6 py-3">Type</th>
-                <th className="px-6 py-3">Version</th>
-                <th className="px-6 py-3">URL</th>
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Type</th>
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Version</th>
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">URL</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[color:var(--neutral-100)] text-sm text-[color:var(--neutral-800)]">
+            <tbody className="divide-y divide-[color:var(--neutral-100)] text-xs sm:text-sm text-[color:var(--neutral-800)]">
               {loading ? (
                 <tr>
-                  <td className="px-6 py-6 text-center" colSpan={3}>Loading templates.</td>
+                  <td className="px-3 sm:px-6 py-4 sm:py-6 text-center" colSpan={3}>Loading templates.</td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td className="px-6 py-6 text-center text-red-600" colSpan={3}>{error}</td>
+                  <td className="px-3 sm:px-6 py-4 sm:py-6 text-center text-red-600" colSpan={3}>{error}</td>
                 </tr>
               ) : sorted.length ? (
                 sorted.map((tpl) => (
                   <tr key={tpl._id || `${tpl.type}-${tpl.version}-${tpl.url}`} className="group">
-                    <td className="px-6 py-4 font-semibold capitalize">{tpl.type || 'proposal'}</td>
-                    <td className="px-6 py-4">{tpl.version ?? '-'}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 font-semibold capitalize">{tpl.type || 'proposal'}</td>
+                    <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4">{tpl.version ?? '-'}</td>
+                    <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
                       {tpl.url ? (
                         <div className="space-y-2">
                           <a 
@@ -258,7 +258,7 @@ export default function TemplatesWorkspace() {
                 ))
               ) : (
                 <tr>
-                  <td className="px-6 py-6 text-center text-[color:var(--neutral-500)]" colSpan={3}>No templates found.</td>
+                  <td className="px-3 sm:px-6 py-4 sm:py-6 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]" colSpan={3}>No templates found.</td>
                 </tr>
               )}
             </tbody>

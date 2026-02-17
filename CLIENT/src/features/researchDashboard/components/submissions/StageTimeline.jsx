@@ -56,42 +56,42 @@ export default function StageTimeline({ stages, resubmitCountdown }) {
   }
 
   return (
-    <div className="rounded-3xl border border-[color:var(--neutral-200)] bg-white p-6 shadow-soft">
-      <h2 className="h3 text-[color:var(--neutral-900)]">Submission Flow</h2>
-      <div className="relative mt-6 px-2">
+    <div className="rounded-2xl sm:rounded-3xl border border-[color:var(--neutral-200)] bg-white p-4 sm:p-6 shadow-soft">
+      <h2 className="text-lg sm:text-xl lg:h3 text-[color:var(--neutral-900)]">Submission Flow</h2>
+      <div className="relative mt-4 sm:mt-6 px-1 sm:px-2">
         {/* Base connecting line */}
-        <div className="pointer-events-none absolute left-0 right-0 top-4 h-0.5 bg-[color:var(--neutral-200)]" />
+        <div className="pointer-events-none absolute left-0 right-0 top-3 sm:top-4 h-0.5 bg-[color:var(--neutral-200)]" />
         {/* Progress line */}
         <div
-          className="pointer-events-none absolute left-0 top-4 h-0.5 bg-[color:var(--brand-600)] transition-all"
+          className="pointer-events-none absolute left-0 top-3 sm:top-4 h-0.5 bg-[color:var(--brand-600)] transition-all"
           style={{ width: `${progressPercent}%` }}
         />
 
-        <ol className="relative z-10 flex items-start justify-between">
+        <ol className="relative z-10 flex items-start justify-between gap-1 sm:gap-0">
           {stages.map((stage) => {
             const classes = dotStyles(stage);
             return (
               <li key={stage.name} className="relative group flex w-full flex-col items-center text-center">
                 {/* Tooltip */}
-                <div className="pointer-events-none absolute -top-10 z-20 hidden w-max max-w-[14rem] -translate-y-1/2 rounded-md bg-[color:var(--neutral-900)] px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition group-hover:block group-hover:opacity-100">
+                <div className="pointer-events-none absolute -top-8 sm:-top-10 z-20 hidden w-max max-w-[10rem] sm:max-w-[14rem] -translate-y-1/2 rounded-md bg-[color:var(--neutral-900)] px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-white opacity-0 shadow-lg transition group-hover:block group-hover:opacity-100">
                   {statusText(stage)}
-                  <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-[color:var(--neutral-900)]" />
+                  <div className="absolute left-1/2 top-full h-1.5 w-1.5 sm:h-2 sm:w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-[color:var(--neutral-900)]" />
                 </div>
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full ${classes}`}
+                  className={`flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full ${classes}`}
                   aria-label={`${stage.name} ${stage.status}`}
                 >
                   {stage.status === 'completed' ? (
-                    <CheckIcon className="h-3.5 w-3.5" />
+                    <CheckIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   ) : stage.status === 'resubmit' ? (
-                    <span className="text-[10px] font-bold leading-none">{stage.daysLeft ?? resubmitCountdown ?? ''}</span>
+                    <span className="text-[9px] sm:text-[10px] font-bold leading-none">{stage.daysLeft ?? resubmitCountdown ?? ''}</span>
                   ) : stage.unlocked ? (
-                    <span className="text-[10px] font-semibold leading-none">{stage.index + 1}</span>
+                    <span className="text-[9px] sm:text-[10px] font-semibold leading-none">{stage.index + 1}</span>
                   ) : (
-                    <LockClosedIcon className="h-3.5 w-3.5" />
+                    <LockClosedIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   )}
                 </span>
-                <span className="mt-2 max-w-[8rem] text-[11px] font-medium text-[color:var(--neutral-800)]">
+                <span className="mt-1.5 sm:mt-2 max-w-[6rem] sm:max-w-[8rem] text-[10px] sm:text-[11px] font-medium text-[color:var(--neutral-800)]">
                   {stage.name}
                 </span>
               </li>

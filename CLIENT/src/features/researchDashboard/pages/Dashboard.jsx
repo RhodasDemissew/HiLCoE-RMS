@@ -22,37 +22,67 @@ import {
 } from "../content.js";
 
 
-function AppShell({ sidebar, topbar, children }) {
+function AppShell({ sidebar, topbar, children, isSidebarOpen, onSidebarToggle }) {
   return (
     <div className="min-h-screen bg-[color:var(--neutral-100)]">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onSidebarToggle}
+          aria-hidden="true"
+        />
+      )}
       {sidebar}
-      <div className="ml-[260px] flex min-h-screen flex-col">
+      <div className="ml-0 lg:ml-[260px] flex min-h-screen flex-col transition-all duration-300">
         {topbar}
         <main className="flex-1 overflow-y-auto">
-          <div className="container-px py-8">{children}</div>
+          <div className="container-px py-4 lg:py-8 px-4 lg:px-0">{children}</div>
         </main>
       </div>
     </div>
   );
 }
 
-function Sidebar({ active, onSelect }) {
+function Sidebar({ active, onSelect, isOpen, onClose }) {
+  // Close sidebar when item is selected on mobile
+  const handleSelect = (label) => {
+    onSelect?.(label);
+    if (window.innerWidth < 1024) {
+      onClose?.();
+    }
+  };
+  
   return (
-    <aside className="fixed inset-y-0 left-0 w-[260px] bg-blue-950 text-white">
+    <aside className={`fixed inset-y-0 left-0 w-[260px] bg-blue-950 text-white z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    }`}>
       <div className="flex h-full flex-col">
         <div className="px-6 py-8">
-          <div className="flex items-center gap-3">
-            <img
-              src={logoImage}
-              alt="HiLCoE"
-              className="h-12 w-12 rounded-full"
-              loading="lazy"
-              decoding="async"
-            />
-            <div>
-              <div className="font-semibold text-lg">HiLCoE</div>
-              <div className="text-xs text-white/70">Research Management</div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <img
+                src={logoImage}
+                alt="HiLCoE"
+                className="h-12 w-12 rounded-full"
+                loading="lazy"
+                decoding="async"
+              />
+              <div>
+                <div className="font-semibold text-lg">HiLCoE</div>
+                <div className="text-xs text-white/70">Research Management</div>
+              </div>
             </div>
+            {/* Close button for mobile */}
+            <button
+              onClick={onClose}
+              className="lg:hidden text-white/80 hover:text-white p-2 -mr-2"
+              aria-label="Close menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
           
         </div>
@@ -72,7 +102,7 @@ function Sidebar({ active, onSelect }) {
                     : "text-white/80 hover:bg-white/10",
                 ].join(" ")}
                 onClick={() => {
-                  onSelect?.(item.label);
+                  handleSelect(item.label);
                 }}
               >
                 <img
@@ -94,7 +124,7 @@ function Sidebar({ active, onSelect }) {
             type="button"
             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
             onClick={() => {
-              onSelect?.("Settings");
+              handleSelect("Settings");
             }}
           >
             
@@ -114,7 +144,7 @@ function Sidebar({ active, onSelect }) {
   );
 }
 
-function Topbar({ user, loading = false, fallbackName = "Member", notifications = [], onMarkAllRead, onClearAll }) {
+function Topbar({ user, loading = false, fallbackName = "Member", notifications = [], onMarkAllRead, onClearAll, onMenuToggle }) {
   const navigate = useNavigate();
   const safeFallback = fallbackName || 'Member';
   const displayName = user?.name || safeFallback;
@@ -232,7 +262,17 @@ function Topbar({ user, loading = false, fallbackName = "Member", notifications 
 
   return (
     <header className="border-b border-muted bg-white/70 backdrop-blur">
-      <div className="mr-10 flex h-20 items-center justify-end gap-6">
+      <div className="mx-4 lg:mr-10 flex h-16 lg:h-20 items-center justify-between gap-4 lg:gap-6">
+        {/* Hamburger menu button for mobile */}
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden text-[color:var(--neutral-700)] hover:text-[color:var(--neutral-900)] p-2 -ml-2"
+          aria-label="Open menu"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <div className="flex-1" />
 
         <div className="flex items-center gap-6">
@@ -372,6 +412,7 @@ export default function ResearcherDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sectionFromUrl = searchParams.get('section') || 'Dashboard';
   const [activeSection, setActiveSection] = useState(sectionFromUrl);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
@@ -647,8 +688,27 @@ export default function ResearcherDashboard() {
 
   return (
     <AppShell
-      sidebar={<Sidebar active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar user={user} loading={userLoading} fallbackName={fallbackName} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} />}
+      sidebar={
+        <Sidebar
+          active={activeSection}
+          onSelect={setActiveSection}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      }
+      topbar={
+        <Topbar
+          user={user}
+          loading={userLoading}
+          fallbackName={fallbackName}
+          notifications={notifications}
+          onMarkAllRead={markAllRead}
+          onClearAll={clearAll}
+          onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+      }
+      isSidebarOpen={isSidebarOpen}
+      onSidebarToggle={() => setIsSidebarOpen(false)}
     >
       {content}
     </AppShell>

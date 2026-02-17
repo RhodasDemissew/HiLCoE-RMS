@@ -13,7 +13,7 @@ export default function ConfirmDeleteModal({ open, supervisor, loading = false, 
           <div className="fixed inset-0 bg-black/40" />
         </Transition.Child>
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center px-4 py-10">
+          <div className="flex min-h-full items-center justify-center px-2 sm:px-4 py-4 sm:py-10">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-200"
@@ -46,7 +46,7 @@ export default function ConfirmDeleteModal({ open, supervisor, loading = false, 
                     onClick={onConfirm}
                     disabled={loading}
                   >
-                    {loading ? 'Deleting…' : 'Delete'}
+                    {loading ? 'Deletingï¿½' : 'Delete'}
                   </button>
                 </div>
               </Dialog.Panel>

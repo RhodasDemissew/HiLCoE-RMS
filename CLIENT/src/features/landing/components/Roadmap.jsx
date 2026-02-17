@@ -3,12 +3,12 @@ import { roadmap } from "../content.js";
 
 function RoadmapCard({ index, title, copy }) {
   return (
-    <div className="relative rounded-[24px] border border-[color:var(--brand-600)]/20 bg-white p-6 shadow-[0_18px_50px_rgba(9,26,66,0.08)]">
-      <span className="absolute -top-4 left-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--brand-600)] text-white font-semibold">
+    <div className="relative rounded-[20px] sm:rounded-[24px] border border-[color:var(--brand-600)]/20 bg-white p-4 sm:p-6 shadow-[0_18px_50px_rgba(9,26,66,0.08)]">
+      <span className="absolute -top-3 sm:-top-4 left-4 sm:left-6 inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[color:var(--brand-600)] text-white font-semibold text-sm sm:text-base">
         {String(index + 1).padStart(2, "0")}
       </span>
-      <h3 className="mt-6 text-lg font-semibold text-[color:var(--neutral-900)]">{title}</h3>
-      <p className="mt-3 text-sm text-[color:var(--neutral-600)]">{copy}</p>
+      <h3 className="mt-5 sm:mt-6 text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">{title}</h3>
+      <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-[color:var(--neutral-600)]">{copy}</p>
     </div>
   );
 }
@@ -18,12 +18,12 @@ export default function Roadmap() {
     <section id="roadmap" className="section-y">
       <Container>
         <div className="text-center">
-          <span className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-[0.4em] text-[color:var(--brand-600)]/80">
-            <span className="h-px w-12 bg-[color:var(--brand-600)]" />
+          <span className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium uppercase tracking-[0.4em] text-[color:var(--brand-600)]/80">
+            <span className="h-px w-8 sm:w-12 bg-[color:var(--brand-600)]" />
             {roadmap.title}
-            <span className="h-px w-12 bg-[color:var(--brand-600)]" />
+            <span className="h-px w-8 sm:w-12 bg-[color:var(--brand-600)]" />
           </span>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-[color:var(--neutral-600)]">{roadmap.intro}</p>
+          <p className="mx-auto mt-3 sm:mt-4 max-w-xl text-sm sm:text-lg text-[color:var(--neutral-600)]">{roadmap.intro}</p>
         </div>
 
         <div className="relative mt-16">

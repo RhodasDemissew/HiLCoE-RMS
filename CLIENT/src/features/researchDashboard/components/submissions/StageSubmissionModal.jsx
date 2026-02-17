@@ -195,7 +195,7 @@ export default function StageSubmissionModal({
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center px-4 py-10">
+          <div className="flex min-h-full items-center justify-center px-2 sm:px-4 py-4 sm:py-10">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-200"
@@ -205,15 +205,15 @@ export default function StageSubmissionModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl">
-                <Dialog.Title className="text-xl font-semibold text-[color:var(--neutral-900)]">Submit Document</Dialog.Title>
+              <Dialog.Panel className="w-full max-w-2xl rounded-2xl lg:rounded-3xl bg-white p-4 sm:p-6 lg:p-8 shadow-2xl mx-2 sm:mx-0">
+                <Dialog.Title className="text-lg sm:text-xl font-semibold text-[color:var(--neutral-900)]">Submit Document</Dialog.Title>
                 {currentStageLabel && (
-                  <p className="mt-2 inline-flex rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)]">
+                  <p className="mt-2 inline-flex rounded-full bg-[color:var(--brand-50)] px-2 sm:px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)]">
                     Current stage: {currentStageLabel}
                   </p>
                 )}
 
-                <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+                <form className="mt-4 sm:mt-6 space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
                   <div>
                     <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="submission-title">
                       Title

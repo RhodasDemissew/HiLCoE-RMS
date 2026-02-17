@@ -92,7 +92,7 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center px-2 sm:p-4 py-4 sm:py-10 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -102,18 +102,18 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title as="h3" className="text-lg font-semibold text-[color:var(--neutral-900)]">
+              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-4 sm:p-6 text-left align-middle shadow-xl transition-all mx-2 sm:mx-0">
+                <Dialog.Title as="h3" className="text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">
                   Add Examiner
                 </Dialog.Title>
-                <p className="mt-1 text-sm text-[color:var(--neutral-500)]">
+                <p className="mt-1 text-xs sm:text-sm text-[color:var(--neutral-500)]">
                   Create an examiner profile for thesis evaluation and assessment.
                 </p>
 
-                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <form onSubmit={handleSubmit} className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3">
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                         First Name *
                       </label>
                       <input
@@ -121,12 +121,12 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
                         name="first_name"
                         value={form.first_name}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                         Middle Name
                       </label>
                       <input
@@ -134,11 +134,11 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
                         name="middle_name"
                         value={form.middle_name}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                         Last Name *
                       </label>
                       <input
@@ -146,15 +146,15 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
                         name="last_name"
                         value={form.last_name}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                         Email *
                       </label>
                       <input
@@ -162,12 +162,12 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
                         name="email"
                         value={form.email}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                         Examiner ID
                       </label>
                       <input
@@ -176,13 +176,13 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
                         value={form.examiner_id}
                         onChange={handleChange}
                         placeholder="Optional"
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                    <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                       Specializations
                     </label>
                     <input
@@ -191,20 +191,20 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
                       value={form.specializations}
                       onChange={handleChange}
                       placeholder="e.g., Computer Science, Data Science, AI/ML"
-                      className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:border-[color:var(--brand-500)] focus:outline-none"
                     />
                   </div>
 
                   {error && (
-                    <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                    <div className="rounded-xl bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-red-600">
                       {error}
                     </div>
                   )}
 
-                  <div className="flex items-center justify-end gap-3 pt-4">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 sm:pt-4">
                     <button
                       type="button"
-                      className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-100)]"
+                      className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-xs sm:text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-100)] w-full sm:w-auto"
                       onClick={onClose}
                       disabled={saving}
                     >
@@ -212,7 +212,7 @@ export default function AddExaminerModal({ open, onClose, onSuccess, onToast }) 
                     </button>
                     <button
                       type="submit"
-                      className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-xl bg-[color:var(--brand-600)] px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto"
                       disabled={saving}
                     >
                       {saving ? "Creating..." : "Create Examiner"}
