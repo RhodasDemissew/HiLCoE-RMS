@@ -35,19 +35,13 @@ export default function StageSubmissionTable({ submissions, loading, error, onDo
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td className="px-6 py-6 text-center text-sm text-[color:var(--neutral-500)]" colSpan={6}>
-                  Loading submissions...�
-                </td>
-              </tr>
-            ) : error ? (
+            {error ? (
               <tr>
                 <td className="px-6 py-6 text-center text-sm text-red-600" colSpan={6}>
                   {error}
                 </td>
               </tr>
-            ) : submissions.length ? (
+            ) : !loading && submissions.length ? (
               submissions.map((submission) => (
                 <tr key={submission.id} className="border-t border-[color:var(--neutral-200)] hover:bg-[color:var(--neutral-100)]/60">
                   <td className="px-6 py-3 font-medium text-[color:var(--neutral-900)]">{submission.title}</td>
