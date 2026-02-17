@@ -2,8 +2,12 @@ import { usersService } from '../services/users.service.js';
 
 export const usersController = {
   async list(_req, res) {
-    const users = await usersService.list();
-    res.json(users);
+    try {
+      const users = await usersService.list();
+      res.json(users);
+    } catch (e) {
+      res.status(500).json({ error: e.message || 'Failed to fetch users' });
+    }
   },
   async create(req, res) {
     try {

@@ -68,25 +68,25 @@ function ActivityLog({ items, onViewAll }) {
           View all
         </button>
       </header>
-      <div className="overflow-hidden rounded-xl border border-[color:var(--neutral-200)]">
-        <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-sm">
+      <div className="overflow-x-auto rounded-xl border border-[color:var(--neutral-200)]">
+        <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-xs sm:text-sm">
           <thead className="bg-[color:var(--neutral-50)]">
             <tr className="text-[color:var(--neutral-600)]">
-              <th className="px-4 py-3 font-medium">Date</th>
-              <th className="px-4 py-3 font-medium">Author</th>
-              <th className="px-4 py-3 font-medium">Action</th>
-              <th className="px-4 py-3 font-medium">Description</th>
+              <th className="px-3 sm:px-4 py-2 sm:py-3 font-medium whitespace-nowrap">Date</th>
+              <th className="px-3 sm:px-4 py-2 sm:py-3 font-medium whitespace-nowrap">Author</th>
+              <th className="px-3 sm:px-4 py-2 sm:py-3 font-medium whitespace-nowrap">Action</th>
+              <th className="px-3 sm:px-4 py-2 sm:py-3 font-medium whitespace-nowrap">Description</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[color:var(--neutral-200)]">
             {items && items.length > 0 ? items.map((row, idx) => (
               <tr key={`${row.id || row.date}-${idx}`} className="text-[color:var(--neutral-700)]">
-                <td className="px-4 py-3 text-sm font-medium">
+                <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap">
                   <div>{formatDate(row.date)}</div>
-                  <div className="text-xs text-[color:var(--neutral-400)]">{formatTimeAgo(row.date)}</div>
+                  <div className="text-[10px] sm:text-xs text-[color:var(--neutral-400)]">{formatTimeAgo(row.date)}</div>
                 </td>
-                <td className="px-4 py-3 text-sm">{row.author}</td>
-                <td className="px-4 py-3 text-sm">
+                <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">{row.author}</td>
+                <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">
                   <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                     row.status === 'approved' ? 'bg-green-100 text-green-800' :
                     row.status === 'rejected' ? 'bg-red-100 text-red-800' :
@@ -100,7 +100,7 @@ function ActivityLog({ items, onViewAll }) {
                     {row.action}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-[color:var(--neutral-500)]">{row.description}</td>
+                <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[color:var(--neutral-500)]">{row.description}</td>
               </tr>
             )) : (
               <tr>

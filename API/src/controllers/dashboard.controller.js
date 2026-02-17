@@ -26,8 +26,6 @@ export const dashboardController = {
       const conversations = await messagingService.listConversations(req.user.id);
       const recentMessages = [];
       
-      // Debug: Log the conversations to see what we're getting
-      console.log('Dashboard - Conversations found:', conversations.length);
       
       // Get the most recent message from each conversation
       for (const conversation of conversations) {
@@ -60,8 +58,6 @@ export const dashboardController = {
       recentMessages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       const limitedMessages = recentMessages.slice(0, 4);
       
-      // Debug: Log the final messages
-      console.log('Dashboard - Recent messages:', limitedMessages.length);
       
       res.json(limitedMessages);
     } catch (err) {

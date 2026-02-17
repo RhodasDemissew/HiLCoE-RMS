@@ -256,8 +256,8 @@ function Topbar({ user, loading = false, fallbackName = "Member", notifications 
   }
 
   function handleViewNotificationCenter() {
-    console.log("View notification center");
     setIsNotificationOpen(false);
+    // TODO: Navigate to notification center
   }
 
   return (

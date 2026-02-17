@@ -2,7 +2,14 @@ import { templatesService } from '../services/templates.service.js';
 import { UpdateTemplateDto, TemplateIdParams } from '../dtos/templates.dto.js';
 
 export const templatesController = {
-  list: async (_req, res) => res.json(await templatesService.list()),
+  list: async (_req, res) => {
+    try {
+      const templates = await templatesService.list();
+      res.json(templates);
+    } catch (e) {
+      res.status(500).json({ error: e.message || 'Failed to fetch templates' });
+    }
+  },
   create: async (req, res) => {
     try {
       const doc = await templatesService.create(req.body);

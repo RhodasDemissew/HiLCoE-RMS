@@ -14,7 +14,7 @@ export default function SearchPanel() {
               className="flex items-center gap-2 md:gap-3 p-3 md:p-4 lg:p-5 h-full"
               onSubmit={(e) => {
                 e.preventDefault();
-                console.log("search:", q); // hook to API later
+                // TODO: Implement search functionality
               }}
             >
               <label htmlFor="search" className="sr-only">Find a Research</label>

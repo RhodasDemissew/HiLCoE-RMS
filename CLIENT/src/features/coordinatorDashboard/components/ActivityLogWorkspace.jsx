@@ -50,28 +50,28 @@ function ActivityLogTable({ activities, loading }) {
         <h2 className="text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">Activity Log</h2>
         <p className="text-[10px] sm:text-xs text-[color:var(--neutral-500)]">Research system activity history</p>
       </header>
-      <div className="overflow-x-auto overflow-hidden rounded-lg sm:rounded-xl border border-[color:var(--neutral-200)]">
+      <div className="overflow-x-auto rounded-lg sm:rounded-xl border border-[color:var(--neutral-200)]">
         <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-xs sm:text-sm">
           <thead className="bg-[color:var(--neutral-50)]">
             <tr className="text-[color:var(--neutral-600)]">
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium">Date</th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium hidden sm:table-cell">Author</th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium">Action</th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium hidden lg:table-cell">Description</th>
-              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium">Status</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium whitespace-nowrap">Date</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium whitespace-nowrap hidden sm:table-cell">Author</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium whitespace-nowrap">Action</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium whitespace-nowrap hidden lg:table-cell">Description</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-medium whitespace-nowrap">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[color:var(--neutral-200)]">
             {activities && activities.length > 0 ? activities.map((row, idx) => (
               <tr key={`${row.id || row.date}-${idx}`} className="text-[color:var(--neutral-700)]">
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium">
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap">
                   <div>{formatDate(row.date)}</div>
                   <div className="text-[10px] sm:text-xs text-[color:var(--neutral-400)]">{formatTimeAgo(row.date)}</div>
                 </td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm hidden sm:table-cell">{row.author}</td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm">{row.action}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm hidden sm:table-cell whitespace-nowrap">{row.author}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">{row.action}</td>
                 <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[color:var(--neutral-500)] hidden lg:table-cell">{row.description}</td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">
                   <span className={`inline-flex rounded-full px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium ${
                     row.status === 'approved' ? 'bg-green-100 text-green-800' :
                     row.status === 'rejected' ? 'bg-red-100 text-red-800' :
@@ -149,10 +149,22 @@ export default function ActivityLogWorkspace() {
       
       if (res.ok && data) {
         setActivities(data.activities || []);
-        setPagination(data.pagination || { page: 1, limit: 25, total: 0, totalPages: 0 });
+        // Ensure pagination data is valid
+        const paginationData = data.pagination || {};
+        setPagination({
+          page: Math.max(1, paginationData.page || page),
+          limit: paginationData.limit || 25,
+          total: paginationData.total || 0,
+          totalPages: Math.max(1, paginationData.totalPages || Math.ceil((paginationData.total || 0) / (paginationData.limit || 25)))
+        });
+      } else {
+        // Reset to page 1 if request fails
+        setPagination(prev => ({ ...prev, page: 1 }));
       }
     } catch (error) {
       console.error('Failed to fetch activities:', error);
+      // Reset to page 1 on error
+      setPagination(prev => ({ ...prev, page: 1 }));
     } finally {
       setLoading(false);
     }
@@ -168,6 +180,12 @@ export default function ActivityLogWorkspace() {
   };
 
   const handlePageChange = (newPage) => {
+    // Ensure newPage is valid
+    if (newPage < 1) return;
+    if (pagination.totalPages > 0 && newPage > pagination.totalPages) return;
+    
+    // Update page immediately for better UX
+    setPagination(prev => ({ ...prev, page: newPage }));
     fetchActivities(newPage, activeTab);
   };
 
@@ -183,25 +201,25 @@ export default function ActivityLogWorkspace() {
       <ActivityLogTable activities={activities} loading={loading} />
 
       {pagination.totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-sm text-[color:var(--neutral-500)]">
-            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+          <div className="text-xs sm:text-sm text-[color:var(--neutral-500)]">
+            Showing {pagination.total > 0 ? ((pagination.page - 1) * pagination.limit) + 1 : 0} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
             <button
-              onClick={() => handlePageChange(pagination.page - 1)}
+              onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
               disabled={pagination.page <= 1}
-              className="px-3 py-2 text-sm font-medium text-[color:var(--neutral-700)] bg-white border border-[color:var(--neutral-300)] rounded-md hover:bg-[color:var(--neutral-50)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-xs sm:text-sm font-medium text-[color:var(--neutral-700)] bg-white border border-[color:var(--neutral-300)] rounded-md hover:bg-[color:var(--neutral-50)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            <span className="px-3 py-2 text-sm text-[color:var(--neutral-700)]">
-              Page {pagination.page} of {pagination.totalPages}
+            <span className="px-3 py-2 text-xs sm:text-sm text-[color:var(--neutral-700)]">
+              Page {Math.min(pagination.page, pagination.totalPages)} of {pagination.totalPages}
             </span>
             <button
-              onClick={() => handlePageChange(pagination.page + 1)}
+              onClick={() => handlePageChange(Math.min(pagination.totalPages, pagination.page + 1))}
               disabled={pagination.page >= pagination.totalPages}
-              className="px-3 py-2 text-sm font-medium text-[color:var(--neutral-700)] bg-white border border-[color:var(--neutral-300)] rounded-md hover:bg-[color:var(--neutral-50)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-xs sm:text-sm font-medium text-[color:var(--neutral-700)] bg-white border border-[color:var(--neutral-300)] rounded-md hover:bg-[color:var(--neutral-50)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
