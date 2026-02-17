@@ -243,9 +243,7 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-[color:var(--neutral-100)] text-xs sm:text-sm text-[color:var(--neutral-800)]">
-            {loading ? (
-              <tr><td className="px-3 sm:px-6 py-4 sm:py-6 text-center text-xs sm:text-sm" colSpan={7}>Loading submissions…</td></tr>
-            ) : filtered.length ? (
+            {!loading && filtered.length ? (
               filtered.map((group, i) => {
                 const r = group.researcher || {};
                 const last = group.last;

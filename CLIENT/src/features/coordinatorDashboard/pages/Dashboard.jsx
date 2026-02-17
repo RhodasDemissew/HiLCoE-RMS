@@ -66,18 +66,18 @@ function Sidebar({ items, active, onSelect, isOpen, onClose }) {
       <div className="flex h-full flex-col">
         <div className="px-6 py-8">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <img
-                src={logoImage}
-                alt="HiLCoE"
-                className="h-12 w-12 rounded-full"
-                loading="lazy"
-                decoding="async"
-              />
-              <div>
-                <div className="font-semibold text-lg">HiLCoE</div>
-                <div className="text-xs text-white/70">Research Management</div>
-              </div>
+          <div className="flex items-center gap-3">
+            <img
+              src={logoImage}
+              alt="HiLCoE"
+              className="h-12 w-12 rounded-full"
+              loading="lazy"
+              decoding="async"
+            />
+            <div>
+              <div className="font-semibold text-lg">HiLCoE</div>
+              <div className="text-xs text-white/70">Research Management</div>
+            </div>
             </div>
             {/* Close button for mobile */}
             <button

@@ -100,20 +100,26 @@ export default function StageTimeline({ stages, resubmitCountdown }) {
         </ol>
         {/* Legend */}
         <div className="mt-6 flex flex-wrap items-center gap-4 text-[11px] text-[color:var(--neutral-700)]">
-          <LegendItem label="Approved" className="bg-[color:var(--brand-700)]" />
+          <LegendItem label="Approved" className="bg-[color:var(--brand-700)]" icon={CheckIcon} />
           <LegendItem label="Current" className="bg-[color:var(--brand-600)]" />
           <LegendItem label="Resubmission" className="bg-amber-500" />
-          <LegendItem label="Locked" className="bg-[color:var(--neutral-300)]" />
+          <LegendItem label="Locked" className="bg-[color:var(--neutral-300)]" icon={LockClosedIcon} iconColor="text-[color:var(--neutral-600)]" />
         </div>
       </div>
     </div>
   );
 }
 
-function LegendItem({ label, className = '' }) {
+function LegendItem({ label, className = '', icon: Icon = null, iconColor = 'text-white' }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className={`inline-block h-3 w-3 rounded-full ${className}`} />
+      {Icon ? (
+        <span className={`inline-flex h-3.5 w-3.5 sm:h-4 sm:w-4 items-center justify-center rounded-full ${className}`}>
+          <Icon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${iconColor}`} />
+        </span>
+      ) : (
+        <span className={`inline-block h-3 w-3 rounded-full ${className}`} />
+      )}
       <span className="font-medium">{label}</span>
     </span>
   );
