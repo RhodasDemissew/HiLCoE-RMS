@@ -329,16 +329,16 @@ export default function DefenseScheduleWorkspace() {
   }, [watchSignature]);
 
   return (
-    <section className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+    <section className="space-y-4 sm:space-y-6">
+      <header className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2px font-semibold text-[color:var(--neutral-900)] text-2xl">Defense Scheduling</h1>
-          <p className="text-sm text-[color:var(--neutral-600)]">Schedule and manage defenses. All times are displayed in UTC+3.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[color:var(--neutral-900)]">Defense Scheduling</h1>
+          <p className="text-xs sm:text-sm text-[color:var(--neutral-600)]">Schedule and manage defenses. All times are displayed in UTC+3.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <button
             type="button"
-            className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-sm font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-100)]"
+            className="rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-100)] w-full sm:w-auto"
             onClick={() => {
               loadDefenses();
               setAvailabilityVersion((v) => v + 1);
@@ -348,7 +348,7 @@ export default function DefenseScheduleWorkspace() {
           </button>
           <button
             type="button"
-            className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-sm font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-100)]"
+            className="rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[color:var(--neutral-700)] hover:bg-[color:var(--neutral-100)] w-full sm:w-auto"
             onClick={resetForm}
           >
             New Defense
@@ -356,9 +356,9 @@ export default function DefenseScheduleWorkspace() {
         </div>
       </header>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-3xl bg-white p-6 shadow-soft">
-          <h2 className="mb-4 text-lg font-semibold text-[color:var(--neutral-900)]">{formMode === "edit" ? "Update Defense" : "Create New Defense"}</h2>
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 xl:grid-cols-2">
+        <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-soft">
+          <h2 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">{formMode === "edit" ? "Update Defense" : "Create New Defense"}</h2>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
@@ -575,35 +575,35 @@ export default function DefenseScheduleWorkspace() {
           </form>
         </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-soft">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-soft">
+          <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-2 sm:gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-[color:var(--neutral-900)]">Scheduled defenses</h2>
-              <p className="text-xs text-[color:var(--neutral-500)]">Manage upcoming sessions and notify panelists.</p>
+              <h2 className="text-base sm:text-lg font-semibold text-[color:var(--neutral-900)]">Scheduled defenses</h2>
+              <p className="text-[10px] sm:text-xs text-[color:var(--neutral-500)]">Manage upcoming sessions and notify panelists.</p>
             </div>
-            <label className="flex items-center gap-2 text-xs text-[color:var(--neutral-600)]">
+            <label className="flex items-center gap-2 text-[10px] sm:text-xs text-[color:var(--neutral-600)]">
               <input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} />
               Show cancelled
             </label>
           </div>
 
-          {defenseError && <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{defenseError}</div>}
+          {defenseError && <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-red-600">{defenseError}</div>}
           {loadingDefenses ? (
-            <div className="py-10 text-center text-sm text-[color:var(--neutral-500)]">Loading defenses...</div>
+            <div className="py-8 sm:py-10 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">Loading defenses...</div>
           ) : visibleDefenses.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] py-10 text-center text-sm text-[color:var(--neutral-500)]">
+            <div className="rounded-xl sm:rounded-2xl border border-dashed border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] py-8 sm:py-10 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">
               No defenses scheduled yet.
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-[color:var(--neutral-200)]">
-              <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-sm">
+            <div className="overflow-x-auto overflow-hidden rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)]">
+              <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left text-xs sm:text-sm">
                 <thead className="bg-[color:var(--neutral-50)]">
                   <tr className="text-[color:var(--neutral-600)]">
-                    <th className="px-4 py-3 font-semibold">Title</th>
-                    <th className="px-4 py-3 font-semibold">When</th>
-                    <th className="px-4 py-3 font-semibold">Participants</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                    <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">Title</th>
+                    <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold hidden sm:table-cell">When</th>
+                    <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold hidden lg:table-cell">Participants</th>
+                    <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">Status</th>
+                    <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[color:var(--neutral-200)]">
@@ -615,32 +615,32 @@ export default function DefenseScheduleWorkspace() {
                     ].filter(Boolean);
                     return (
                       <tr key={defense.id} className="text-[color:var(--neutral-800)]">
-                        <td className="px-4 py-3 font-semibold">{defense.title}</td>
-                        <td className="px-4 py-3 text-sm text-[color:var(--neutral-600)]">{formatRange(defense.startAt, defense.durationMins)}</td>
-                        <td className="px-4 py-3 text-sm text-[color:var(--neutral-600)]">
+                        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">{defense.title}</td>
+                        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[color:var(--neutral-600)] hidden sm:table-cell">{formatRange(defense.startAt, defense.durationMins)}</td>
+                        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[color:var(--neutral-600)] hidden lg:table-cell">
                           <div className="flex flex-wrap gap-1">
                             {participants.map((id) => {
                               const person = userLookup.get(String(id));
                               return (
-                                <span key={id} className="inline-flex items-center rounded-full bg-[color:var(--neutral-100)] px-2 py-0.5 text-xs">
+                                <span key={id} className="inline-flex items-center rounded-full bg-[color:var(--neutral-100)] px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs">
                                   {person?.name || person?.email || id}
                                 </span>
                               );
                             })}
                           </div>
                         </td>
-                        <td className="px-4 py-3">{statusBadge(defense.status)}</td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button type="button" className="text-xs font-semibold text-[color:var(--brand-600)] hover:underline" onClick={() => handleEdit(defense)}>
+                        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{statusBadge(defense.status)}</td>
+                        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right">
+                          <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
+                            <button type="button" className="text-[10px] sm:text-xs font-semibold text-[color:var(--brand-600)] hover:underline" onClick={() => handleEdit(defense)}>
                               Edit
                             </button>
-                            <button type="button" className="text-xs font-semibold text-[color:var(--brand-600)] hover:underline" onClick={() => handleDuplicate(defense)}>
+                            <button type="button" className="text-[10px] sm:text-xs font-semibold text-[color:var(--brand-600)] hover:underline hidden sm:inline" onClick={() => handleDuplicate(defense)}>
                               Duplicate
                             </button>
                             <button
                               type="button"
-                              className="text-xs font-semibold text-red-600 hover:underline disabled:text-[color:var(--neutral-400)]"
+                              className="text-[10px] sm:text-xs font-semibold text-red-600 hover:underline disabled:text-[color:var(--neutral-400)]"
                               onClick={() => handleCancel(defense)}
                               disabled={defense.status === "cancelled"}
                             >
@@ -658,8 +658,8 @@ export default function DefenseScheduleWorkspace() {
         </div>
       </div>
 
-      {peopleError && <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">{peopleError}</div>}
-      {loadingPeople && <div className="text-xs text-[color:var(--neutral-500)]">Loading panelists...</div>}
+      {peopleError && <div className="rounded-xl sm:rounded-2xl border border-amber-200 bg-amber-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-amber-700">{peopleError}</div>}
+      {loadingPeople && <div className="text-[10px] sm:text-xs text-[color:var(--neutral-500)]">Loading panelists...</div>}
 
       <Toast toast={toast} onDismiss={() => setToast(null)} />
     </section>

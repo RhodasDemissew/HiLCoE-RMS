@@ -25,39 +25,70 @@ import {
   coordinatorSummary,
 } from "../content.js";
 
-function AppShell({ sidebar, topbar, children }) {
+function AppShell({ sidebar, topbar, children, isSidebarOpen, onSidebarToggle }) {
   return (
     <div className="min-h-screen bg-[color:var(--neutral-100)]">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onSidebarToggle}
+          aria-hidden="true"
+        />
+      )}
       {sidebar}
-      <div className="ml-[260px] flex min-h-screen flex-col">
+      <div className="ml-0 lg:ml-[260px] flex min-h-screen flex-col transition-all duration-300">
         {topbar}
         <main className="flex-1 overflow-y-auto">
-          <div className="m-10 mt-0 py-8">{children}</div>
+          <div className="m-4 lg:m-10 mt-0 py-4 lg:py-8">{children}</div>
         </main>
       </div>
     </div>
   );
 }
 
-function Sidebar({ items, active, onSelect }) {
+function Sidebar({ items, active, onSelect, isOpen, onClose }) {
   const hasSettingsNavItem = Array.isArray(items) && items.some((item) => item?.label === "Settings");
   const [openGroups, setOpenGroups] = useState({ Schedule: true });
+  
+  // Close sidebar when item is selected on mobile
+  const handleSelect = (label) => {
+    onSelect?.(label);
+    if (window.innerWidth < 1024) {
+      onClose?.();
+    }
+  };
+  
   return (
-    <aside className="fixed inset-y-0 left-0 w-[260px] bg-blue-950 text-white">
+    <aside className={`fixed inset-y-0 left-0 w-[260px] bg-blue-950 text-white z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    }`}>
       <div className="flex h-full flex-col">
         <div className="px-6 py-8">
-          <div className="flex items-center gap-3">
-            <img
-              src={logoImage}
-              alt="HiLCoE"
-              className="h-12 w-12 rounded-full"
-              loading="lazy"
-              decoding="async"
-            />
-            <div>
-              <div className="font-semibold text-lg">HiLCoE</div>
-              <div className="text-xs text-white/70">Research Management</div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <img
+                src={logoImage}
+                alt="HiLCoE"
+                className="h-12 w-12 rounded-full"
+                loading="lazy"
+                decoding="async"
+              />
+              <div>
+                <div className="font-semibold text-lg">HiLCoE</div>
+                <div className="text-xs text-white/70">Research Management</div>
+              </div>
             </div>
+            {/* Close button for mobile */}
+            <button
+              onClick={onClose}
+              className="lg:hidden text-white/80 hover:text-white p-2 -mr-2"
+              aria-label="Close menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
         <div className="bg-gray-400 left-0 mb-5 w-65 h-0.5"></div>
@@ -74,7 +105,7 @@ function Sidebar({ items, active, onSelect }) {
                     "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition",
                     isActive ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/10",
                   ].join(" ")}
-                  onClick={() => onSelect?.(item.label)}
+                  onClick={() => handleSelect(item.label)}
                 >
                   {item.icon ? (
                     <img src={item.icon} alt="" className="h-5 w-5" loading="lazy" decoding="async" aria-hidden />
@@ -115,7 +146,7 @@ function Sidebar({ items, active, onSelect }) {
                             "flex w-full items-center rounded-lg px-3 py-2 text-sm transition",
                             childActive ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/10",
                           ].join(" ")}
-                          onClick={() => onSelect?.(child.label)}
+                          onClick={() => handleSelect(child.label)}
                         >
                           <span>{child.label}</span>
                         </button>
@@ -133,7 +164,7 @@ function Sidebar({ items, active, onSelect }) {
             <button
               type="button"
               className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
-              onClick={() => onSelect?.("Settings")}
+              onClick={() => handleSelect("Settings")}
             >
               <img
                 src={settingsIcon}
@@ -152,7 +183,7 @@ function Sidebar({ items, active, onSelect }) {
   );
 }
 
-function Topbar({ user, notifications = [], onMarkAllRead, onClearAll }) {
+function Topbar({ user, notifications = [], onMarkAllRead, onClearAll, onMenuToggle }) {
   const navigate = useNavigate();
   const displayName = user?.name || "Coordinator";
   const displayRole = user?.role || "Coordinator";
@@ -256,7 +287,17 @@ function Topbar({ user, notifications = [], onMarkAllRead, onClearAll }) {
 
   return (
     <header className="border-b border-[color:var(--neutral-200)] bg-white/70 backdrop-blur">
-      <div className="mr-10 flex h-20 items-center justify-between gap-6">
+      <div className="mx-4 lg:mr-10 flex h-16 lg:h-20 items-center justify-between gap-4 lg:gap-6">
+        {/* Hamburger menu button for mobile */}
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden text-[color:var(--neutral-700)] hover:text-[color:var(--neutral-900)] p-2 -ml-2"
+          aria-label="Open menu"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <div className="flex-1" />
 
         <div className="flex items-center gap-6">
@@ -386,6 +427,7 @@ export default function CoordinatorDashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sectionFromUrl = searchParams.get('section') || 'Dashboard';
   const [activeSection, setActiveSection] = useState(sectionFromUrl);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState({ name: "Dr Mesfin", role: "Coordinator" });
   const [userLoading, setUserLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -645,8 +687,26 @@ export default function CoordinatorDashboardPage() {
 
   return (
     <AppShell
-      sidebar={<Sidebar items={coordinatorNav} active={activeSection} onSelect={setActiveSection} />}
-      topbar={<Topbar user={user} notifications={notifications} onMarkAllRead={markAllRead} onClearAll={clearAll} />}
+      sidebar={
+        <Sidebar
+          items={coordinatorNav}
+          active={activeSection}
+          onSelect={setActiveSection}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      }
+      topbar={
+        <Topbar
+          user={user}
+          notifications={notifications}
+          onMarkAllRead={markAllRead}
+          onClearAll={clearAll}
+          onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+      }
+      isSidebarOpen={isSidebarOpen}
+      onSidebarToggle={() => setIsSidebarOpen(false)}
     >
       {content}
     </AppShell>

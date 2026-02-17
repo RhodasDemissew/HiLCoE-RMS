@@ -376,30 +376,30 @@ export default function DashboardWorkspace({
   }));
 
   return (
-    <section className="rounded-3xl bg-white px-8 py-8 shadow-sm">
-      <header className="border-b border-[color:var(--neutral-200)] pb-6">
-        <h1 className="text-3xl font-semibold text-[color:var(--neutral-900)]">{displayTitle}</h1>
+    <section className="rounded-2xl lg:rounded-3xl bg-white px-4 py-4 lg:px-8 lg:py-8 shadow-sm">
+      <header className="border-b border-[color:var(--neutral-200)] pb-4 lg:pb-6">
+        <h1 className="text-2xl lg:text-3xl font-semibold text-[color:var(--neutral-900)]">{displayTitle}</h1>
         {displayMessage ? <p className="mt-2 text-sm text-[color:var(--neutral-600)]">{displayMessage}</p> : null}
       </header>
 
       {dashboardError ? (
-        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+        <div className="mt-4 lg:mt-6 rounded-xl lg:rounded-2xl border border-red-200 bg-red-50 px-3 py-2 lg:px-4 lg:py-3 text-xs lg:text-sm font-semibold text-red-600">
           {dashboardError}
         </div>
       ) : null}
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 lg:mt-8 grid gap-3 lg:gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         {kpiCards.map((card) => (
           <SummaryCard key={card.title} title={card.title} value={card.value ?? 0} loading={dashboardLoading} />
         ))}
       </div>
 
-      <div className="mt-8 grid gap-5 xl:grid-cols-[2fr_1fr]">
-        <div className="space-y-5">
+      <div className="mt-4 lg:mt-8 grid gap-3 lg:gap-5 grid-cols-1 xl:grid-cols-[2fr_1fr]">
+        <div className="space-y-3 lg:space-y-5">
           <QuickActionsCard items={quickActionItems} />
           <ProgressChart labels={chartLabels} series={chartSeries} />
         </div>
-        <div className="space-y-5">
+        <div className="space-y-3 lg:space-y-5">
           <MessagesPanel messages={messages} loading={messagesLoading} onViewAll={onNavigateToMessages} />
           <UpcomingEventsCard events={events} loading={dashboardLoading} />
           <MilestonesCard items={milestones} loading={dashboardLoading} />

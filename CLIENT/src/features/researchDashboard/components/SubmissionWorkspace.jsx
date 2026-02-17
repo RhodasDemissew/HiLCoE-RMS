@@ -59,15 +59,15 @@ export default function SubmissionWorkspace() {
   return (
     <div className="grid grid-cols-12 gap-5">
       <div className="col-span-12">
-        <header className="card rounded-card border border-transparent bg-white px-8 py-6 shadow-soft">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="card rounded-card border border-transparent bg-white px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 shadow-soft">
+          <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="h2 text-[color:var(--neutral-900)]">Submission</h1>
-              <p className="body mt-1 text-[color:var(--neutral-600)]">
+              <h1 className="text-xl sm:text-2xl lg:h2 text-[color:var(--neutral-900)]">Submission</h1>
+              <p className="text-xs sm:text-sm body mt-1 text-[color:var(--neutral-600)]">
                 Submit each document in order. Future stages unlock once the previous is approved.
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 className="btn btn-primary rounded-[14px] px-5 py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
@@ -100,7 +100,7 @@ export default function SubmissionWorkspace() {
 
       <div className="col-span-12">
         {error && (
-          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+          <div className="mb-3 sm:mb-4 rounded-xl sm:rounded-2xl border border-red-200 bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-red-600">
             {error}
           </div>
         )}

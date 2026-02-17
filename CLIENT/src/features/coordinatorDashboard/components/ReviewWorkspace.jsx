@@ -12,7 +12,7 @@ function StatusBadge({ status }) {
     rejected: { label: "Rejected", cls: "bg-red-50 text-red-600" },
   }[status] || { label: String(status || "-"), cls: "bg-[color:var(--neutral-100)] text-[color:var(--neutral-700)]" };
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${meta.cls}`}>{meta.label}</span>
+    <span className={`inline-flex rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold ${meta.cls}`}>{meta.label}</span>
   );
 }
 
@@ -211,40 +211,40 @@ export default function ReviewWorkspace({ hideSynopsis = false }) {
 
   // Full table UI
   return (
-    <section className="space-y-6">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section className="space-y-4 sm:space-y-6">
+      <header className="flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[color:var(--neutral-900)]">Research Stats</h1>
-          <p className="text-sm text-[color:var(--neutral-600)]">Review and take actions on submitted documents.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[color:var(--neutral-900)]">Research Stats</h1>
+          <p className="text-xs sm:text-sm text-[color:var(--neutral-600)]">Review and take actions on submitted documents.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <select className="h-10 rounded-xl border border-[color:var(--neutral-200)] bg-white px-4 text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-500)] focus:outline-none" value={stageFilter} onChange={(e) => setStageFilter(e.target.value)}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <select className="h-10 rounded-xl border border-[color:var(--neutral-200)] bg-white px-3 sm:px-4 text-xs sm:text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-500)] focus:outline-none" value={stageFilter} onChange={(e) => setStageFilter(e.target.value)}>
             <option value="all">All stages</option>
             {stages.map((s) => (<option key={s} value={s}>{s}</option>))}
           </select>
-          <button type="button" className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-50)]" onClick={fetchList}>Refresh</button>
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or email" className="h-10 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-500)] focus:outline-none sm:w-72" />
+          <button type="button" className="rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-50)]" onClick={fetchList}>Refresh</button>
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or email" className="h-10 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 text-xs sm:text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-500)] focus:outline-none sm:w-72" />
         </div>
       </header>
 
-      {error && (<div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</div>)}
+      {error && (<div className="rounded-xl bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-red-600">{error}</div>)}
 
-      <div className="overflow-hidden rounded-2xl border border-[color:var(--neutral-200)]">
+      <div className="overflow-x-auto overflow-hidden rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)]">
         <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left">
-          <thead className="bg-[color:var(--neutral-50)] text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
+          <thead className="bg-[color:var(--neutral-50)] text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
             <tr>
-              <th className="px-6 py-3">Researcher</th>
-              <th className="px-6 py-3">Latest Stage</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3">AI/NLP</th>
-              <th className="px-6 py-3">Progress</th>
-              <th className="px-6 py-3">Date</th>
-              <th className="px-6 py-3" aria-label="Details" />
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Researcher</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Latest Stage</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Status</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 hidden sm:table-cell">AI/NLP</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 hidden lg:table-cell">Progress</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3">Date</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3" aria-label="Details" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-[color:var(--neutral-100)] text-sm text-[color:var(--neutral-800)]">
+          <tbody className="divide-y divide-[color:var(--neutral-100)] text-xs sm:text-sm text-[color:var(--neutral-800)]">
             {loading ? (
-              <tr><td className="px-6 py-6 text-center" colSpan={7}>Loading submissions…</td></tr>
+              <tr><td className="px-3 sm:px-6 py-4 sm:py-6 text-center text-xs sm:text-sm" colSpan={7}>Loading submissions…</td></tr>
             ) : filtered.length ? (
               filtered.map((group, i) => {
                 const r = group.researcher || {};

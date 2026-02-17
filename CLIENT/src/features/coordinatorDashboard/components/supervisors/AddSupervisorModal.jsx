@@ -114,7 +114,7 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center px-4 py-10">
+          <div className="flex min-h-full items-center justify-center px-2 sm:px-4 py-4 sm:py-10">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-200"
@@ -124,16 +124,16 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl">
-                <Dialog.Title className="text-xl font-semibold text-[color:var(--neutral-900)]">
+              <Dialog.Panel className="w-full max-w-2xl rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 lg:p-8 shadow-2xl mx-2 sm:mx-0">
+                <Dialog.Title className="text-lg sm:text-xl font-semibold text-[color:var(--neutral-900)]">
                   Add Supervisor
                 </Dialog.Title>
-                <p className="mt-1 text-sm text-[color:var(--neutral-500)]">Create a supervisor profile for coordination and assignment.</p>
+                <p className="mt-1 text-xs sm:text-sm text-[color:var(--neutral-500)]">Create a supervisor profile for coordination and assignment.</p>
 
-                <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-                  <div className="grid gap-4 sm:grid-cols-2">
+                <form className="mt-4 sm:mt-6 space-y-3 sm:space-y-5" onSubmit={handleSubmit}>
+                  <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-first-name">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-first-name">
                         First Name
                       </label>
                       <input
@@ -142,11 +142,11 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                         required
                         value={form.first_name}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-middle-name">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-middle-name">
                         Middle Name
                       </label>
                       <input
@@ -154,11 +154,11 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                         name="middle_name"
                         value={form.middle_name}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-last-name">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-last-name">
                         Last Name
                       </label>
                       <input
@@ -167,11 +167,11 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                         required
                         value={form.last_name}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-email">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-email">
                         Email
                       </label>
                       <input
@@ -181,11 +181,11 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                         required
                         value={form.email}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-id">
+                      <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]" htmlFor="sup-id">
                         Supervisor ID
                       </label>
                       <input
@@ -194,31 +194,31 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                         required
                         value={form.supervisor_id}
                         onChange={handleChange}
-                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
+                        className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm shadow-sm outline-none focus:border-[color:var(--brand-600)] focus:ring-2 focus:ring-[color:var(--brand-200)]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                    <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                       Specializations
                     </label>
                     <Combobox value={specializations} onChange={setSpecializations} multiple>
                       <div className="relative mt-1">
                         <Combobox.Input
-                          className="w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-600)] focus:outline-none"
+                          className="w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-600)] focus:outline-none"
                           onChange={(event) => setQuery(event.target.value)}
                           displayValue={() => ""}
-                          placeholder={loadingOptions ? "Loading…" : "Search or create"}
+                          placeholder={loadingOptions ? "Loadingï¿½" : "Search or create"}
                         />
-                        <Combobox.Options className="absolute z-10 mt-2 max-h-48 w-full overflow-auto rounded-xl border border-[color:var(--neutral-200)] bg-white py-2 text-sm shadow-lg">
+                        <Combobox.Options className="absolute z-10 mt-2 max-h-48 w-full overflow-auto rounded-xl border border-[color:var(--neutral-200)] bg-white py-2 text-xs sm:text-sm shadow-lg">
                           {filteredOptions.length ? (
                             filteredOptions.map((option) => (
                               <Combobox.Option
                                 key={option}
                                 value={option}
                                 className={({ active }) =>
-                                  `flex items-center justify-between px-4 py-2 ${
+                                  `flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 ${
                                     active
                                       ? "bg-[color:var(--brand-50)] text-[color:var(--brand-700)]"
                                       : "text-[color:var(--neutral-700)]"
@@ -227,22 +227,22 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                               >
                                 {({ active, selected }) => (
                                   <>
-                                    <span className={`font-medium ${selected ? 'text-[color:var(--brand-700)]' : ''}`}>
+                                    <span className={`font-medium text-xs sm:text-sm ${selected ? 'text-[color:var(--brand-700)]' : ''}`}>
                                       {option}
                                     </span>
-                                    {selected && <span className="text-xs text-[color:var(--brand-500)]">Selected</span>}
+                                    {selected && <span className="text-[10px] sm:text-xs text-[color:var(--brand-500)]">Selected</span>}
                                   </>
                                 )}
                               </Combobox.Option>
                             ))
                           ) : (
-                            <div className="px-4 py-3 text-[color:var(--neutral-500)]">No matches found.</div>
+                            <div className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[color:var(--neutral-500)]">No matches found.</div>
                           )}
                         </Combobox.Options>
                         {query.trim() && (
                           <button
                             type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[color:var(--brand-600)] hover:underline"
+                            className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs font-semibold text-[color:var(--brand-600)] hover:underline"
                             onClick={handleAddCustomSpecialization}
                           >
                             Add "{query.trim()}"
@@ -256,7 +256,7 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                           <span key={item} className="inline-flex items-center gap-2 rounded-full bg-[color:var(--brand-50)] px-3 py-1 text-xs font-semibold text-[color:var(--brand-700)]">
                             {item}
                             <button type="button" onClick={() => setSpecializations((prev) => prev.filter((value) => value !== item))} className="text-[color:var(--brand-500)] hover:text-[color:var(--brand-700)]">
-                              ×
+                              ï¿½
                             </button>
                           </span>
                         ))}
@@ -279,7 +279,7 @@ export default function AddSupervisorModal({ open, onClose, onSuccess, onToast }
                       disabled={saving}
                       className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {saving ? "Saving…" : "Save"}
+                      {saving ? "Savingï¿½" : "Save"}
                     </button>
                   </div>
                 </form>

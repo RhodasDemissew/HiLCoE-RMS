@@ -318,13 +318,13 @@ export default function UsersWorkspace() {
     <section className="space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[color:var(--neutral-900)]">Users</h1>
-          <p className="text-sm text-[color:var(--neutral-500)]">
+          <h1 className="text-xl lg:text-2xl font-semibold text-[color:var(--neutral-900)]">Users</h1>
+          <p className="text-xs lg:text-sm text-[color:var(--neutral-500)]">
             Queue eligible Researchers and manage verification readiness before accounts are created.
           </p>
         </div>
         {activeTab === "Researchers" && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <button
               type="button"
               className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
@@ -342,7 +342,7 @@ export default function UsersWorkspace() {
           </div>
         )}
         {activeTab === "supervisors" && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <button
               type="button"
               className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
@@ -360,7 +360,7 @@ export default function UsersWorkspace() {
           </div>
         )}
         {activeTab === "examiners" && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <button
               type="button"
               className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)]"
@@ -386,9 +386,9 @@ export default function UsersWorkspace() {
         )}
       </header>
 
-      <div className="rounded-3xl bg-white p-6 shadow-soft">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-6 border-b border-[color:var(--neutral-200)] pb-3 text-sm font-semibold">
+      <div className="rounded-2xl lg:rounded-3xl bg-white p-4 lg:p-6 shadow-soft">
+        <div className="flex flex-col gap-3 lg:gap-4">
+          <div className="flex items-center gap-3 lg:gap-6 border-b border-[color:var(--neutral-200)] pb-2 lg:pb-3 text-xs lg:text-sm font-semibold overflow-x-auto">
             {[
               { key: "Researchers", label: "Researchers" },
               { key: "supervisors", label: "Supervisors" },
@@ -415,7 +415,7 @@ export default function UsersWorkspace() {
           {activeTab === "Researchers" && (
             <>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex w-full flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center">
                   <select
                     className="h-11 rounded-xl border border-[color:var(--neutral-200)] bg-white px-4 text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-500)] focus:outline-none"
                     value={departmentFilter}

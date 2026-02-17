@@ -114,7 +114,7 @@ export default function AssignSupervisorModal({ open, student, onClose, onAssign
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center px-4 py-10">
+          <div className="flex min-h-full items-center justify-center px-2 sm:px-4 py-4 sm:py-10">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-200"
@@ -124,26 +124,26 @@ export default function AssignSupervisorModal({ open, student, onClose, onAssign
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl">
-                <Dialog.Title className="text-xl font-semibold text-[color:var(--neutral-900)]">
+              <Dialog.Panel className="w-full max-w-lg rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 lg:p-8 shadow-2xl mx-2 sm:mx-0">
+                <Dialog.Title className="text-lg sm:text-xl font-semibold text-[color:var(--neutral-900)]">
                   Assign Supervisor
                 </Dialog.Title>
-                <p className="mt-1 text-sm text-[color:var(--neutral-500)]">
+                <p className="mt-1 text-xs sm:text-sm text-[color:var(--neutral-500)]">
                   Select a supervisor for <span className="font-semibold text-[color:var(--neutral-800)]">{fullName}</span>.
                 </p>
 
-                <div className="mt-5 space-y-4">
+                <div className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
                   <input
                     type="text"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search by name or email"
-                    className="w-full rounded-xl border border-[color:var(--neutral-200)] px-4 py-2.5 text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-500)] focus:outline-none"
+                    className="w-full rounded-xl border border-[color:var(--neutral-200)] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-[color:var(--neutral-700)] focus:border-[color:var(--brand-500)] focus:outline-none"
                   />
 
-                  <div className="max-h-60 overflow-y-auto rounded-2xl border border-[color:var(--neutral-200)]">
+                  <div className="max-h-60 overflow-y-auto rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)]">
                     {loading ? (
-                      <div className="px-4 py-10 text-center text-sm text-[color:var(--neutral-500)]">Loading supervisors…</div>
+                      <div className="px-3 sm:px-4 py-8 sm:py-10 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">Loading supervisors…</div>
                     ) : filtered.length ? (
                       <ul className="divide-y divide-[color:var(--neutral-100)]">
                         {filtered.map((supervisor) => {
@@ -154,7 +154,7 @@ export default function AssignSupervisorModal({ open, student, onClose, onAssign
                             <li key={supKeyStr}>
                               <button
                                 type="button"
-                                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition ${
+                                className={`flex w-full items-center justify-between px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm transition ${
                                   isSelected
                                     ? "bg-[color:var(--brand-50)] text-[color:var(--brand-700)]"
                                     : "hover:bg-[color:var(--neutral-50)]"
@@ -163,10 +163,10 @@ export default function AssignSupervisorModal({ open, student, onClose, onAssign
                               >
                                 <span>
                                   <span className="block font-semibold">{supervisor.name}</span>
-                                  <span className="block text-xs text-[color:var(--neutral-500)]">{supervisor.email}</span>
+                                  <span className="block text-[10px] sm:text-xs text-[color:var(--neutral-500)]">{supervisor.email}</span>
                                 </span>
                                 <span
-                                  className={`h-5 w-5 rounded-full border ${
+                                  className={`h-4 w-4 sm:h-5 sm:w-5 rounded-full border ${
                                     isSelected
                                       ? "border-[color:var(--brand-600)] bg-[color:var(--brand-600)]"
                                       : "border-[color:var(--neutral-300)]"
@@ -178,21 +178,21 @@ export default function AssignSupervisorModal({ open, student, onClose, onAssign
                         })}
                       </ul>
                     ) : (
-                      <div className="px-4 py-10 text-center text-sm text-[color:var(--neutral-500)]">
+                      <div className="px-3 sm:px-4 py-8 sm:py-10 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">
                         No supervisors found.
                       </div>
                     )}
                   </div>
 
                   {error && (
-                    <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</p>
+                    <p className="rounded-lg sm:rounded-xl bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-red-600">{error}</p>
                   )}
                 </div>
 
-                <div className="mt-6 flex items-center justify-end gap-3">
+                <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3">
                   <button
                     type="button"
-                    className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-100)]"
+                    className="rounded-xl border border-[color:var(--neutral-200)] px-4 py-2 text-xs sm:text-sm font-semibold text-[color:var(--neutral-600)] hover:bg-[color:var(--neutral-100)] w-full sm:w-auto"
                     onClick={handleClose}
                   >
                     Cancel
@@ -200,7 +200,7 @@ export default function AssignSupervisorModal({ open, student, onClose, onAssign
                   <button
                     type="button"
                     disabled={assigning}
-                    className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-xl bg-[color:var(--brand-600)] px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto"
                     onClick={handleConfirm}
                   >
                     {assigning ? "Assigning…" : "Confirm"}

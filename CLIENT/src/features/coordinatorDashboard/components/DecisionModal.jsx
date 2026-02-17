@@ -77,46 +77,47 @@ export default function DecisionModal({
   return (
     <div className="absolute top-0 left-0 right-0 z-50">
       {/* Small inline popup */}
-      <div className="bg-white rounded-lg shadow-lg border p-3 max-w-xs">
+      <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-[color:var(--neutral-200)] p-3 sm:p-4 max-w-full sm:max-w-xs">
         {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-gray-900">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <h3 className="text-xs sm:text-sm font-semibold text-[color:var(--neutral-900)]">
             {decisionInfo.title}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xs"
+            className="text-[color:var(--neutral-400)] hover:text-[color:var(--neutral-600)] text-base sm:text-lg p-1"
+            aria-label="Close"
           >
             ✕
           </button>
         </div>
 
         {/* Notes input */}
-        <div className="mb-3">
+        <div className="mb-3 sm:mb-4">
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={decisionInfo.placeholder}
-            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
-            rows={2}
+            className="w-full rounded-lg sm:rounded-xl border border-[color:var(--neutral-200)] px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-[color:var(--neutral-800)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-500)] focus:border-[color:var(--brand-500)] resize-none"
+            rows={3}
             autoFocus
           />
         </div>
 
         {/* Actions */}
-        <div className="flex gap-1 justify-end">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 justify-end">
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors disabled:opacity-50"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[color:var(--neutral-600)] bg-[color:var(--neutral-100)] rounded-lg sm:rounded-xl hover:bg-[color:var(--neutral-200)] transition-colors disabled:opacity-50 w-full sm:w-auto"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-[color:var(--brand-600)] rounded-lg sm:rounded-xl hover:bg-[color:var(--brand-500)] transition-colors disabled:opacity-50 w-full sm:w-auto"
           >
             {isSubmitting ? 'Processing...' : decisionInfo.buttonText}
           </button>

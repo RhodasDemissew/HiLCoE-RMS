@@ -9,12 +9,12 @@ export default function About() {
           <div className="order-2 lg:order-1 space-y-6 text-center lg:text-left">
             <div className="flex items-center justify-center lg:justify-start gap-4">
               <div className="w-16 h-1 bg-blue-500"/>
-              <span className="text-2xl md:text-3xl font-bold tracking-wider text-black">
+              <span className="text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-black">
                 {about.title}
               </span>
             </div>
             <div className="w-20 h-1 bg-blue-500 mx-auto lg:mx-0"/>
-            <div className="space-y-4 md:space-y-5 text-lg md:text-xl text-[color:var(--neutral-700)] max-w-2xl mx-auto lg:mx-0">
+            <div className="space-y-3 sm:space-y-4 md:space-y-5 text-base sm:text-lg md:text-xl text-[color:var(--neutral-700)] max-w-2xl mx-auto lg:mx-0">
               {about.paragraphs.map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}

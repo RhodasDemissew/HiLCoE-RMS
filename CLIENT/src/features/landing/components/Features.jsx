@@ -20,8 +20,8 @@ function FeatureCard({ icon, title, copy }) {
           decoding="async"
         />
       </div>
-      <h3 className="mt-6 text-2xl font-bold text-[color:var(--neutral-900)]">{title}</h3>
-      <p className="mt-2 max-w-[22ch] text-xl text-[color:var(--neutral-600)]">{copy}</p>
+      <h3 className="mt-4 sm:mt-6 text-xl sm:text-2xl font-bold text-[color:var(--neutral-900)]">{title}</h3>
+      <p className="mt-1 sm:mt-2 max-w-[22ch] text-base sm:text-xl text-[color:var(--neutral-600)]">{copy}</p>
     </article>
   );
 }

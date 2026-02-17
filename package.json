@@ -12,7 +12,11 @@
         "dev": "concurrently \"npm:api:dev\" \"npm:client:dev\"",
         "checker:dev": "py -3.8 -m uvicorn app.main:app --app-dir CHECKER --host 0.0.0.0 --port 8001 --reload",
         "checker:docker": "docker build -t msc-format-checker ./CHECKER && docker run --rm -p 8001:8001 msc-format-checker",
-        "dev:all": "concurrently \"npm:api:dev\" \"npm:client:dev\" \"npm:checker:dev\""
+        "dev:all": "concurrently \"npm:api:dev\" \"npm:client:dev\" \"npm:checker:dev\"",
+        "clean": "npm run clean:node && npm run clean:python && npm run clean:build",
+        "clean:node": "npm cache clean --force && cd API && npm cache clean --force && cd ../CLIENT && npm cache clean --force",
+        "clean:python": "powershell -Command \"Get-ChildItem -Path . -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force\"",
+        "clean:build": "powershell -Command \"if (Test-Path 'CLIENT/dist') { Remove-Item -Recurse -Force 'CLIENT/dist' }; if (Test-Path 'API/dist') { Remove-Item -Recurse -Force 'API/dist' }\""
     },
     "devDependencies": {
         "concurrently": "^8.2.2"

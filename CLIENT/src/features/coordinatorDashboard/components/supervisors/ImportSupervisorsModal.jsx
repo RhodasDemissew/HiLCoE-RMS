@@ -6,38 +6,38 @@ import { parseSupervisorsFile } from "../../utils/supervisorUtils.js";
 function PreviewTable({ entries, errors }) {
   if (!entries.length) {
     return (
-      <div className="rounded-2xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-5 py-8 text-center text-sm text-[color:var(--neutral-500)]">
+      <div className="rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)] bg-[color:var(--neutral-50)] px-3 sm:px-4 lg:px-5 py-6 sm:py-8 text-center text-xs sm:text-sm text-[color:var(--neutral-500)]">
         {errors.length ? 'Fix the issues below and re-import.' : 'Upload a file to preview records.'}
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[color:var(--neutral-200)]">
+    <div className="overflow-hidden rounded-xl sm:rounded-2xl border border-[color:var(--neutral-200)]">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-[color:var(--neutral-200)] text-left">
-          <thead className="bg-[color:var(--neutral-50)] text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
+          <thead className="bg-[color:var(--neutral-50)] text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[color:var(--neutral-500)]">
             <tr>
-              <th className="px-4 py-3">Full Name</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Supervisor ID</th>
-              <th className="px-4 py-3">Specializations</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">Full Name</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 hidden sm:table-cell">Email</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">Supervisor ID</th>
+              <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 hidden lg:table-cell">Specializations</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[color:var(--neutral-100)] text-sm text-[color:var(--neutral-700)]">
+          <tbody className="divide-y divide-[color:var(--neutral-100)] text-xs sm:text-sm text-[color:var(--neutral-700)]">
             {entries.slice(0, 10).map((entry) => (
               <tr key={`${entry.email}-${entry.supervisorId}`}>
-                <td className="px-4 py-3">{[entry.firstName, entry.middleName, entry.lastName].filter(Boolean).join(' ')}</td>
-                <td className="px-4 py-3 text-[color:var(--brand-600)]">{entry.email}</td>
-                <td className="px-4 py-3 font-semibold">{entry.supervisorId}</td>
-                <td className="px-4 py-3">{entry.specializations.join(', ')}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{[entry.firstName, entry.middleName, entry.lastName].filter(Boolean).join(' ')}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-[color:var(--brand-600)] hidden sm:table-cell">{entry.email}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">{entry.supervisorId}</td>
+                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 hidden lg:table-cell">{entry.specializations.join(', ')}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {entries.length > 10 && (
-        <div className="px-4 py-2 text-xs text-[color:var(--neutral-500)]">
+        <div className="px-3 sm:px-4 py-2 text-[10px] sm:text-xs text-[color:var(--neutral-500)]">
           Showing first 10 of {entries.length} rows.
         </div>
       )}
@@ -121,7 +121,7 @@ export default function ImportSupervisorsModal({ open, onClose, onSuccess, onToa
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center px-4 py-10">
+          <div className="flex min-h-full items-center justify-center px-2 sm:px-4 py-4 sm:py-10">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-200"
@@ -131,33 +131,33 @@ export default function ImportSupervisorsModal({ open, onClose, onSuccess, onToa
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-3xl rounded-3xl bg-white p-8 shadow-2xl">
-                <Dialog.Title className="text-xl font-semibold text-[color:var(--neutral-900)]">
+              <Dialog.Panel className="w-full max-w-3xl rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 lg:p-8 shadow-2xl mx-2 sm:mx-0">
+                <Dialog.Title className="text-lg sm:text-xl font-semibold text-[color:var(--neutral-900)]">
                   Import Supervisors
                 </Dialog.Title>
-                <p className="mt-1 text-sm text-[color:var(--neutral-500)]">
+                <p className="mt-1 text-xs sm:text-sm text-[color:var(--neutral-500)]">
                   Upload a CSV or Excel file with supervisor details.
                 </p>
 
-                <div className="mt-6 space-y-5">
+                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-5">
                   <div>
-                    <label className="block text-sm font-semibold text-[color:var(--neutral-800)]">
+                    <label className="block text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">
                       Upload file
                     </label>
                     <input
                       type="file"
                       accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                      className="mt-2 block w-full cursor-pointer rounded-xl border border-dashed border-[color:var(--neutral-300)] bg-[color:var(--neutral-50)] px-4 py-10 text-center text-sm text-[color:var(--neutral-500)] hover:border-[color:var(--brand-500)]"
+                      className="mt-2 block w-full cursor-pointer rounded-xl border border-dashed border-[color:var(--neutral-300)] bg-[color:var(--neutral-50)] px-3 sm:px-4 py-6 sm:py-10 text-center text-xs sm:text-sm text-[color:var(--neutral-500)] hover:border-[color:var(--brand-500)]"
                       onChange={handleFileChange}
                     />
                     {fileName && (
-                      <p className="mt-2 text-xs text-[color:var(--neutral-500)]">Selected: {fileName}</p>
+                      <p className="mt-2 text-[10px] sm:text-xs text-[color:var(--neutral-500)]">Selected: {fileName}</p>
                     )}
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[color:var(--neutral-50)] px-4 py-3 text-sm text-[color:var(--neutral-600)]">
                     <span>
-                      Valid rows: <strong>{summary.count}</strong> · Errors: <strong>{summary.errors}</strong>
+                      Valid rows: <strong>{summary.count}</strong> ï¿½ Errors: <strong>{summary.errors}</strong>
                     </span>
                     <label className="flex items-center gap-2 text-xs font-semibold text-[color:var(--neutral-600)]">
                       Import mode
@@ -203,7 +203,7 @@ export default function ImportSupervisorsModal({ open, onClose, onSuccess, onToa
                     className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--brand-500)] disabled:cursor-not-allowed disabled:opacity-60"
                     onClick={handleImport}
                   >
-                    {uploading ? "Importing…" : "Import"}
+                    {uploading ? "Importingï¿½" : "Import"}
                   </button>
                 </div>
               </Dialog.Panel>

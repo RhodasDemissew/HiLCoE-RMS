@@ -55,36 +55,36 @@ export default function ScheduleSynopsis() {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold text-[color:var(--neutral-900)]">Schedule Synopsis Submission</h1>
-        <p className="text-sm text-[color:var(--neutral-600)]">Pick researchers and set a due date. They will be notified.</p>
+        <h1 className="text-xl sm:text-2xl font-semibold text-[color:var(--neutral-900)]">Schedule Synopsis Submission</h1>
+        <p className="text-xs sm:text-sm text-[color:var(--neutral-600)]">Pick researchers and set a due date. They will be notified.</p>
       </header>
 
-      <form onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-soft space-y-4">
-        <div className="grid gap-4 sm:grid-cols-3">
+      <form onSubmit={handleSubmit} className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-soft space-y-3 sm:space-y-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
           <label className="block">
-            <span className="text-sm font-semibold text-[color:var(--neutral-800)]">Due date</span>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 py-2 text-sm" required />
+            <span className="text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">Due date</span>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 py-2 text-xs sm:text-sm" required />
           </label>
           <div className="sm:col-span-2">
             <label className="block">
-              <span className="text-sm font-semibold text-[color:var(--neutral-800)]">Instructions (optional)</span>
-              <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g., upload PDF only" className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 py-2 text-sm" />
+              <span className="text-xs sm:text-sm font-semibold text-[color:var(--neutral-800)]">Instructions (optional)</span>
+              <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g., upload PDF only" className="mt-1 w-full rounded-xl border border-[color:var(--neutral-200)] px-3 py-2 text-xs sm:text-sm" />
             </label>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-[color:var(--neutral-600)]">Selected: <span className="font-semibold">{selectedCount}</span></div>
-          <button type="submit" disabled={submitting} className="rounded-xl bg-[color:var(--brand-600)] px-5 py-2 text-sm font-semibold text-white disabled:opacity-60">{submitting ? 'Scheduling…' : 'Schedule'}</button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0">
+          <div className="text-xs sm:text-sm text-[color:var(--neutral-600)]">Selected: <span className="font-semibold">{selectedCount}</span></div>
+          <button type="submit" disabled={submitting} className="rounded-xl bg-[color:var(--brand-600)] px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white disabled:opacity-60 w-full sm:w-auto">{submitting ? 'Scheduling…' : 'Schedule'}</button>
         </div>
-        {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</div>}
-        {ok && <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{ok}</div>}
+        {error && <div className="rounded-xl bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-red-600">{error}</div>}
+        {ok && <div className="rounded-xl bg-emerald-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-emerald-700">{ok}</div>}
       </form>
 
-      <div className="rounded-3xl bg-white p-6 shadow-soft">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[color:var(--neutral-900)]">Researchers</h2>
+      <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-soft">
+        <div className="mb-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0">
+          <h2 className="text-xs sm:text-sm font-semibold text-[color:var(--neutral-900)]">Researchers</h2>
           <button type="button" className="text-xs font-semibold text-[color:var(--brand-600)] hover:underline" onClick={() => {
             const next = {}; filtered.forEach((p) => (next[p._id] = true)); setSelected(next);
           }}>Select all</button>
